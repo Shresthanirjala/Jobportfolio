@@ -4,6 +4,9 @@ import mongoose from "mongoose";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { errorMiddleware } from "./middlewares/error.js";
+import cloudinary from "cloudinary";
+import fileUpload from "express-fileupload";
+import userRouter from "./routes/userRouter.js";
 
 // Load environment variables
 dotenv.config();
@@ -23,7 +26,14 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: "/tmp/",
+  })
+);
 
+app.use("/api/v1/user", userRouter);
 // Connect to MongoDB
 mongoose
   .connect(process.env.MONGODB_URI)
@@ -38,10 +48,13 @@ app.get("/", (req, res) => {
   res.send("hello Nirjala");
 });
 
-app.use(errorMiddleware)
-
+app.use(errorMiddleware);
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-
