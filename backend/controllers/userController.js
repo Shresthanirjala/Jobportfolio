@@ -89,7 +89,7 @@ export const login = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("All Fields are required.", 400));
   }
   const user = await User.findOne({ email }).select("+password ");
- 
+
   if (!user) {
     return next(new ErrorHandler("Invalid email or password.", 400));
   }
@@ -104,4 +104,17 @@ export const login = catchAsyncError(async (req, res, next) => {
   console.log("User Role in DB:", user.role);
   console.log("Role from Request:", role);
   sendToken(user, 200, res, "User logged is successfully.");
+});
+
+export const logout = catchAsyncError(async (req, res, next) => {
+  res
+    .status(200)
+    .cookie("token", "", {
+      expires: new Date(Date.now()),
+      httpOnly: true,
+    })
+    .json({
+      success: true,
+      message: "Logged out successfully,",
+    });
 });
