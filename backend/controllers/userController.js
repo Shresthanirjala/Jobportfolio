@@ -126,3 +126,43 @@ export const getUser = catchAsyncError(async (req, res, next) => {
     user,
   });
 });
+
+export const updateProfile = catchAsyncError(async (req, res, next) => {
+  const newUserData = {
+    name: req.body.name,
+    email: req.body.email,
+    phone: req.body.phone,
+    address: req.body.address,
+    coverLetter: req.body.coverLetter,
+    niches: {
+      firstNiche: req.body.firstNiche,
+      secondNiche: req.body.secondNiche,
+      thirdNiche: req.body.thirdNiche,
+    },
+  };
+  const { firstNiche, secondNiche, thirdNiche } = newUserData.niches;
+  if (
+    req.user.role === "job Seeker" &&
+    (!firstNiche || !secondNiche || !thirdNiche)
+  ) {
+    return next(
+      new ErrorHandler("Please provide your all preferred job niches.", 400)
+    );
+  }
+  if (req.files) {
+    const resume = req.files.resume;
+    if (resume) {
+      const currentResumeId = req.user.resume.public_id;
+      if (currentResumeId) {
+        await cloudinary.uploader.destroy(currentResumeId);
+      }
+      const newResume = await cloudinary.uploader.upload(resume.tempFilePath, {
+        folder: "Job_Seeker_resume",
+      });
+      newUserData.resume = {
+        public_id: newResume.public_id,
+        url: newResume.secure_url,
+      };
+    }
+  }
+});
