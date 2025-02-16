@@ -165,4 +165,15 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
       };
     }
   }
+
+  const user = await User.findByIdAndUpdate(req.user.id, newUserData,{
+    new: true,
+    runValidators: true,
+    useFindAndModify: false,
+  });
+  res.status(200).json({
+    success: true,
+    user,
+    message: "Profile updated.",
+  });
 });
