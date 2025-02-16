@@ -88,8 +88,8 @@ export const login = catchAsyncError(async (req, res, next) => {
   if (!role || !email || !password) {
     return next(new ErrorHandler("All Fields are required.", 400));
   }
-  const user = await User.findOne({ email }).select("password");
-  console.log(email);
+  const user = await User.findOne({ email }).select("+password ");
+ 
   if (!user) {
     return next(new ErrorHandler("Invalid email or password.", 400));
   }
