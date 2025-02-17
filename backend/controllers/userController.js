@@ -177,3 +177,19 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
     message: "Profile updated.",
   });
 });
+
+export const updatePassword = catchAsyncError(async(req,res,next)=>{
+  const user = await User.findById(req.user.id).select("password");
+  const isPasswordMatched = await user.comparePassword(req.body.oldPassword);
+
+  if (!isPasswordMatched){
+    return next(new ErrorHandler("Old password is incorrect.", 400));
+  }
+  if(req.body.newPassword !== req.body.confirmPassword){
+    return next(new ErrorHandler("New Password & confirm password do not matched.",400));
+  }
+
+  user.password = req.body.newPassword;
+  await user.save();
+  sendToken(user,200,res, "password updated successfully,");
+});
