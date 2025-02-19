@@ -79,4 +79,31 @@ export const postJob = catchAsyncError(async (req, res, next) => {
     message: "Job posted successfully!",
     job: newJob,
   });
+
+
+const postedBy = req.user._id;
+const job = await Job.create({
+  title,
+  jobType,
+  location,
+  companyName,
+  introduction,
+  responsibilities,
+  qualifications,
+  offers,
+  salary,
+  hiringMultipleCandidates,
+  personalWebsites: {
+    title: personalWebsitesTitle,
+    url: personalWebsitesUrl,
+  },
+
+  jobNiche,
+  postedBy,
+});
+res.status(201).json({
+  success: true,
+  message: "Job Posted Successfully.",
+  job,
+})
 });
