@@ -1,6 +1,6 @@
 import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import ErrorHandler from "../middlewares/error.js";
-import { Job } from "../models/jobSchema.js"; // Assuming Job model is present
+import { Job } from "../models/jobSchema.js";
 
 export const postJob = catchAsyncError(async (req, res, next) => {
   const {
@@ -14,13 +14,10 @@ export const postJob = catchAsyncError(async (req, res, next) => {
     offers,
     salary,
     hiringMultipleCandidates,
-    personalWebsitesTitle,
-    personalWebsitesUrl,
+    personalWebsiteTitle,
+    personalWebsiteUrl,
     jobNiche,
-    newsLettersSent,
   } = req.body;
-
-  // Check if any required fields are missing
   if (
     !title ||
     !jobType ||
@@ -30,32 +27,23 @@ export const postJob = catchAsyncError(async (req, res, next) => {
     !responsibilities ||
     !qualifications ||
     !salary ||
-    !jobNiche ||
-    !newsLettersSent
+    !jobNiche
   ) {
-    return next(new ErrorHandler("Please fill all fields", 400));
+    return next(new ErrorHandler("Please provide full job details.", 400));
   }
-
-  // Additional validation for personal websites
   if (
-    (personalWebsitesTitle && !personalWebsitesUrl) ||
-    (!personalWebsitesTitle && personalWebsitesUrl)
+    (personalWebsiteTitle && !personalWebsiteUrl) ||
+    (!personalWebsiteTitle && personalWebsiteUrl)
   ) {
     return next(
       new ErrorHandler(
-        "Both personalWebsitesTitle and personalWebsitesUrl are required together",
+        "Provide both the website url and title, or leave both blank.",
         400
       )
     );
   }
-
-  // Example: Ensure salary is a valid number
-  if (isNaN(salary) || salary <= 0) {
-    return next(new ErrorHandler("Please provide a valid salary", 400));
-  }
-
-  // Proceed with job posting if all validations pass
-  const newJob = new Job({
+  const postedBy = req.user._id;
+  const job = await Job.create({
     title,
     jobType,
     location,
@@ -66,44 +54,57 @@ export const postJob = catchAsyncError(async (req, res, next) => {
     offers,
     salary,
     hiringMultipleCandidates,
-    personalWebsitesTitle,
-    personalWebsitesUrl,
+    personalWebsite: {
+      title: personalWebsiteTitle,
+      url: personalWebsiteUrl,
+    },
     jobNiche,
-    newsLettersSent,
+    postedBy,
   });
-
-  await newJob.save();
-
   res.status(201).json({
     success: true,
-    message: "Job posted successfully!",
-    job: newJob,
+    message: "Job posted successfully.",
+    job,
+  });
+});
+
+export const  getAllJobs = catchAsyncError(async(req,res,next)=>{
+
+  const {city, niche, searchKeyword} = req.query;
+  const query = {};
+  if(city){
+    query.location = city;
+
+  }
+  if(niche){
+    query.jobNiche = niche
+  }
+  if(searchKeyword){
+    query.$or = [
+      {title: {$regex: searchKeyword, $options: "i"}},
+      {companyName: {$regex: searchKeyword, $options: "i"}},
+      {introduction: {$regex: searchKeyword, $options: "i"}},
+      
+
+    ];
+  };
+
+  const jobs = await Job.find(query)
+  res.status(200).json({
+    success: true,
+    jobs,
+    count: jobs.length,
   });
 
-
-const postedBy = req.user._id;
-const job = await Job.create({
-  title,
-  jobType,
-  location,
-  companyName,
-  introduction,
-  responsibilities,
-  qualifications,
-  offers,
-  salary,
-  hiringMultipleCandidates,
-  personalWebsites: {
-    title: personalWebsitesTitle,
-    url: personalWebsitesUrl,
-  },
-
-  jobNiche,
-  postedBy,
-});
-res.status(201).json({
-  success: true,
-  message: "Job Posted Successfully.",
-  job,
 })
-});
+export const getMyJobs  = catchAsyncError(async(req,res,next)=>{
+  
+})
+export const deleteJobs  = catchAsyncError(async(req,res,next)=>{
+  
+})
+export const getASingleJob  = catchAsyncError(async(req,res,next)=>{
+  
+})
+
+

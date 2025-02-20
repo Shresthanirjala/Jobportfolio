@@ -9,6 +9,10 @@ const jobSchema = new mongoose.Schema({
     required: true,
     enum: ["Full-time", "Part-time"],
   },
+  location: {
+    type: String,
+    required: true,
+  },
   companyName: {
     type: String,
     required: true,
@@ -16,9 +20,9 @@ const jobSchema = new mongoose.Schema({
   introduction: {
     type: String,
   },
-  responsibilities:{
+  responsibilities: {
     type: String,
-    required: true
+    required: true,
   },
   qualifications: {
     type: String,
@@ -33,13 +37,11 @@ const jobSchema = new mongoose.Schema({
   },
   hiringMultipleCandidates: {
     type: String,
-    default: "no",
     enum: ["Yes", "No"],
   },
   personalWebsites: {
     title: String,
     url: String,
-    
   },
   jobNiche: {
     type: String,
