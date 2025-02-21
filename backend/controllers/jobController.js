@@ -98,9 +98,26 @@ export const  getAllJobs = catchAsyncError(async(req,res,next)=>{
 
 })
 export const getMyJobs  = catchAsyncError(async(req,res,next)=>{
+  const myJobs = await Job.find({postedBy: req.user._id});
+  res.status(200).json({
+    success: true,
+    myJobs,
+
+
+  });
   
-})
+});
 export const deleteJobs  = catchAsyncError(async(req,res,next)=>{
+  const {id} = req.params;
+  const job = await Job.findById(id);
+  if(!job){
+    return next(new ErrorHandler("Oops!! Job not FOund.", 404));
+  }
+  await job.deleteOne();
+  res.status(200).json({
+    succcess: true,
+    message: "Job deleted.",
+  })
   
 })
 export const getASingleJob  = catchAsyncError(async(req,res,next)=>{
