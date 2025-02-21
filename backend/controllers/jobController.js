@@ -68,60 +68,57 @@ export const postJob = catchAsyncError(async (req, res, next) => {
   });
 });
 
-export const  getAllJobs = catchAsyncError(async(req,res,next)=>{
-
-  const {city, niche, searchKeyword} = req.query;
+export const getAllJobs = catchAsyncError(async (req, res, next) => {
+  const { city, niche, searchKeyword } = req.query;
   const query = {};
-  if(city){
+  if (city) {
     query.location = city;
-
   }
-  if(niche){
-    query.jobNiche = niche
+  if (niche) {
+    query.jobNiche = niche;
   }
-  if(searchKeyword){
+  if (searchKeyword) {
     query.$or = [
-      {title: {$regex: searchKeyword, $options: "i"}},
-      {companyName: {$regex: searchKeyword, $options: "i"}},
-      {introduction: {$regex: searchKeyword, $options: "i"}},
-      
-
+      { title: { $regex: searchKeyword, $options: "i" } },
+      { companyName: { $regex: searchKeyword, $options: "i" } },
+      { introduction: { $regex: searchKeyword, $options: "i" } },
     ];
-  };
+  }
 
-  const jobs = await Job.find(query)
+  const jobs = await Job.find(query);
   res.status(200).json({
     success: true,
     jobs,
     count: jobs.length,
   });
-
-})
-export const getMyJobs  = catchAsyncError(async(req,res,next)=>{
-  const myJobs = await Job.find({postedBy: req.user._id});
+});
+export const getMyJobs = catchAsyncError(async (req, res, next) => {
+  const myJobs = await Job.find({ postedBy: req.user._id });
   res.status(200).json({
     success: true,
     myJobs,
-
-
   });
-  
 });
-export const deleteJobs  = catchAsyncError(async(req,res,next)=>{
-  const {id} = req.params;
+export const deleteJobs = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
   const job = await Job.findById(id);
-  if(!job){
+  if (!job) {
     return next(new ErrorHandler("Oops!! Job not FOund.", 404));
   }
   await job.deleteOne();
   res.status(200).json({
     succcess: true,
     message: "Job deleted.",
-  })
-  
-})
-export const getASingleJob  = catchAsyncError(async(req,res,next)=>{
-  
-})
-
-
+  });
+});
+export const getASingleJob = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
+  const job = await Job.findById(id);
+  if (!job) {
+    return next(new ErrorHandler("Job not found.", 404));
+  }
+  res.status(200).json({
+    success: true,
+    job,
+  });
+});
