@@ -8,6 +8,7 @@ import cloudinary from "cloudinary";
 import fileUpload from "express-fileupload";
 import userRouter from "./routes/userRouter.js";
 import jobRouter from "./routes/jobRouter.js";
+import applicationRouter from "/routes/applicationRouter.js";
 
 // Load environment variables
 dotenv.config();
@@ -36,6 +37,8 @@ app.use(
 
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/job", jobRouter);
+app.use("/api/v1/application", applicationRouter);
+
 // Connect to MongoDB
 mongoose
   .connect(process.env.MONGODB_URI)
