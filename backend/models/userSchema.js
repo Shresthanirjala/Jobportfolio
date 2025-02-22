@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     minLength: [8, "password must contain at least 8 characters"],
-    select: false
+    select: false,
   },
   resume: {
     public_id: String,
@@ -47,7 +47,7 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     required: true,
-    enum: ["job Seeker", "Employer"],
+    enum: ["Job Seeker", "Employer"],
   },
   createdAt: {
     type: Date,
