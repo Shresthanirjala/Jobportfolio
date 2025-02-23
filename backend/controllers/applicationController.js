@@ -1,5 +1,6 @@
 import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import ErrorHandler from "../middlewares/error.js";
+import { Application } from "../models/applicationSchema.js";
 import { Job } from "../models/jobSchema.js";
 import { v2 as cloudinary } from "cloudinary";
 
@@ -7,9 +8,8 @@ export const postApplication = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const { name, email, phone, address, coverLetter } = req.body;
   if (!name || !email || !phone || !address || !coverLetter) {
-    return next(new ErrorHandler("All fields are required,", 400));
+    return next(new ErrorHandler("All fields are required.", 400));
   }
-
   const jobSeekerInfo = {
     id: req.user._id,
     name,
@@ -23,15 +23,15 @@ export const postApplication = catchAsyncError(async (req, res, next) => {
   if (!jobDetails) {
     return next(new ErrorHandler("Job not found.", 404));
   }
-
-  const isAlreadyApplied = await application.findOne({
-    "jobInfo.id": id,
+  const isAlreadyApplied = await Application.findOne({
+    "jobInfo.jobId": id,
     "jobSeekerInfo.id": req.user._id,
   });
   if (isAlreadyApplied) {
-    return next(new ErrorHandler("You have already applied for this job", 400));
+    return next(
+      new ErrorHandler("You have already applied for this job.", 400)
+    );
   }
-
   if (req.files && req.files.resume) {
     const { resume } = req.files;
     try {
@@ -55,7 +55,7 @@ export const postApplication = catchAsyncError(async (req, res, next) => {
     }
   } else {
     if (req.user && !req.user.resume.url) {
-      return next(new ErrorHandler("Please upload you resume", 400));
+      return next(new ErrorHandler("Please upload your resume.", 400));
     }
     jobSeekerInfo.resume = {
       public_id: req.user && req.user.resume.public_id,
@@ -75,7 +75,7 @@ export const postApplication = catchAsyncError(async (req, res, next) => {
     employerInfo,
     jobInfo,
   });
-  res.status(200).json({
+  res.status(201).json({
     success: true,
     message: "Application submitted.",
     application,

@@ -17,8 +17,8 @@ const applicationSchema = new mongoose.Schema({
       validate: [validator.isEmail, "please proide a valid email."],
     },
     address: {
-      ttype: Number,
-      rewuired: true,
+      type: String,
+      required: true,
     },
     resume: {
       public_id: String,
@@ -50,7 +50,7 @@ const applicationSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
-    JobTitle: {
+    jobTitle: {
       type: String,
       required: true,
     },
