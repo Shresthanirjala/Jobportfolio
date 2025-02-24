@@ -9,6 +9,7 @@ import fileUpload from "express-fileupload";
 import userRouter from "./routes/userRouter.js";
 import jobRouter from "./routes/jobRouter.js";
 import applicationRouter from  "./routes/applicationRouter.js";
+import { newsLetterCron } from "./automation/newsLetterCron.js";
 
 // Load environment variables
 dotenv.config();
@@ -39,6 +40,7 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/job", jobRouter);
 app.use("/api/v1/application", applicationRouter);
 
+// newsLetterCron();
 // Connect to MongoDB
 mongoose
   .connect(process.env.MONGODB_URI)
@@ -61,5 +63,5 @@ cloudinary.v2.config({
 });
 // Start the server
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`server is running on PORT ${port}`);
 });
