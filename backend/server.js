@@ -8,7 +8,7 @@ import cloudinary from "cloudinary";
 import fileUpload from "express-fileupload";
 import userRouter from "./routes/userRouter.js";
 import jobRouter from "./routes/jobRouter.js";
-import applicationRouter from  "./routes/applicationRouter.js";
+import applicationRouter from "./routes/applicationRouter.js";
 import { newsLetterCron } from "./automation/newsLetterCron.js";
 
 // Load environment variables
