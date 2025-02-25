@@ -18,6 +18,7 @@ export const postJob = catchAsyncError(async (req, res, next) => {
     personalWebsiteUrl,
     jobNiche,
   } = req.body;
+ 
   if (
     !title ||
     !jobType ||
