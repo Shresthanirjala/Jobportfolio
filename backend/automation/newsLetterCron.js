@@ -5,13 +5,16 @@ import { sendEmail } from "../utils/sendEmail.js";
 
 export const newsLetterCron = () => {
   cron.schedule("*/1 * * * *", async () => {
-    console.log("🕒 Running Cron Automation at:", new Date());
+    console.log(` Running Cron Automation at: ${new Date().toISOString()}`);
 
-    try {
-      const jobs = await Job.find({ newsLettersSent: false });
-      console.log(`✅ Found ${jobs.length} jobs to process`);
+    const jobs = await Job.find({ newsLettersSent: false });
 
-      for (const job of jobs) {
+    for (const job of jobs) {
+      try {
+        console.log(
+          `✅ Found job to process: ${job.title} (Niche: ${job.jobNiche})`
+        );
+
         const filteredUsers = await User.find({
           $or: [
             { "niches.firstNiche": job.jobNiche },
@@ -20,43 +23,28 @@ export const newsLetterCron = () => {
           ],
         });
 
-        console.log(
-          `📢 Target users count for job "${job.title}" (Niche: ${job.jobNiche}): ${filteredUsers.length}`
-        );
-
-        if (filteredUsers.length === 0) {
-          console.log(`⚠️ No matching users found for job: ${job.title}`);
-        }
-        console.log(`📢 Target users count: ${filteredUsers.length}`);
-
+        let emailSent = false;
         for (const user of filteredUsers) {
-          const subject = `Hot Job Alert: ${job.title} in ${job.jobNiche} Available Now`;
-          const message = `Hi ${user.name},\n\nGreat news! A new job that fits your niche has just been posted. The position is for a ${job.title} with ${job.companyName}, and they are looking to hire immediately.\n\nJob Details:\n- **Position:** ${job.title}\n- **Company:** ${job.companyName}\n- **Location:** ${job.location}\n- **Salary:** ${job.salary}\n\nDon’t wait too long! Job openings like these are filled quickly.\n\nBest Regards,\nNicheNest Team`;
+          // console.log(`📧 Preparing to send email to: ${user.email}`);
 
-          console.log(`📨 Sending email to: ${user.email}`);
+          await sendEmail({
+            email: user.email,
+            subject: `Hot Job Alert: ${job.title} Available Now`,
+            message: `Hi ${user.name},\n\nGreat news! A new job that fits your niche has just been posted. The position is for a ${job.title} with ${job.companyName}, and they are looking to hire immediately.\n\nJob Details:\n- **Position:** ${job.title}\n- **Company:** ${job.companyName}\n- **Location:** ${job.location}\n- **Salary:** ${job.salary}\n\nDon’t wait too long! Job openings like these are filled quickly. \n\nWe’re here to support you in your job search. Best of luck!\n\nBest Regards,\nNicheNest Team`,
+          });
 
-          try {
-            await sendEmail({
-              email: user.email,
-              subject,
-              message,
-            });
-            console.log(`✅ Email successfully sent to: ${user.email}`);
-          } catch (emailError) {
-            console.error(
-              `❌ Failed to send email to ${user.email}:`,
-              emailError
-            );
-          }
+          // console.log(`✅ Email successfully sent to: ${user.email}`);
+          emailSent = true;
         }
 
-        // Mark job as sent only if at least one email was attempted
-        job.newsLettersSent = true;
-        await job.save();
-        console.log(`✅ Job marked as sent: ${job.title}`);
+        if (emailSent) {
+          job.newsLettersSent = true;
+          await job.save();
+          console.log(`Job marked as sent: ${job.title}`);
+        }
+      } catch (error) {
+        console.error(" Error processing job:", error);
       }
-    } catch (error) {
-      console.error("❌ ERROR IN NODE CRON:", error);
     }
   });
 };
