@@ -12,7 +12,7 @@ const Hero = () => {
   ];
 
   return (
-    <div className="mt-18 flex flex-col gap-10 justify-center items-center bg-[#f8f5f5] px-4 md:px-10 pt-24">
+    <div className="mt-18 flex flex-col gap-10 justify-center items-center bg-[#f8f5f5] px-4 md:px-10 pt-24 py-[100px]">
       <div className="w-full max-w-[850px]">
         {/* Header Section */}
         <div className="text-[#013954] text-center p-6">
