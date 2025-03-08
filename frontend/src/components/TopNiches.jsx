@@ -17,7 +17,7 @@ const TopNiches = () => {
 
   // React Slick settings
   const settings = {
-    dots: true, // Show dots for navigation
+    dots: false, // Show dots for navigation
     infinite: true, // Infinite loop
     speed: 500, // Transition speed
     slidesToShow: 4, // Number of slides visible at once
@@ -54,13 +54,14 @@ const TopNiches = () => {
             <Slider {...settings}>
               {companies.map((company) => (
                 <div key={company.id} className="bg-[#FFFFFF] rounded-2xl p-4">
-                  <div className="flex justify-center">
+                  <div className="flex justify-center h-[200px]">
                     <img
                       src={company.imgSrc}
                       alt={company.alt}
                       className="w-full h-auto max-w-xs"
                     />
                   </div>
+                  <h1>Nverse technology</h1>
                 </div>
               ))}
             </Slider>
