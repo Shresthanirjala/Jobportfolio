@@ -5,7 +5,7 @@ import HowItWorks from "../components/HowItWorks";
 
 const Home = () => {
   return (
-    <div>
+    <div className="bg-[#f8f5f5]">
       <Hero />
       <HowItWorks />
       <TopNiches />
