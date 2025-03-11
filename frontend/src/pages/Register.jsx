@@ -2,6 +2,8 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const schema = z
   .object({
@@ -13,6 +15,8 @@ const schema = z
       .min(1, "Phone number is required"),
     address: z.string().min(10, "Address must be at least 10 characters"),
     niche1: z.string().min(1, "First niche is required"),
+    niche2: z.string().optional(),
+    niche3: z.string().optional(),
     role: z.string().min(1, "Role is required"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string().min(1, "Confirm password is required"),
@@ -31,15 +35,17 @@ const Register = () => {
 
   const onSubmit = (data) => {
     console.log("Registration Successful:", data);
+    toast.success("Registration Successful!");
   };
 
   return (
     <div className="px-4 md:px-16 lg:px-32 mt-16 md:mt-32 flex flex-col lg:flex-row gap-8 lg:gap-[35px] items-center lg:items-start">
+      <ToastContainer />
       {/* Left Image Section */}
       <div className="w-full lg:w-1/2">
         <img
           src="/images/register.png"
-          className="w-full h-auto  object-cover"
+          className="w-full h-auto object-cover"
           alt="Register"
         />
       </div>
@@ -138,16 +144,16 @@ const Register = () => {
            {/* First Niche */}
            <div className="flex flex-col">
             <label htmlFor="niche2" className="text-xs text-[#023552]">
-              second Niche
+              Second Niche
             </label>
             <input
               type="text"
               placeholder="Enter your first niche"
-              {...register("niche2")}
+              {...register("niche3")}
               className="border p-2 rounded-md w-full text-xs mt-2"
             />
             {errors.niche1 && (
-              <p className="text-red-500 text-xs">{errors.niche1.message}</p>
+              <p className="text-red-500 text-xs">{errors.niche2.message}</p>
             )}
           </div>
            {/* First Niche */}
@@ -162,9 +168,10 @@ const Register = () => {
               className="border p-2 rounded-md w-full text-xs mt-2"
             />
             {errors.niche1 && (
-              <p className="text-red-500 text-xs">{errors.niche1.message}</p>
+              <p className="text-red-500 text-xs">{errors.niche3.message}</p>
             )}
           </div>
+          
 
           {/* Role */}
           <div className="flex flex-col">
@@ -218,7 +225,6 @@ const Register = () => {
             )}
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             className="bg-[#013954] text-white p-2 rounded-md mt-4 hover:bg-[#012a3a]"
@@ -226,14 +232,6 @@ const Register = () => {
             Register
           </button>
         </form>
-
-        {/* Already Have an Account */}
-        <h1 className="text-xs mt-2">
-          Already have an account?{" "}
-          <a href="/login" className="text-[#013954] hover:underline">
-            Login
-          </a>
-        </h1>
       </div>
     </div>
   );
