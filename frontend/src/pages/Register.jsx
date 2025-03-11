@@ -141,12 +141,14 @@ const Register = () => {
             <label htmlFor="role" className="text-xs text-[#023552]">
               Role
             </label>
-            <input
-              type="text"
-              placeholder="Enter your role"
+            <select
               {...register("role")}
               className="border p-2 rounded-md w-full text-xs mt-2"
-            />
+            >
+              <option value="">Select your role</option>
+              <option value="Employer">Employer</option>
+              <option value="Job Seeker">Job Seeker</option>
+            </select>
             {errors.role && (
               <p className="text-red-500 text-xs">{errors.role.message}</p>
             )}
