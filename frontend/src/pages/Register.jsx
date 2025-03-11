@@ -135,6 +135,36 @@ const Register = () => {
               <p className="text-red-500 text-xs">{errors.niche1.message}</p>
             )}
           </div>
+           {/* First Niche */}
+           <div className="flex flex-col">
+            <label htmlFor="niche2" className="text-xs text-[#023552]">
+              second Niche
+            </label>
+            <input
+              type="text"
+              placeholder="Enter your first niche"
+              {...register("niche2")}
+              className="border p-2 rounded-md w-full text-xs mt-2"
+            />
+            {errors.niche1 && (
+              <p className="text-red-500 text-xs">{errors.niche1.message}</p>
+            )}
+          </div>
+           {/* First Niche */}
+           <div className="flex flex-col">
+            <label htmlFor="niche3" className="text-xs text-[#023552]">
+              Third Niche
+            </label>
+            <input
+              type="text"
+              placeholder="Enter your first niche"
+              {...register("niche3")}
+              className="border p-2 rounded-md w-full text-xs mt-2"
+            />
+            {errors.niche1 && (
+              <p className="text-red-500 text-xs">{errors.niche1.message}</p>
+            )}
+          </div>
 
           {/* Role */}
           <div className="flex flex-col">

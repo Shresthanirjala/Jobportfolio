@@ -2,11 +2,13 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const schema = z.object({
   fullName: z.string().min(1, "Full Name is required"),
   email: z.string().email("Invalid email").min(1, "Email is required"),
-  role: z.string().min(1, "Role is required"),
+  role: z.enum(["Employer", "Job Seeker"], { message: "Role is required" }),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -19,16 +21,17 @@ const Login = () => {
 
   const onSubmit = (data) => {
     console.log("Login Successful:", data);
+    toast.success("Login Successful!");
   };
 
   return (
-    <div className="px-4 md:px-16 lg:px-32 mt-16 md:mt-32 flex flex-col lg:flex-row gap-8 lg:gap-[35px] items-center lg:items-start ">
+    <div className="px-4 md:px-16 lg:px-32 mt-16 md:mt-32 flex flex-col lg:flex-row gap-8 lg:gap-[35px] items-center lg:items-start">
       {/* Left Image Section */}
       <div className="w-full lg:w-1/2">
         <img
           src="/images/login.jpg"
           className="w-full h-auto object-cover"
-          alt="Login"
+          alt="Register"
         />
       </div>
 
@@ -39,7 +42,7 @@ const Login = () => {
           Welcome Back!!
         </h1>
         <h1 className="text-xs text-black mt-2">
-          Sign in to continue to your handy hire
+          Sign in to continue to your handie hire
         </h1>
 
         <form
@@ -78,6 +81,24 @@ const Login = () => {
             )}
           </div>
 
+          {/* Role */}
+          <div className="flex flex-col">
+            <label htmlFor="role" className="text-xs text-[#023552]">
+              Role
+            </label>
+            <select
+              {...register("role")}
+              className="border p-2 rounded-md w-full text-xs mt-2"
+            >
+              <option value="">Select your role</option>
+              <option value="Employer">Employer</option>
+              <option value="Job Seeker">Job Seeker</option>
+            </select>
+            {errors.role && (
+              <p className="text-red-500 text-xs">{errors.role.message}</p>
+            )}
+          </div>
+
           {/* Password */}
           <div className="flex flex-col">
             <label htmlFor="password" className="text-xs text-[#023552]">
@@ -103,14 +124,17 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Sign Up Link */}
+        {/* Already Have an Account */}
         <h1 className="text-xs mt-2">
           Don't have an account?{" "}
-          <a href="/register" className="text-[#013954] hover:underline">
+          <a href="/signup" className="text-[#013954] hover:underline">
             Sign up
           </a>
         </h1>
       </div>
+
+      {/* Toast Notification Container */}
+      <ToastContainer />
     </div>
   );
 };
