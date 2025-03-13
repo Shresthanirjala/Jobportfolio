@@ -127,7 +127,7 @@ const Login = () => {
         {/* Already Have an Account */}
         <h1 className="text-xs mt-2">
           Don't have an account?{" "}
-          <a href="/signup" className="text-[#013954] hover:underline">
+          <a href="/register" className="text-[#013954] hover:underline">
             Sign up
           </a>
         </h1>
