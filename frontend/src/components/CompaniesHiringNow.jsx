@@ -83,7 +83,7 @@ const handleRedirect = (id) => {
 }
 
   return (
-    <div className="relative z-10 lg:mt-[100px] mt-[600px]">
+    <div className="relative z-10 lg:mt-[100px] mt-[100px]">
       <div className="bg-[#DBDBE7] w-full h-full py-10">
         <div className="max-w-[1200px] mx-auto px-4">
           <div className="text-center">
