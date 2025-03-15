@@ -1,9 +1,34 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { register, clearAllUserErrors } from "../store/slices/userSlice";
+import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+
+const nichesArray = [
+  "Software Development",
+  "Web Development",
+  "Cybersecurity",
+  "Data Science",
+  "Artificial Intelligence",
+  "Cloud Computing",
+  "DevOps",
+  "Mobile App Development",
+  "Blockchain",
+  "Database Administration",
+  "Network Administration",
+  "UI/UX Design",
+  "Game Development",
+  "IoT (Internet of Things)",
+  "Big Data",
+  "Machine Learning",
+  "IT Project Management",
+  "IT Support and Helpdesk",
+  "Systems Administration",
+  "IT Consulting",
+];
 
 const schema = z
   .object({
@@ -27,21 +52,66 @@ const schema = z
   });
 
 const Register = () => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({ resolver: zodResolver(schema) });
+  const dispatch = useDispatch();
+  const navigateTo = useNavigate();
+  const { loading, isAuthenticated, error, message } = useSelector(
+    (state) => state.user
+  );
 
-  const onSubmit = (data) => {
-    console.log("Registration Successful:", data);
-    toast.success("Registration Successful!");
+  const {
+    register: formRegister,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(schema),
+  });
+
+  const [role, setRole] = useState(""); // Set initial role as empty
+  const [coverLetter, setCoverLetter] = useState("");
+  const [resume, setResume] = useState("");
+
+  const resumeHandler = (e) => {
+    const file = e.target.files[0];
+    setResume(file);
   };
+
+  const onSubmit = async (data) => {
+    console.log(data);
+
+    const formData = new FormData();
+    formData.append("role", data.role);
+    formData.append("name", data.fullName);
+    formData.append("email", data.email);
+    formData.append("phone", data.phone);
+    formData.append("address", data.address);
+    formData.append("password", data.password);
+
+    if (data.role === "Job Seeker") {
+      formData.append("firstNiche", data.niche1);
+      formData.append("secondNiche", data.niche2 || "");
+      formData.append("thirdNiche", data.niche3 || "");
+      formData.append("coverLetter", coverLetter);
+      formData.append("resume", resume);
+    }
+
+    dispatch(register(formData));
+  };
+
+  useEffect(() => {
+    if (error) {
+      console.log('error:', error);
+      toast.error(error);
+      dispatch(clearAllUserErrors());
+    }
+    if (isAuthenticated) {
+      console.log('User authenticated, redirecting...');
+      navigateTo("/");
+    }
+  }, [dispatch, error, loading, isAuthenticated, message]);
 
   return (
     <div className="px-4 md:px-16 lg:px-32 mt-16 md:mt-32 flex flex-col lg:flex-row gap-8 lg:gap-[35px] items-center lg:items-start">
-      <ToastContainer />
-      {/* Left Image Section */}
       <div className="w-full lg:w-1/2">
         <img
           src="/images/register.png"
@@ -50,7 +120,6 @@ const Register = () => {
         />
       </div>
 
-      {/* Right Form Section */}
       <div className="w-full lg:w-1/2">
         <h1 className="text-xs text-[#718B68]">Contact Us</h1>
         <h1 className="text-2xl md:text-3xl text-[#013954] font-bold mt-4 md:mt-8">
@@ -70,7 +139,7 @@ const Register = () => {
             <input
               type="text"
               placeholder="Enter your full name"
-              {...register("fullName")}
+              {...formRegister("fullName")}
               className="border p-2 rounded-md w-full text-xs mt-2"
             />
             {errors.fullName && (
@@ -86,7 +155,7 @@ const Register = () => {
             <input
               type="email"
               placeholder="Enter your email address"
-              {...register("email")}
+              {...formRegister("email")}
               className="border p-2 rounded-md w-full text-xs mt-2"
             />
             {errors.email && (
@@ -102,7 +171,7 @@ const Register = () => {
             <input
               type="tel"
               placeholder="Enter your phone number"
-              {...register("phone")}
+              {...formRegister("phone")}
               className="border p-2 rounded-md w-full text-xs mt-2"
             />
             {errors.phone && (
@@ -118,76 +187,11 @@ const Register = () => {
             <input
               type="text"
               placeholder="Enter your address"
-              {...register("address")}
+              {...formRegister("address")}
               className="border p-2 rounded-md w-full text-xs mt-2"
             />
             {errors.address && (
               <p className="text-red-500 text-xs">{errors.address.message}</p>
-            )}
-          </div>
-
-          {/* First Niche */}
-          <div className="flex flex-col">
-            <label htmlFor="niche1" className="text-xs text-[#023552]">
-              First Niche
-            </label>
-            <input
-              type="text"
-              placeholder="Enter your first niche"
-              {...register("niche1")}
-              className="border p-2 rounded-md w-full text-xs mt-2"
-            />
-            {errors.niche1 && (
-              <p className="text-red-500 text-xs">{errors.niche1.message}</p>
-            )}
-          </div>
-           {/* First Niche */}
-           <div className="flex flex-col">
-            <label htmlFor="niche2" className="text-xs text-[#023552]">
-              Second Niche
-            </label>
-            <input
-              type="text"
-              placeholder="Enter your first niche"
-              {...register("niche3")}
-              className="border p-2 rounded-md w-full text-xs mt-2"
-            />
-            {errors.niche1 && (
-              <p className="text-red-500 text-xs">{errors.niche2.message}</p>
-            )}
-          </div>
-           {/* First Niche */}
-           <div className="flex flex-col">
-            <label htmlFor="niche3" className="text-xs text-[#023552]">
-              Third Niche
-            </label>
-            <input
-              type="text"
-              placeholder="Enter your first niche"
-              {...register("niche3")}
-              className="border p-2 rounded-md w-full text-xs mt-2"
-            />
-            {errors.niche1 && (
-              <p className="text-red-500 text-xs">{errors.niche3.message}</p>
-            )}
-          </div>
-          
-
-          {/* Role */}
-          <div className="flex flex-col">
-            <label htmlFor="role" className="text-xs text-[#023552]">
-              Role
-            </label>
-            <select
-              {...register("role")}
-              className="border p-2 rounded-md w-full text-xs mt-2"
-            >
-              <option value="">Select your role</option>
-              <option value="Employer">Employer</option>
-              <option value="Job Seeker">Job Seeker</option>
-            </select>
-            {errors.role && (
-              <p className="text-red-500 text-xs">{errors.role.message}</p>
             )}
           </div>
 
@@ -199,7 +203,7 @@ const Register = () => {
             <input
               type="password"
               placeholder="Enter your password"
-              {...register("password")}
+              {...formRegister("password")}
               className="border p-2 rounded-md w-full text-xs mt-2"
             />
             {errors.password && (
@@ -215,7 +219,7 @@ const Register = () => {
             <input
               type="password"
               placeholder="Confirm your password"
-              {...register("confirmPassword")}
+              {...formRegister("confirmPassword")}
               className="border p-2 rounded-md w-full text-xs mt-2"
             />
             {errors.confirmPassword && (
@@ -225,9 +229,115 @@ const Register = () => {
             )}
           </div>
 
+          {/* Role */}
+          <div className="flex flex-col">
+            <label htmlFor="role" className="text-xs text-[#023552]">
+              Role
+            </label>
+            <select
+              {...formRegister("role")}
+              onChange={(e) => setRole(e.target.value)} // Handle the role change
+              className="border p-2 rounded-md w-full text-xs mt-2"
+            >
+              <option value="">Select your role</option>
+              <option value="Employer">Employer</option>
+              <option value="Job Seeker">Job Seeker</option>
+            </select>
+            {errors.role && (
+              <p className="text-red-500 text-xs">{errors.role.message}</p>
+            )}
+          </div>
+
+          {/* Conditional Job Seeker Inputs */}
+          {role === "Job Seeker" && (
+            <>
+              {/* Niche Selection (First Niche) */}
+              <div className="flex flex-col">
+                <label htmlFor="niche1" className="text-xs text-[#023552]">
+                  First Niche
+                </label>
+                <select
+                  {...formRegister("niche1")}
+                  className="border p-2 rounded-md w-full text-xs mt-2"
+                >
+                  <option value="">Select your niche</option>
+                  {nichesArray.map((niche, index) => (
+                    <option key={index} value={niche}>
+                      {niche}
+                    </option>
+                  ))}
+                </select>
+                {errors.niche1 && (
+                  <p className="text-red-500 text-xs">
+                    {errors.niche1.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col mt-4">
+                <label htmlFor="niche2" className="text-xs text-[#023552]">
+                  Second Niche (Optional)
+                </label>
+                <select
+                  {...formRegister("niche2")}
+                  className="border p-2 rounded-md w-full text-xs mt-2"
+                >
+                  <option value="">Select your second niche</option>
+                  {nichesArray.map((niche, index) => (
+                    <option key={index} value={niche}>
+                      {niche}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col mt-4">
+                <label htmlFor="niche3" className="text-xs text-[#023552]">
+                  Third Niche (Optional)
+                </label>
+                <select
+                  {...formRegister("niche3")}
+                  className="border p-2 rounded-md w-full text-xs mt-2"
+                >
+                  <option value="">Select your third niche</option>
+                  {nichesArray.map((niche, index) => (
+                    <option key={index} value={niche}>
+                      {niche}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col mt-4">
+                <label htmlFor="coverLetter" className="text-xs text-[#023552]">
+                  Cover Letter
+                </label>
+                <textarea
+                  value={coverLetter}
+                  onChange={(e) => setCoverLetter(e.target.value)}
+                  placeholder="Write your cover letter"
+                  rows={5}
+                  className="border p-2 rounded-md w-full text-xs mt-2"
+                />
+              </div>
+
+              <div className="flex flex-col mt-4">
+                <label htmlFor="resume" className="text-xs text-[#023552]">
+                  Upload Resume
+                </label>
+                <input
+                  type="file"
+                  onChange={resumeHandler}
+                  className="border p-2 rounded-md w-full text-xs mt-2"
+                />
+              </div>
+            </>
+          )}
+
           <button
             type="submit"
             className="bg-[#013954] text-white p-2 rounded-md mt-4 hover:bg-[#012a3a]"
+            disabled={loading}
           >
             Register
           </button>
