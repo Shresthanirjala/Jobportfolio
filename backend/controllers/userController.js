@@ -19,9 +19,9 @@ export const register = catchAsyncError(async (req, res, next) => {
       coverLetter,
     } = req.body;
 
-    if (!name || !email || !phone || !address || !password || !role) {
-      return next(new ErrorHandler("All fields are required.", 400));
-    }
+    // if (!name || !email || !phone || !address || !password || !role) {
+    //   return next(new ErrorHandler("All fields are required.", 400));
+    // }
 
     if (role === "job Seeker" && (!firstNiche || !secondNiche || !thirdNiche)) {
       return next(
@@ -166,7 +166,7 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
     }
   }
 
-  const user = await User.findByIdAndUpdate(req.user.id, newUserData,{
+  const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
     new: true,
     runValidators: true,
     useFindAndModify: false,
@@ -178,18 +178,20 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
   });
 });
 
-export const updatePassword = catchAsyncError(async(req,res,next)=>{
+export const updatePassword = catchAsyncError(async (req, res, next) => {
   const user = await User.findById(req.user.id).select("password");
   const isPasswordMatched = await user.comparePassword(req.body.oldPassword);
 
-  if (!isPasswordMatched){
+  if (!isPasswordMatched) {
     return next(new ErrorHandler("Old password is incorrect.", 400));
   }
-  if(req.body.newPassword !== req.body.confirmPassword){
-    return next(new ErrorHandler("New Password & confirm password do not matched.",400));
+  if (req.body.newPassword !== req.body.confirmPassword) {
+    return next(
+      new ErrorHandler("New Password & confirm password do not matched.", 400)
+    );
   }
 
   user.password = req.body.newPassword;
   await user.save();
-  sendToken(user,200,res, "password updated successfully,");
+  sendToken(user, 200, res, "password updated successfully,");
 });
