@@ -3,7 +3,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast, ToastContainer } from "react-toastify";
+import axios from "axios"; // Import axios
 import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const schema = z.object({
   fullName: z.string().min(1, "Full Name is required"),
@@ -19,9 +21,32 @@ const Login = () => {
     formState: { errors },
   } = useForm({ resolver: zodResolver(schema) });
 
-  const onSubmit = (data) => {
-    console.log("Login Successful:", data);
-    toast.success("Login Successful!");
+  const navigate = useNavigate(); // Initialize useNavigate
+
+  // Update onSubmit function to include API call
+  const onSubmit = async (data) => {
+    try {
+      // Send POST request to the API with login data
+      const response = await axios.post(
+        "http://localhost:3000/api/v1/user/login",
+        data
+      );
+
+      // Assuming the response contains a token, you can store it in localStorage or cookies
+      localStorage.setItem("authToken", response.data.token); // Store the token in localStorage
+
+      toast.success("Login Successful!");
+
+      // Use navigate to redirect after a successful login
+      setTimeout(() => {
+        navigate("/dashboard"); // Redirect to the dashboard or home page
+      }, 2000); // Delay the redirect for 2 seconds for a smoother experience
+    } catch (error) {
+      // If login fails, show error message
+      toast.error(
+        error.response?.data?.message || "Login failed. Please try again."
+      );
+    }
   };
 
   return (
@@ -133,7 +158,6 @@ const Login = () => {
         </h1>
       </div>
 
-      {/* Toast Notification Container */}
       <ToastContainer />
     </div>
   );
