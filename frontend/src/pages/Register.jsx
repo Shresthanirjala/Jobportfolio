@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for React Router v6
 import "react-toastify/dist/ReactToastify.css";
 
 const schema = z
@@ -14,7 +15,7 @@ const schema = z
       .string()
       .regex(/^\d{10}$/, "Phone number must be 10 digits")
       .min(1, "Phone number is required"),
-    address: z.string().min(10, "Address must be at least 10 characters"),
+    address: z.string().min(3, "Address must be at least 3 characters"),
     role: z.string().min(1, "Role is required"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string().min(1, "Confirm password is required"),
@@ -31,6 +32,17 @@ const schema = z
 
 const Register = () => {
   const [role, setRole] = useState("");
+  const [niches] = useState([
+    "Web Development",
+    "Mobile Development",
+    "Data Science",
+    "Graphic Design",
+    "Marketing",
+    "Sales",
+  ]);
+
+  const navigate = useNavigate(); // Initialize navigate
+
   const {
     register,
     handleSubmit,
@@ -40,7 +52,7 @@ const Register = () => {
 
   return (
     <div className="px-4 md:px-16 lg:px-32 mt-16 md:mt-32 flex flex-col lg:flex-row gap-8 lg:gap-[35px] items-center lg:items-start font-sans text-xs">
-      <ToastContainer />
+      <ToastContainer /> {/* ToastContainer for displaying toast messages */}
       <div className="w-full lg:w-1/2">
         <img
           src="/images/register.png"
@@ -59,8 +71,10 @@ const Register = () => {
                 "http://localhost:3000/api/v1/user/register",
                 data
               );
-              toast.success("Registration Successful!");
-              reset();
+              toast.success("Registration Successful!"); // Show success toast
+              reset(); // Reset the form fields
+              // Redirect to login page after successful registration
+              setTimeout(() => navigate("/login"), 2000); // Redirect after 2 seconds to allow the toast to be shown
             } catch (error) {
               toast.error(
                 error.response?.data?.message ||
@@ -155,25 +169,55 @@ const Register = () => {
           {role === "Job Seeker" && (
             <>
               <label className="text-gray-700">First Niche</label>
-              <input
-                type="text"
+              <select
                 {...register("niche1")}
-                placeholder="Enter your first niche"
                 className="border p-2 rounded-md text-xs"
-              />
+              >
+                <option value="">Select your first niche</option>
+                {niches.map((niche, index) => (
+                  <option key={index} value={niche}>
+                    {niche}
+                  </option>
+                ))}
+              </select>
+
               <label className="text-gray-700">Second Niche</label>
-              <input
-                type="text"
+              <select
                 {...register("niche2")}
-                placeholder="Enter your second niche"
+                className="border p-2 rounded-md text-xs"
+              >
+                <option value="">Select your second niche</option>
+                {niches.map((niche, index) => (
+                  <option key={index} value={niche}>
+                    {niche}
+                  </option>
+                ))}
+              </select>
+
+              <label className="text-gray-700">Third Niche</label>
+              <select
+                {...register("niche3")}
+                className="border p-2 rounded-md text-xs"
+              >
+                <option value="">Select your third niche</option>
+                {niches.map((niche, index) => (
+                  <option key={index} value={niche}>
+                    {niche}
+                  </option>
+                ))}
+              </select>
+
+              <label className="text-gray-700">Resume</label>
+              <input
+                type="file"
+                {...register("resume")}
                 className="border p-2 rounded-md text-xs"
               />
-              <label className="text-gray-700">Third Niche</label>
-              <input
-                type="text"
-                {...register("niche3")}
-                placeholder="Enter your third niche"
-                className="border p-2 rounded-md text-xs"
+              <label className="text-gray-700">Cover Letter</label>
+              <textarea
+                {...register("coverLetter")}
+                placeholder="Write your cover letter here..."
+                className="border p-2 rounded-md text-xs h-32"
               />
             </>
           )}
