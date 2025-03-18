@@ -34,12 +34,17 @@ const Login = () => {
 
       // Assuming the response contains a token, you can store it in localStorage or cookies
       localStorage.setItem("authToken", response.data.token); // Store the token in localStorage
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      console.log(
+        "User data saved to localStorage:",
+        localStorage.getItem("user")
+      );
 
       toast.success("Login Successful!");
 
       // Use navigate to redirect after a successful login
       setTimeout(() => {
-        navigate("/dashboard"); // Redirect to the dashboard or home page
+        navigate("/"); // Redirect to the dashboard or home page
       }, 2000); // Delay the redirect for 2 seconds for a smoother experience
     } catch (error) {
       // If login fails, show error message
