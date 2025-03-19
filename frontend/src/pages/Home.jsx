@@ -4,6 +4,7 @@ import TopNiches from "../components/TopNiches";
 import HowItWorks from "../components/HowItWorks";
 import LandingJobs from "../components/LandingJobs";
 import CompaniesHiringNow from "../components/CompaniesHiringNow";
+import Jobs from "./Jobs";
 
 const Home = () => {
   return (
@@ -13,6 +14,7 @@ const Home = () => {
       <TopNiches />
       <CompaniesHiringNow/>
       <LandingJobs/>
+      <Jobs/>
     </div>
   );
 };
