@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Register from "./pages/Register";
 import Footer from "./components/Footer";
+import About from "./pages/About";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/jobs" element={<Jobs />} />
+        <Route path ="/about" element={<About/>}/>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/post/application/:jobId" element={<PostApplication />} />
         <Route path="/register" element={<Register />} />
