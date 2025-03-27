@@ -1,177 +1,229 @@
 import React, { useEffect, useState } from "react";
-import { PiCurrencyDollarSimpleBold } from "react-icons/pi";
-import { MdCheck, MdOutlineDescription } from "react-icons/md";
-import { CiLocationOn } from "react-icons/ci";
 import axios from "axios";
+import { PiCurrencyDollarSimpleBold } from "react-icons/pi";
+import { MdOutlineDescription } from "react-icons/md";
+import { CiLocationOn } from "react-icons/ci";
 
 const Jobs = () => {
-  // State to store job data
   const [jobs, setJobs] = useState([]);
-  // State to manage loading state
   const [loading, setLoading] = useState(true);
-  // State to manage errors
   const [error, setError] = useState(null);
+  const [selectedJobType, setSelectedJobType] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
 
-  // Fetch job data from the backend API
   useEffect(() => {
-    // Replace with your API URL
     const fetchJobs = async () => {
       try {
         const response = await axios.get(
           "http://localhost:3000/api/v1/job/getall"
         );
-        console.log(response.data.jobs); // Log to check the jobs array
-        setJobs(response.data.jobs); // Set the jobs array to the state
+        setJobs(response.data.jobs);
       } catch (err) {
-        setError(err.message); // Set error if the request fails
+        setError(err.message);
       } finally {
-        setLoading(false); // Set loading to false after request completes
+        setLoading(false);
       }
     };
 
     fetchJobs();
-  }, []); // Empty array means this effect runs once when the component mounts
+  }, []);
 
-  if (loading) {
-    return <div>Loading...</div>; // Show loading state while fetching data
-  }
+  const normalizeString = (str) => (str ? str.toLowerCase().trim() : "");
 
-  if (error) {
-    return <div>Error: {error}</div>; // Show error if there is an issue fetching data
-  }
+  const filteredJobs = jobs.filter((job) => {
+    const matchesJobType = selectedJobType
+      ? normalizeString(job.jobType) === normalizeString(selectedJobType)
+      : true;
+    const matchesLocation = selectedLocation
+      ? normalizeString(job.location) === normalizeString(selectedLocation)
+      : true;
+    return matchesJobType && matchesLocation;
+  });
+
+  const clearFilters = () => {
+    setSelectedJobType("");
+    setSelectedLocation("");
+  };
+
+  if (loading) return <div className="text-center p-8">Loading...</div>;
+  if (error)
+    return <div className="text-center p-8 text-red-500">Error: {error}</div>;
 
   return (
-    <div className="p-16 flex items-center justify-center">
-      <div className="flex flex-row gap-[60px]">
+    <div className="p-8 lg:p-12 flex justify-center">
+      <div className="flex flex-col lg:flex-row gap-8 w-full max-w-7xl">
         {/* Filters Section */}
-        <div className="rounded-2xl bg-white pt-8 pl-12 pr-12 gap-5">
-          <h1>All Filters</h1>
-          <div className="border w-[200px] mt-5"></div>
-
-          {/* Job Type Section */}
-          <div>
-            <h1 className="mt-5">Job Type</h1>
-            <div className="mt-5">
-              <label className="ml-[40px] text-[#4B4B4B]">
-                <input
-                  type="radio"
-                  name="jobType"
-                  value="fullTime"
-                  className="mr-2"
-                />
-                Full Time Job
-              </label>
-            </div>
-            <div className="mt-2">
-              <label className="ml-[40px] text-[#4B4B4B]">
-                <input
-                  type="radio"
-                  name="jobType"
-                  value="partTime"
-                  className="mr-2"
-                />
-                Part Time Job
-              </label>
-            </div>
-            <div className="border w-[200px] mt-5"></div>
+        <div className="bg-white rounded-xl p-6 shadow-sm lg:w-80">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold">Filters</h2>
+            <button
+              onClick={clearFilters}
+              className="text-blue-600 hover:text-blue-800 text-sm"
+            >
+              Clear All
+            </button>
           </div>
 
-          {/* Location Section */}
-          <div>
-            <h1 className="mt-5">Location</h1>
-            <div className="mt-5">
-              <label className="ml-[40px] text-[#4B4B4B]">
-                <input
-                  type="radio"
-                  name="location"
-                  value="kathmandu"
-                  className="mr-2"
-                />
-                Kathmandu, Nepal
-              </label>
+          <div className="space-y-8">
+            {/* Job Type Filter */}
+            <div>
+              <h3 className="font-medium mb-4">Job Type</h3>
+              <div className="space-y-3">
+                {["Full-time", "Part-time"].map((type) => (
+                  <label key={type} className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="jobType"
+                      value={type}
+                      checked={selectedJobType === type}
+                      onChange={(e) => setSelectedJobType(e.target.value)}
+                      className="w-4 h-4 accent-blue-600"
+                    />
+                    <span>{type}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-            <div className="mt-2">
-              <label className="ml-[40px] text-[#4B4B4B]">
-                <input
-                  type="radio"
-                  name="location"
-                  value="pokhara"
-                  className="mr-2"
-                />
-                Pokhara, Nepal
-              </label>
+
+            {/* Location Filter */}
+            <div>
+              <h3 className="font-medium mb-4">Location</h3>
+              <div className="space-y-3">
+                {["Kathmandu", "Nepal"].map((location) => (
+                  <label key={location} className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="location"
+                      value={location}
+                      checked={selectedLocation === location}
+                      onChange={(e) => setSelectedLocation(e.target.value)}
+                      className="w-4 h-4 accent-blue-600"
+                    />
+                    <span>{location}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Job Listings Section */}
-        <div className="flex flex-col gap-5">
-          {jobs.map((job) => {
-            const words = job.introduction.split(" ");
-            const shortDescription =
-              words.slice(0, 14).join(" ") + (words.length > 14 ? "..." : "");
-
-            return (
-              <div className="w-full max-w-2xl bg-white p-6 md:p-8 rounded-3xl shadow-md">
-                <div className="flex flex-col gap-2">
-                  {/* Job Title & Type */}
-                  <div className="flex flex-wrap items-center  gap-7">
-                    <h1 className="text-[14px] text-[#4B4B4B]">{job.jobType}</h1>
-                    <h1 className="text-[16px] font-semibold text-black">
-                      {job.title}
-                    </h1>
-                  </div>
-
-                  {/* Company Name */}
-                  <div className="text-[14px] text-[#023552]">
-                    {job.companyName}
-                  </div>
-
-                  {/* Salary & Location */}
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <PiCurrencyDollarSimpleBold className="h-4 w-4" />
-                      <h1 className="text-[14px] text-[#4B4B4B]">
-                        {job.salary}
-                      </h1>
+        {/* Job Listings */}
+        <div className="flex-1 ">
+          {filteredJobs.length > 0 ? (
+            <div className="grid gap-5">
+              {filteredJobs.map((job) => (
+                <div
+                  key={job._id}
+                  className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="space-y-1">
+                    {/* Header */}
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                        {job.jobType}
+                      </span>
+                      <h2 className="text-xl font-bold">{job.title}</h2>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CiLocationOn className="h-5 w-5" />
-                      <h1 className="text-[14px]">{job.location}</h1>
+
+                    {/* Company Info */}
+                    <div className="flex flex-wrap items-center gap-4 text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{job.companyName}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CiLocationOn className="text-gray-500" />
+                        <span>{job.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <PiCurrencyDollarSimpleBold className="text-gray-500" />
+                        <span>{job.salary}</span>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Job Description (Limited to 7 words) */}
-                  <div className="flex items-center gap-2">
-                    <MdOutlineDescription className="h-5 w-5" />
-                    <p className="text-[14px] text-black">{shortDescription}</p>
-                  </div>
+                    {/* Description */}
+                    <div className="flex gap-2">
+                      <MdOutlineDescription className="flex-shrink-0 mt-1 text-gray-500" />
+                      <p className="text-gray-600 line-clamp-2">
+                        {job.introduction || "No description available"}
+                      </p>
+                    </div>
 
-                  {/* Responsibilities with Bullet Points */}
-                  <div className="flex flex-wrap gap-3">
-                  <span>Responsibilities:</span>
-                    {job.responsibilities.split(",").map((resp, index) => (
-                      
-                      <h1
-                        key={index}
-                        className="text-[14px] text-[#4B4B4B] flex items-center gap-1"
-                      >
-                        
-                        <span className="text-lg">•</span> {resp.trim()}
-                      </h1>
-                    ))}
-                  </div>
+                    {/* Responsibilities */}
+                    {job.responsibilities && (
+                      <div className="space-y-2">
+                        <h4 className="font-medium">Responsibilities:</h4>
+                        <ul className="list-disc list-inside space-y-1 pl-4">
+                          {job.responsibilities
+                            .split(/,\s*/)
+                            .map((resp, idx) => (
+                              <li key={idx} className="text-gray-600">
+                                {resp.trim()}
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+                    )}
 
-                  {/* Posted Time */}
-                  <div>
-                    <h1 className="text-[10px] text-[#4B4B4B]">
-                      {job.postedAgo}
-                    </h1>
+                    {/* Footer */}
+                    <div className="flex justify-between items-center pt-4">
+                      <span className="text-sm text-gray-500">
+                        Posted: {new Date(job.jobPostedOn).toLocaleDateString()}
+                      </span>
+                      <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2">
+                        View Details
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center p-8 md:p-12 bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-3xl shadow-xl hover:shadow-2xl transition-shadow duration-300">
+              <div className="mb-4 flex justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-16 w-16 text-red-400 animate-bounce"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
               </div>
-            );
-          })}
+              <h3 className="text-xl font-bold text-red-600 mb-2">
+                Oops! No Jobs Found
+              </h3>
+              <p className="text-red-500 mb-4">
+                We couldn't find any matches for your current filters
+              </p>
+              <div className="text-sm text-red-400">
+                Try:
+                <ul className="mt-2 space-y-1">
+                  <li>• Adjusting your location preferences</li>
+                  <li>• Expanding job type selections</li>
+                  <li>• Clearing all filters</li>
+                </ul>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
