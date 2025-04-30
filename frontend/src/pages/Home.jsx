@@ -6,6 +6,7 @@ import LandingJobs from "../components/LandingJobs";
 import CompaniesHiringNow from "../components/CompaniesHiringNow";
 import Jobs from "./Jobs";
 
+
 const Home = () => {
   return (
     <div className="bg-[#f8f5f5]">
@@ -15,6 +16,7 @@ const Home = () => {
       <CompaniesHiringNow/>
       <LandingJobs/>
       <Jobs/>
+
     </div>
   );
 };

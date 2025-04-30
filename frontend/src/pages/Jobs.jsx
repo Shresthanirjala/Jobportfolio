@@ -50,7 +50,7 @@ const Jobs = () => {
     return <div className="text-center p-8 text-red-500">Error: {error}</div>;
 
   return (
-    <div className="p-8 lg:p-12 flex justify-center">
+    <div className="p-8 lg:pt-12 lg:p-48 flex justify-center">
       <div className="flex flex-col lg:flex-row gap-8 w-full max-w-7xl">
         {/* Filters Section */}
         <div className="bg-white rounded-xl p-6 shadow-sm lg:w-80">

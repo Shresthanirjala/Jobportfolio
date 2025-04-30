@@ -1,97 +1,255 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
-import logo from "/images/logo.svg";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Menu,
+  X,
+  User,
+  LogOut,
+  Search,
+  Briefcase,
+  Bell,
+  ChevronDown,
+  Building2,
+  Shield,
+} from "lucide-react";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isAuthDropdownOpen, setIsAuthDropdownOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const dropdownRef = useRef(null);
+  const authDropdownRef = useRef(null);
 
   useEffect(() => {
-    // Retrieve user data from localStorage
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser)); // Parse and set the user
+      setUser(JSON.parse(storedUser));
     }
+
+    // Close dropdowns when clicking outside
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+      if (
+        authDropdownRef.current &&
+        !authDropdownRef.current.contains(event.target)
+      ) {
+        setIsAuthDropdownOpen(false);
+      }
+    };
+
+    // Handle scroll for navbar shadow
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("authToken");
     setUser(null);
-    window.location.reload(); // Reload to reflect changes in the navbar
+    window.location.reload();
   };
 
+  // Link component replacement
+  const Link = ({ to, className, onClick, children }) => (
+    <a href={to} className={className} onClick={onClick}>
+      {children}
+    </a>
+  );
+
   return (
-    <nav className="bg-white shadow-md w-full fixed top-0 left-0 z-50 py-4">
+    <nav
+      className={`bg-white w-full fixed top-0 left-0 z-50 py-4 transition-all duration-300 ${
+        isScrolled ? "shadow-lg" : "shadow-md"
+      }`}
+    >
       <div className="w-full flex items-center justify-between px-4 sm:px-10 md:px-16 lg:px-32 max-w-screen-xl mx-auto">
-        {/* Left: Logo + Brand Name */}
+        {/* Logo Section */}
         <div className="flex items-center space-x-3 flex-shrink-0">
-          <img src={logo} alt="Logo" className="h-10 w-10" />
-          <Link to="/" className="text-2xl font-bold text-[#023854]">
-            HandyHire
+          <div className="h-10 w-10 bg-[#023854] rounded-lg flex items-center justify-center">
+            <Briefcase className="h-6 w-6 text-white" />
+          </div>
+          <Link to="/" className="text-2xl font-bold">
+            <span className="text-[#023854]">Career</span>
+            <span className="text-[#718B68]">Link</span>
           </Link>
         </div>
 
-        {/* Centered Menu */}
-        <div className="hidden md:flex space-x-10 text-[14px] mx-auto">
-          <Link to="/" className="hover:text-blue-600">
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex space-x-8 text-[15px] mx-auto font-medium">
+          <Link
+            to="/"
+            className="text-[#023854] hover:text-[#718B68] transition-colors py-2 border-b-2 border-transparent hover:border-[#718B68]"
+          >
             Home
           </Link>
-          <Link to="/job" className="hover:text-blue-600">
-            Jobs
+          <Link
+            to="/findjobs"
+            className="text-[#023854] hover:text-[#718B68] transition-colors py-2 border-b-2 border-transparent hover:border-[#718B68]"
+          >
+           FindJobs
           </Link>
-          <Link to="/about" className="hover:text-blue-600">
+      
+          <Link
+            to="/about"
+            className="text-[#023854] hover:text-[#718B68] transition-colors py-2 border-b-2 border-transparent hover:border-[#718B68]"
+          >
             About
           </Link>
-          <Link to="/contact" className="hover:text-blue-600">
+          <Link
+            to="/contact"
+            className="text-[#023854] hover:text-[#718B68] transition-colors py-2 border-b-2 border-transparent hover:border-[#718B68]"
+          >
             Contact
           </Link>
         </div>
 
-        {/* Right Side: Show My Account if logged in, otherwise show Login/Register */}
-        <div className="hidden md:flex space-x-4 ml-auto">
+        {/* Desktop Auth Section */}
+        <div className="hidden md:flex items-center space-x-4 ml-auto">
           {user ? (
-            // If user is logged in, show welcome message and My Account dropdown
-            <div className="relative">
-              <button
-                className="flex items-center space-x-2 text-gray-700 px-4 py-2 font-semibold hover:text-blue-600"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              >
-                <span>Welcome!!! {user.name}</span>
-              </button>
-
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 shadow-md rounded-md">
-                  <Link
-                    to="/user"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    onClick={() => setIsDropdownOpen(false)}
-                  >
-                    My Profile
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            // If user is not logged in, show Login and Register buttons
             <>
               <Link
-                to="/login"
-                className="bg-[#718B68] text-white px-4 py-2 rounded-md hover:bg-[#5c7254]"
+                to="/job/search"
+                className="text-[#023854] hover:text-[#718B68]"
               >
-                Login
+                <Search className="h-5 w-5" />
               </Link>
               <Link
+                to="/notifications"
+                className="text-[#023854] hover:text-[#718B68] relative"
+              >
+                <Bell className="h-5 w-5" />
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  2
+                </span>
+              </Link>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  className="flex items-center space-x-2 text-[#023854] px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  <div className="h-8 w-8 bg-[#023854] rounded-full flex items-center justify-center text-white">
+                    {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                  </div>
+                  <span className="font-medium max-w-[100px] truncate">
+                    {user.name}
+                  </span>
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 shadow-lg rounded-md overflow-hidden">
+                    <div className="px-4 py-3 border-b border-gray-100 bg-[#f0f5f9]">
+                      <p className="text-sm font-medium text-[#023854]">
+                        {user.name}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {user.email}
+                      </p>
+                      <div className="mt-1 px-2 py-1 bg-[#023854] text-white text-xs rounded-full inline-block">
+                        {user.role || "Job Seeker"}
+                      </div>
+                    </div>
+                    <Link
+                      to="/user"
+                      className="flex items-center gap-2 px-4 py-3 text-[#023854] hover:bg-gray-50"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <User className="h-4 w-4" />
+                      <span>My Profile</span>
+                    </Link>
+                    <Link
+                      to="/user/applications"
+                      className="flex items-center gap-2 px-4 py-3 text-[#023854] hover:bg-gray-50"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <Briefcase className="h-4 w-4" />
+                      <span>My Applications</span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 px-4 py-3 text-red-600 hover:bg-gray-50 w-full text-left"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="relative" ref={authDropdownRef}>
+                <button
+                  className="bg-[#023854] px-4 py-2 text-white font-medium rounded-md hover:bg-[#012845] transition-colors flex items-center space-x-2"
+                  onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)}
+                >
+                  <span>Sign In</span>
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+
+                {isAuthDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 shadow-lg rounded-md overflow-hidden">
+                    <Link
+                      to="/login/jobseeker"
+                      className="flex items-center gap-3 px-4 py-3 text-[#023854] hover:bg-gray-50 border-l-4 border-[#718B68]"
+                      onClick={() => setIsAuthDropdownOpen(false)}
+                    >
+                      <User className="h-5 w-5" />
+                      <div>
+                        <div className="font-medium">Job Seeker</div>
+                        <div className="text-xs text-gray-500">
+                          Find your dream job
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      to="/login/employer"
+                      className="flex items-center gap-3 px-4 py-3 text-[#023854] hover:bg-gray-50 border-l-4 border-[#023854]"
+                      onClick={() => setIsAuthDropdownOpen(false)}
+                    >
+                      <Building2 className="h-5 w-5" />
+                      <div>
+                        <div className="font-medium">Employer</div>
+                        <div className="text-xs text-gray-500">
+                          Post jobs & find talent
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      to="/login/admin"
+                      className="flex items-center gap-3 px-4 py-3 text-[#023854] hover:bg-gray-50 border-l-4 border-gray-400"
+                      onClick={() => setIsAuthDropdownOpen(false)}
+                    >
+                      <Shield className="h-5 w-5" />
+                      <div>
+                        <div className="font-medium">Admin</div>
+                        <div className="text-xs text-gray-500">
+                          System management
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              <Link
                 to="/register"
-                className="bg-[#718B68] px-4 py-2 text-white rounded-md hover:bg-[#5c7254]"
+                className="bg-[#718B68] px-4 py-2 text-white font-medium rounded-md hover:bg-[#5c7254] transition-colors"
               >
                 Register
               </Link>
@@ -101,40 +259,47 @@ const Navbar = () => {
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden focus:outline-none"
+          className="md:hidden focus:outline-none text-[#023854]"
           onClick={() => setIsOpen(!isOpen)}
         >
-          {isOpen ? <X size={28} /> : <Menu size={28} />}
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-white shadow-lg flex flex-col space-y-4 py-4 px-6">
+        <div className="md:hidden bg-white shadow-lg flex flex-col py-4 px-6 absolute w-full">
           <Link
             to="/"
-            className="hover:text-blue-600"
+            className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68]"
             onClick={() => setIsOpen(false)}
           >
             Home
           </Link>
           <Link
-            to="/projects"
-            className="hover:text-blue-600"
+            to="/job"
+            className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68]"
             onClick={() => setIsOpen(false)}
           >
-            Projects
+            Find Jobs
+          </Link>
+          <Link
+            to="/companies"
+            className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68]"
+            onClick={() => setIsOpen(false)}
+          >
+            Companies
           </Link>
           <Link
             to="/about"
-            className="hover:text-blue-600"
+            className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68]"
             onClick={() => setIsOpen(false)}
           >
             About
           </Link>
           <Link
             to="/contact"
-            className="hover:text-blue-600"
+            className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68]"
             onClick={() => setIsOpen(false)}
           >
             Contact
@@ -142,40 +307,103 @@ const Navbar = () => {
 
           {user ? (
             <>
+              <div className="flex items-center space-x-2 py-3 border-b border-gray-100">
+                <div className="h-8 w-8 bg-[#023854] rounded-full flex items-center justify-center text-white">
+                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                </div>
+                <div>
+                  <span className="font-medium text-[#023854]">
+                    {user.name}
+                  </span>
+                  <div className="text-xs px-2 py-1 bg-[#023854] text-white rounded-full inline-block mt-1">
+                    {user.role || "Job Seeker"}
+                  </div>
+                </div>
+              </div>
               <Link
                 to="/user"
-                className="text-gray-700 font-semibold hover:text-blue-600"
+                className="py-3 border-b border-gray-100 flex items-center space-x-2 text-[#023854]"
                 onClick={() => setIsOpen(false)}
               >
-                My Profile
+                <User className="h-4 w-4" />
+                <span>My Profile</span>
+              </Link>
+              <Link
+                to="/user/applications"
+                className="py-3 border-b border-gray-100 flex items-center space-x-2 text-[#023854]"
+                onClick={() => setIsOpen(false)}
+              >
+                <Briefcase className="h-4 w-4" />
+                <span>My Applications</span>
               </Link>
               <button
                 onClick={() => {
                   handleLogout();
                   setIsOpen(false);
                 }}
-                className="text-red-600 hover:bg-gray-100 px-4 py-2 rounded-md text-left"
+                className="py-3 text-red-600 flex items-center space-x-2"
               >
-                Logout
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
               </button>
             </>
           ) : (
-            <>
+            <div className="flex flex-col gap-3 mt-3">
+              <div className="text-lg font-medium text-[#023854] mb-1">
+                Sign in as:
+              </div>
+
               <Link
-                to="/login"
-                className="bg-[#718B68] text-white px-4 py-2 rounded-md hover:bg-[#5c7254]"
+                to="/login/jobseeker"
+                className="bg-white text-[#023854] border border-[#718B68] px-4 py-3 rounded-md flex items-center space-x-3"
                 onClick={() => setIsOpen(false)}
               >
-                Login
+                <User className="h-5 w-5" />
+                <div>
+                  <div className="font-medium text-left">Job Seeker</div>
+                  <div className="text-xs text-gray-500">
+                    Find your dream job
+                  </div>
+                </div>
               </Link>
+
+              <Link
+                to="/login/employer"
+                className="bg-white text-[#023854] border border-[#023854] px-4 py-3 rounded-md flex items-center space-x-3"
+                onClick={() => setIsOpen(false)}
+              >
+                <Building2 className="h-5 w-5" />
+                <div>
+                  <div className="font-medium text-left">Employer</div>
+                  <div className="text-xs text-gray-500">
+                    Post jobs & find talent
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                to="/login/admin"
+                className="bg-white text-[#023854] border border-gray-400 px-4 py-3 rounded-md flex items-center space-x-3"
+                onClick={() => setIsOpen(false)}
+              >
+                <Shield className="h-5 w-5" />
+                <div>
+                  <div className="font-medium text-left">Admin</div>
+                  <div className="text-xs text-gray-500">System management</div>
+                </div>
+              </Link>
+
+              <div className="mt-2 text-center text-sm text-gray-500">
+                Don't have an account?
+              </div>
               <Link
                 to="/register"
-                className="bg-[#718B68] px-4 py-2 text-white rounded-md hover:bg-[#5c7254]"
+                className="bg-[#718B68] px-4 py-2 text-white rounded-md text-center font-medium"
                 onClick={() => setIsOpen(false)}
               >
-                Register
+                Register Now
               </Link>
-            </>
+            </div>
           )}
         </div>
       )}
