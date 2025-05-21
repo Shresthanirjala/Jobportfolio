@@ -8,6 +8,9 @@ import {
   ChevronDown,
   ChevronUp,
   Search,
+  X,
+  Check,
+  LogIn,
 } from "lucide-react";
 
 // Theme colors
@@ -21,6 +24,8 @@ const JobPortal = () => {
   const [error, setError] = useState(null);
   const [expandedJob, setExpandedJob] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Track user login status
+  const [notification, setNotification] = useState(null); // For displaying notifications
 
   // Filter states
   const [selectedJobType, setSelectedJobType] = useState("");
@@ -51,6 +56,16 @@ const JobPortal = () => {
     };
 
     fetchJobs();
+
+    // Check if user is logged in
+    // This is a placeholder. In a real app, you would check with your authentication system
+    const checkLoginStatus = () => {
+      // For example, checking if a token exists in localStorage
+      const token = localStorage.getItem("authToken");
+      setIsLoggedIn(!!token);
+    };
+
+    checkLoginStatus();
   }, []);
 
   const toggleJobExpand = (id) => {
@@ -77,6 +92,38 @@ const JobPortal = () => {
   };
 
   const normalizeString = (str) => (str ? str.toLowerCase().trim() : "");
+
+  // Handle job application
+  const handleApply = (jobId, jobTitle) => {
+    if (isLoggedIn) {
+      // User is logged in, show success notification
+      setNotification({
+        type: "success",
+        message: `Job application for "${jobTitle}" submitted successfully!`,
+      });
+
+      // In a real application, you would make an API call to submit the application
+      // For example:
+      // axios.post('http://localhost:3000/api/v1/application/create', { jobId })
+      //   .then(response => {
+      //     // Handle success
+      //   })
+      //   .catch(error => {
+      //     // Handle error
+      //   });
+    } else {
+      // User is not logged in, show error notification
+      setNotification({
+        type: "error",
+        message: "You need to log in first to apply for this job.",
+      });
+    }
+
+    // Auto-dismiss notification after 5 seconds
+    setTimeout(() => {
+      setNotification(null);
+    }, 5000);
+  };
 
   // Filter jobs based on all criteria
   const filteredJobs = jobs.filter((job) => {
@@ -128,6 +175,40 @@ const JobPortal = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 left-0 z-50 py-4">
+      {/* Notification Toast */}
+      {notification && (
+        <div
+          className={`fixed top-6 right-6 z-50 p-4 rounded-lg shadow-lg flex items-center ${
+            notification.type === "success" ? "bg-green-100" : "bg-red-100"
+          }`}
+        >
+          <div className="mr-3">
+            {notification.type === "success" ? (
+              <Check className="text-green-500" size={20} />
+            ) : (
+              <LogIn className="text-red-500" size={20} />
+            )}
+          </div>
+          <div className="flex-grow">
+            <p
+              className={`${
+                notification.type === "success"
+                  ? "text-green-800"
+                  : "text-red-800"
+              } font-medium`}
+            >
+              {notification.message}
+            </p>
+          </div>
+          <button
+            onClick={() => setNotification(null)}
+            className="ml-3 text-gray-400 hover:text-gray-600"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-[#013954] text-white p-6 mt-24">
         <div className="w-full max-w-screen-xl mx-auto px-4 sm:px-10 md:px-16 lg:px-32">
@@ -137,6 +218,23 @@ const JobPortal = () => {
           </p>
         </div>
       </header>
+
+      {/* User Login Status Indicator */}
+      <div className="bg-[#718B68] text-white py-2">
+        <div className="w-full max-w-screen-xl mx-auto px-4 sm:px-10 md:px-16 lg:px-32 flex justify-end">
+          {isLoggedIn ? (
+            <div className="flex items-center">
+              <span className="mr-2">Logged in</span>
+              <div className="h-3 w-3 bg-green-400 rounded-full"></div>
+            </div>
+          ) : (
+            <div className="flex items-center">
+              <span className="mr-2">Not logged in</span>
+              <div className="h-3 w-3 bg-red-400 rounded-full"></div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Search Bar */}
       <div className="bg-[#718B68] text-white p-4">
@@ -159,7 +257,7 @@ const JobPortal = () => {
         <div className="flex flex-col md:flex-row gap-6">
           {/* Filter Sidebar */}
           <div className="w-full md:w-[310px] shrink-0">
-            <div className="w-[310px] h-auto bg-white rounded-[17px] shadow-[0px_4px_26px_#0000001a] p-6">
+            <div className="w-full md:w-[310px] h-auto bg-white rounded-[17px] shadow-[0px_4px_26px_#0000001a] p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-[#013954]">Filters</h3>
                 <button
@@ -335,147 +433,167 @@ const JobPortal = () => {
             </h2>
 
             {filteredJobs.length > 0 ? (
-              <div className="space-y-4">
-                {filteredJobs.map((job) => (
-                  <div
-                    key={job._id}
-                    className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white"
-                  >
-                    {/* Job Card Header */}
+              <div>
+                {/* Grid layout for job cards - two columns */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredJobs.map((job) => (
                     <div
-                      className="p-6 cursor-pointer"
-                      onClick={() => toggleJobExpand(job._id)}
+                      key={job._id}
+                      className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white h-full flex flex-col"
                     >
-                      <div className="flex justify-between items-start flex-wrap gap-2">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-3 mb-2">
-                            <span className="px-3 py-1 bg-[#718B68] bg-opacity-20 text-[#718B68] rounded-full text-sm font-medium">
-                              {job.jobType}
-                            </span>
-                            <h3 className="text-xl font-bold text-[#013954]">
-                              {job.title}
-                            </h3>
-                          </div>
+                      {/* Job Card Header */}
+                      <div
+                        className="p-4 cursor-pointer flex-grow"
+                        onClick={() => toggleJobExpand(job._id)}
+                      >
+                        <div className="flex justify-between items-start flex-wrap gap-2">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              <span className="px-2 py-1 bg-[#718B68] bg-opacity-20 text-[#718B68] rounded-full text-xs font-medium">
+                                {job.jobType}
+                              </span>
+                              <h3 className="text-lg font-bold text-[#013954] line-clamp-1">
+                                {job.title}
+                              </h3>
+                            </div>
 
-                          <div className="flex items-center mt-2 text-gray-600">
-                            <Briefcase size={16} className="mr-1" />
-                            <span className="font-medium">
-                              {job.companyName}
-                            </span>
+                            <div className="flex items-center mt-1 text-gray-600 text-sm">
+                              <Briefcase
+                                size={14}
+                                className="mr-1 flex-shrink-0"
+                              />
+                              <span className="font-medium truncate">
+                                {job.companyName}
+                              </span>
+                            </div>
+                            <div className="flex items-center mt-1 text-gray-600 text-sm">
+                              <MapPin
+                                size={14}
+                                className="mr-1 flex-shrink-0"
+                              />
+                              <span className="truncate">{job.location}</span>
+                            </div>
                           </div>
-                          <div className="flex items-center mt-2 text-gray-600">
-                            <MapPin size={16} className="mr-1" />
-                            <span>{job.location}</span>
+                          <div className="text-right">
+                            <div className="flex items-center mt-1 text-gray-600 justify-end text-xs">
+                              <Calendar
+                                size={14}
+                                className="mr-1 flex-shrink-0"
+                              />
+                              <span>
+                                {new Date(job.jobPostedOn).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="flex items-center mt-1 text-gray-800 font-medium justify-end text-sm">
+                              <DollarSign
+                                size={14}
+                                className="mr-1 flex-shrink-0"
+                              />
+                              <span>{job.salary}</span>
+                            </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="flex items-center mt-2 text-gray-600 justify-end">
-                            <Calendar size={16} className="mr-1" />
-                            <span className="text-sm">
-                              Posted:{" "}
-                              {new Date(job.jobPostedOn).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <div className="flex items-center mt-2 text-gray-800 font-medium justify-end">
-                            <DollarSign size={16} className="mr-1" />
-                            <span>{job.salary}</span>
-                          </div>
+
+                        {/* Short description (always visible) */}
+                        <div className="mt-3 text-gray-600 text-sm">
+                          <p className="line-clamp-2">
+                            {job.introduction || "No description available"}
+                          </p>
                         </div>
-                      </div>
 
-                      {/* Short description (always visible) */}
-                      <div className="mt-4 text-gray-600">
-                        <p>{job.introduction || "No description available"}</p>
-                      </div>
-
-                      {/* Expand/Collapse button */}
-                      <div className="mt-4 flex justify-center">
-                        <button
-                          className="flex items-center text-[#013954] hover:text-opacity-80"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleJobExpand(job._id);
-                          }}
-                        >
-                          {expandedJob === job._id ? (
-                            <>
-                              View Less <ChevronUp size={16} className="ml-1" />
-                            </>
-                          ) : (
-                            <>
-                              View More{" "}
-                              <ChevronDown size={16} className="ml-1" />
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Expanded details */}
-                    {expandedJob === job._id && (
-                      <div className="p-6 border-t border-gray-200 bg-gray-50">
-                        {/* Responsibilities */}
-                        {job.responsibilities && (
-                          <div className="mb-4">
-                            <h4 className="font-bold text-lg text-[#013954] mb-2">
-                              Responsibilities
-                            </h4>
-                            <ul className="list-disc pl-5 space-y-1">
-                              {job.responsibilities
-                                .split(/,\s*/)
-                                .map((item, index) => (
-                                  <li key={index} className="text-gray-700">
-                                    {item.trim()}
-                                  </li>
-                                ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        {/* Qualifications */}
-                        {job.qualifications && (
-                          <div className="mb-4">
-                            <h4 className="font-bold text-lg text-[#013954] mb-2">
-                              Qualifications
-                            </h4>
-                            <ul className="list-disc pl-5 space-y-1">
-                              {job.qualifications
-                                .split(/,\s*/)
-                                .map((item, index) => (
-                                  <li key={index} className="text-gray-700">
-                                    {item.trim()}
-                                  </li>
-                                ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        {/* Offers */}
-                        {job.offers && (
-                          <div className="mb-4">
-                            <h4 className="font-bold text-lg text-[#013954] mb-2">
-                              What We Offer
-                            </h4>
-                            <ul className="list-disc pl-5 space-y-1">
-                              {job.offers.split(/,\s*/).map((item, index) => (
-                                <li key={index} className="text-gray-700">
-                                  {item.trim()}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        {/* Apply button */}
-                        <div className="mt-6 flex justify-end">
-                          <button className="bg-[#718B68] text-white px-6 py-3 rounded-md hover:bg-opacity-90 font-medium">
-                            Apply Now
+                        {/* Expand/Collapse button */}
+                        <div className="mt-3 flex justify-center">
+                          <button
+                            className="flex items-center text-[#013954] hover:text-opacity-80 text-sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleJobExpand(job._id);
+                            }}
+                          >
+                            {expandedJob === job._id ? (
+                              <>
+                                View Less{" "}
+                                <ChevronUp size={14} className="ml-1" />
+                              </>
+                            ) : (
+                              <>
+                                View More{" "}
+                                <ChevronDown size={14} className="ml-1" />
+                              </>
+                            )}
                           </button>
                         </div>
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {/* Expanded details */}
+                      {expandedJob === job._id && (
+                        <div className="p-4 border-t border-gray-200 bg-gray-50">
+                          {/* Responsibilities */}
+                          {job.responsibilities && (
+                            <div className="mb-3">
+                              <h4 className="font-bold text-base text-[#013954] mb-1">
+                                Responsibilities
+                              </h4>
+                              <ul className="list-disc pl-5 space-y-1 text-sm">
+                                {job.responsibilities
+                                  .split(/,\s*/)
+                                  .map((item, index) => (
+                                    <li key={index} className="text-gray-700">
+                                      {item.trim()}
+                                    </li>
+                                  ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Qualifications */}
+                          {job.qualifications && (
+                            <div className="mb-3">
+                              <h4 className="font-bold text-base text-[#013954] mb-1">
+                                Qualifications
+                              </h4>
+                              <ul className="list-disc pl-5 space-y-1 text-sm">
+                                {job.qualifications
+                                  .split(/,\s*/)
+                                  .map((item, index) => (
+                                    <li key={index} className="text-gray-700">
+                                      {item.trim()}
+                                    </li>
+                                  ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Offers */}
+                          {job.offers && (
+                            <div className="mb-3">
+                              <h4 className="font-bold text-base text-[#013954] mb-1">
+                                What We Offer
+                              </h4>
+                              <ul className="list-disc pl-5 space-y-1 text-sm">
+                                {job.offers.split(/,\s*/).map((item, index) => (
+                                  <li key={index} className="text-gray-700">
+                                    {item.trim()}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Apply button */}
+                          <div className="mt-4 flex justify-end">
+                            <button
+                              className="bg-[#718B68] text-white px-4 py-2 rounded-md hover:bg-opacity-90 font-medium text-sm"
+                              onClick={() => handleApply(job._id, job.title)}
+                            >
+                              Apply Now
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : (
               <div className="text-center p-8 md:p-12 bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-3xl shadow-xl hover:shadow-2xl transition-shadow duration-300">

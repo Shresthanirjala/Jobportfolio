@@ -12,6 +12,13 @@ import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import Contact from "./pages/Contact";
 import FindJobs from "./pages/FindJobs";
+import MyProfile from "./pages/MyProfile";
+import EmployerDashboard from "./pages/Employedashboard/EmployerDashboard";
+import ProtectedRoute from "./components/ProtectedRoute"
+
+const user = {
+  role: "Employer",
+};
 
 export default function App() {
   return (
@@ -22,12 +29,22 @@ export default function App() {
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/findjobs" element={<FindJobs/>} />
+        <Route path="/findjobs" element={<FindJobs />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/post/application/:jobId" element={<PostApplication />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/myprofile" element={<MyProfile />} />
         <Route path="*" element={<NotFound />} />
+        <Route
+          path="/employer/dashboard"
+          element={
+            <ProtectedRoute user={user} allowedRole="Employer">
+              <EmployerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        {/* <Route path="/unauthorized" element={<Unauthorized />} /> */}
       </Routes>
       <Footer />
     </Router>

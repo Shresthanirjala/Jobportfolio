@@ -1,11 +1,10 @@
-
 import ErrorHandler from "./error.js";
 import jwt from "jsonwebtoken";
 import { User } from "../models/userSchema.js";
 import { catchAsyncError } from "./catchAsyncError.js";
 
 export const isAuthenticated = catchAsyncError(async (req, res, next) => {
-  const { token } = req.cookies;
+  const token = req.header("Authorization")?.replace("Bearer ", "");
   if (!token) {
     return next(new ErrorHandler("User is not authenticated.", 400));
   }

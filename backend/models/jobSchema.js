@@ -17,6 +17,10 @@ const jobSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  companyLogo: {
+    public_id: String,
+    url: String,
+  },
   introduction: {
     type: String,
   },
@@ -36,8 +40,7 @@ const jobSchema = new mongoose.Schema({
     required: true,
   },
   hiringMultipleCandidates: {
-    type: String,
-    enum: ["Yes", "No"],
+    type: Boolean,
   },
   personalWebsites: {
     title: String,

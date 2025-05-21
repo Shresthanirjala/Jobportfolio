@@ -20,14 +20,20 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const dropdownRef = useRef(null);
   const authDropdownRef = useRef(null);
-
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
 
-    // Close dropdowns when clicking outside
+    // 🔁 Handle custom login event
+    const handleUserLogin = () => {
+      const updatedUser = localStorage.getItem("user");
+      if (updatedUser) {
+        setUser(JSON.parse(updatedUser));
+      }
+    };
+
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
@@ -40,21 +46,19 @@ const Navbar = () => {
       }
     };
 
-    // Handle scroll for navbar shadow
     const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 10);
     };
 
+    // 👂 Add event listeners
     document.addEventListener("mousedown", handleClickOutside);
     window.addEventListener("scroll", handleScroll);
+    window.addEventListener("user-login", handleUserLogin); // listen to login event
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("user-login", handleUserLogin);
     };
   }, []);
 
@@ -102,9 +106,9 @@ const Navbar = () => {
             to="/findjobs"
             className="text-[#023854] hover:text-[#718B68] transition-colors py-2 border-b-2 border-transparent hover:border-[#718B68]"
           >
-           FindJobs
+            FindJobs
           </Link>
-      
+
           <Link
             to="/about"
             className="text-[#023854] hover:text-[#718B68] transition-colors py-2 border-b-2 border-transparent hover:border-[#718B68]"
@@ -165,21 +169,14 @@ const Navbar = () => {
                       </div>
                     </div>
                     <Link
-                      to="/user"
+                      to="/myprofile"
                       className="flex items-center gap-2 px-4 py-3 text-[#023854] hover:bg-gray-50"
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <User className="h-4 w-4" />
                       <span>My Profile</span>
                     </Link>
-                    <Link
-                      to="/user/applications"
-                      className="flex items-center gap-2 px-4 py-3 text-[#023854] hover:bg-gray-50"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <Briefcase className="h-4 w-4" />
-                      <span>My Applications</span>
-                    </Link>
+
                     <button
                       onClick={handleLogout}
                       className="flex items-center gap-2 px-4 py-3 text-red-600 hover:bg-gray-50 w-full text-left"
@@ -193,59 +190,12 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <div className="relative" ref={authDropdownRef}>
-                <button
-                  className="bg-[#023854] px-4 py-2 text-white font-medium rounded-md hover:bg-[#012845] transition-colors flex items-center space-x-2"
-                  onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)}
-                >
-                  <span>Sign In</span>
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-
-                {isAuthDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 shadow-lg rounded-md overflow-hidden">
-                    <Link
-                      to="/login/jobseeker"
-                      className="flex items-center gap-3 px-4 py-3 text-[#023854] hover:bg-gray-50 border-l-4 border-[#718B68]"
-                      onClick={() => setIsAuthDropdownOpen(false)}
-                    >
-                      <User className="h-5 w-5" />
-                      <div>
-                        <div className="font-medium">Job Seeker</div>
-                        <div className="text-xs text-gray-500">
-                          Find your dream job
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      to="/login/employer"
-                      className="flex items-center gap-3 px-4 py-3 text-[#023854] hover:bg-gray-50 border-l-4 border-[#023854]"
-                      onClick={() => setIsAuthDropdownOpen(false)}
-                    >
-                      <Building2 className="h-5 w-5" />
-                      <div>
-                        <div className="font-medium">Employer</div>
-                        <div className="text-xs text-gray-500">
-                          Post jobs & find talent
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      to="/login/admin"
-                      className="flex items-center gap-3 px-4 py-3 text-[#023854] hover:bg-gray-50 border-l-4 border-gray-400"
-                      onClick={() => setIsAuthDropdownOpen(false)}
-                    >
-                      <Shield className="h-5 w-5" />
-                      <div>
-                        <div className="font-medium">Admin</div>
-                        <div className="text-xs text-gray-500">
-                          System management
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                )}
-              </div>
+            <Link
+                to="/login"
+                className=" px-4 py-2 text-white font-medium rounded-md bg-[#023854] transition-colors"
+              >
+               Login
+              </Link>
 
               <Link
                 to="/register"

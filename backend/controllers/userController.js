@@ -56,6 +56,7 @@ export const register = catchAsyncError(async (req, res, next) => {
         const cloudinaryResponse = await cloudinary.uploader.upload(
           resume.tempFilePath,
           {
+            resource_type: "raw",
             folder: "Job_Seekers_Resume",
           }
         );
@@ -68,7 +69,37 @@ export const register = catchAsyncError(async (req, res, next) => {
 
         userData.resume = {
           public_id: cloudinaryResponse.public_id,
-          url: cloudinaryResponse.secure_url,
+          url: cloudinaryResponse.secure_url + ".pdf",
+        };
+      } catch (error) {
+        return next(new ErrorHandler("Failed to upload resume.", 500));
+      }
+    }
+    if (req.files && req.files.resume) {
+      const { resume } = req.files;
+
+      try {
+        const originalFileName = resume.name; // e.g., "my_cv.pdf"
+
+        const cloudinaryResponse = await cloudinary.uploader.upload(
+          resume.tempFilePath,
+          {
+            resource_type: "raw",
+            folder: "Job_Seekers_Resume",
+            public_id: originalFileName.replace(/\.[^/.]+$/, ""), // Removes extension
+            format: "pdf", // Ensures .pdf
+          }
+        );
+
+        if (!cloudinaryResponse || cloudinaryResponse.error) {
+          return next(
+            new ErrorHandler("Failed to upload resume to cloud.", 500)
+          );
+        }
+
+        userData.resume = {
+          public_id: cloudinaryResponse.public_id,
+          url: cloudinaryResponse.secure_url, // Don't append .pdf
         };
       } catch (error) {
         return next(new ErrorHandler("Failed to upload resume.", 500));

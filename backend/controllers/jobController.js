@@ -8,6 +8,7 @@ export const postJob = catchAsyncError(async (req, res, next) => {
     jobType,
     location,
     companyName,
+    companyLogo,
     introduction,
     responsibilities,
     qualifications,
@@ -18,12 +19,14 @@ export const postJob = catchAsyncError(async (req, res, next) => {
     personalWebsiteUrl,
     jobNiche,
   } = req.body;
+  console.log(req.body);
  
   if (
     !title ||
     !jobType ||
     !location ||
     !companyName ||
+    !companyLogo ||
     !introduction ||
     !responsibilities ||
     !qualifications ||
@@ -49,6 +52,7 @@ export const postJob = catchAsyncError(async (req, res, next) => {
     jobType,
     location,
     companyName,
+    companyLogo,
     introduction,
     responsibilities,
     qualifications,
