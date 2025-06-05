@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
+import { AuthContext } from "../context/AuthContext";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,10 +7,10 @@ import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+
 import { Eye, EyeOff, Mail, Lock, User, Briefcase } from "lucide-react";
 
 const schema = z.object({
-  
   email: z.string().email("Invalid email").min(1, "Email is required"),
   role: z.enum(["Employer", "Job Seeker", "Admin"], {
     message: "Role is required",
@@ -18,6 +19,7 @@ const schema = z.object({
 });
 
 const Login = () => {
+  const { login } = useContext(AuthContext);
   const {
     register,
     handleSubmit,
@@ -36,26 +38,27 @@ const Login = () => {
         data
       );
 
-      console.log("Login response:", response.data);
-
-      localStorage.setItem("authToken", response.data.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      console.log(
-        "User data saved to localStorage:",
-        localStorage.getItem("user")
-      );
+      const user = response.data.user;
+      const id = user._id;
+      // Store token in user object if not present
+      if (response.data.token && !user.token) {
+        user.token = response.data.token;
+      }
+      login(user); // update AuthContext and store token
+      // Optionally, also store token separately for legacy code
+      if (user.token) {
+        localStorage.setItem("authToken", user.token);
+      }
+      localStorage.setItem("user", JSON.stringify(user));
 
       toast.success("Login Successful!");
       window.dispatchEvent(new Event("user-login"));
 
-      // Role-based redirection
-      const user = response.data.user;
-
       setTimeout(() => {
-        if (user.role === "Job Seeker") {
+        if (user.role === "Job seeker") {
           navigate("/");
         } else if (user.role === "Employer") {
-          navigate("/employer/dashboard");
+          navigate(`/employer/dashboard/${id}`);
         } else if (user.role === "Admin") {
           navigate("/admindashboard");
         } else {
@@ -164,8 +167,6 @@ const Login = () => {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-             
-
               {/* Email */}
               <div className="space-y-1">
                 <label

@@ -8,7 +8,7 @@ export const postJob = catchAsyncError(async (req, res, next) => {
     jobType,
     location,
     companyName,
-    companyLogo,
+    // companyLogo,
     introduction,
     responsibilities,
     qualifications,
@@ -20,13 +20,13 @@ export const postJob = catchAsyncError(async (req, res, next) => {
     jobNiche,
   } = req.body;
   console.log(req.body);
- 
+
   if (
     !title ||
     !jobType ||
     !location ||
     !companyName ||
-    !companyLogo ||
+    // !companyLogo ||
     !introduction ||
     !responsibilities ||
     !qualifications ||
@@ -52,7 +52,7 @@ export const postJob = catchAsyncError(async (req, res, next) => {
     jobType,
     location,
     companyName,
-    companyLogo,
+    // companyLogo,
     introduction,
     responsibilities,
     qualifications,

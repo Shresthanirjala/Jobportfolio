@@ -1,29 +1,38 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"; // Fixed import
-import Home from "./pages/Home"; // Corrected import
+import { useContext } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+// Pages
+import Home from "./pages/Home";
 import Jobs from "./pages/Jobs";
 import Dashboard from "./pages/Dashboard";
 import PostApplication from "./pages/PostApplication";
 import Login from "./pages/Login";
-import NotFound from "./pages/NotFound";
 import Register from "./pages/Register";
 import About from "./pages/About";
-import Footer from "./components/Footer";
-import Navbar from "./components/Navbar";
 import Contact from "./pages/Contact";
 import FindJobs from "./pages/FindJobs";
 import MyProfile from "./pages/MyProfile";
 import EmployerDashboard from "./pages/Employedashboard/EmployerDashboard";
-import ProtectedRoute from "./components/ProtectedRoute"
+import NotFound from "./pages/NotFound";
 
-const user = {
-  role: "Employer",
-};
+// Components
+import Navbar from "./components/Navbar";
+import EmployerNavbar from "./pages/Employedashboard/EmployerNavbar";
+import Footer from "./components/Footer";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+// Context
+import { AuthContext } from "./context/AuthContext";
 
 export default function App() {
+  const { user } = useContext(AuthContext);
+  const role = user?.role?.toLowerCase();
+
   return (
     <Router>
-      <Navbar />
+      {/* Show different navbars based on role */}
+      {role === "employer" ? <EmployerNavbar /> : <Navbar />}
+
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/jobs" element={<Jobs />} />
@@ -35,17 +44,28 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/myprofile" element={<MyProfile />} />
-        <Route path="*" element={<NotFound />} />
-        <Route
-          path="/employer/dashboard"
+
+        {/* Protected route only for employers */}
+        {/* <Route
+          path="/employer/dashboard/:id"
           element={
-            <ProtectedRoute user={user} allowedRole="Employer">
+            <ProtectedRoute allowedRole="employer">
               <EmployerDashboard />
             </ProtectedRoute>
           }
-        />
-        {/* <Route path="/unauthorized" element={<Unauthorized />} /> */}
+        /> */}
+        <Route
+  path="/employer/dashboard/:id"
+  element={
+    <ProtectedRoute>
+      <EmployerDashboard />
+    </ProtectedRoute>
+  }/>
+
+        {/* Not Found */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
+
       <Footer />
     </Router>
   );

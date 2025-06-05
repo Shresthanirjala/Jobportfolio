@@ -7,6 +7,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 
+// Modified schema that conditionally validates fields based on role
 const schema = z
   .object({
     name: z.string().min(1, "Full Name is required"),
@@ -19,22 +20,85 @@ const schema = z
     role: z.string().min(1, "Role is required"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string().min(1, "Confirm password is required"),
-    niche1: z.string().min(1, "Niche is required"),
-    niche2: z.string().min(1, "Niche is required"),
-    niche3: z.string().min(1, "Niche is required"),
-    resume: z.any().refine((file) => !!file, {
-      message: "Resume is required",
-    }),
-    coverLetter: z.string().min(1, "Cover letter is required"),
+    // Make job seeker fields optional by default
+    niche1: z.string().optional(),
+    niche2: z.string().optional(),
+    niche3: z.string().optional(),
+    resume: z.any().optional(),
+    coverLetter: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords must match",
     path: ["confirmPassword"],
-  });
+  })
+  // Add conditional validation for Job Seeker role
+  .refine(
+    (data) => {
+      // If role is Job Seeker, validate Job Seeker specific fields
+      if (data.role === "Job Seeker") {
+        return !!data.niche1;
+      }
+      // For any other role, return true (no additional validation)
+      return true;
+    },
+    {
+      message: "Primary niche is required for Job Seekers",
+      path: ["niche1"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.role === "Job Seeker") {
+        return !!data.niche2;
+      }
+      return true;
+    },
+    {
+      message: "Secondary niche is required for Job Seekers",
+      path: ["niche2"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.role === "Job Seeker") {
+        return !!data.niche3;
+      }
+      return true;
+    },
+    {
+      message: "Third niche is required for Job Seekers",
+      path: ["niche3"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.role === "Job Seeker") {
+        return !!data.resume;
+      }
+      return true;
+    },
+    {
+      message: "Resume is required for Job Seekers",
+      path: ["resume"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.role === "Job Seeker") {
+        return !!data.coverLetter;
+      }
+      return true;
+    },
+    {
+      message: "Cover letter is required for Job Seekers",
+      path: ["coverLetter"],
+    }
+  );
 
 const Register = () => {
   const [role, setRole] = useState("");
   const [fileName, setFileName] = useState("");
+  const [resumeFile, setResumeFile] = useState(null);
   const [niches] = useState([
     "Web Development",
     "Mobile Development",
@@ -96,6 +160,9 @@ const Register = () => {
 
   const onSubmit = async (data) => {
     try {
+      // Show loading toast to give feedback to user
+      const loadingToast = toast.loading("Submitting registration...");
+
       // Create a FormData object to properly handle file uploads
       const formData = new FormData();
 
@@ -107,16 +174,23 @@ const Register = () => {
       formData.append("role", data.role);
       formData.append("password", data.password);
 
-      // Add optional fields only if they exist
-      if (data.niche1) formData.append("niche1", data.niche1);
-      if (data.niche2) formData.append("niche2", data.niche2);
-      if (data.niche3) formData.append("niche3", data.niche3);
-      if (data.coverLetter) formData.append("coverLetter", data.coverLetter);
+      // Add optional fields only if they exist and role is Job Seeker
+      if (data.role === "Job Seeker") {
+        if (data.niche1) formData.append("niche1", data.niche1);
+        if (data.niche2) formData.append("niche2", data.niche2);
+        if (data.niche3) formData.append("niche3", data.niche3);
+        if (data.coverLetter) formData.append("coverLetter", data.coverLetter);
 
-      // Add resume file if it exists
-      if (data.resume && data.resume[0]) {
-        formData.append("resume", data.resume[0]);
-        console.log("Resume file added:", data.resume[0].name); // Debug log
+        // Add resume file
+        if (resumeFile) {
+          formData.append("resume", resumeFile);
+          console.log("Resume file added:", resumeFile.name); // Debug log
+        }
+      }
+
+      // Log the form data to help with debugging
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value instanceof File ? value.name : value}`);
       }
 
       // Make the API request with FormData
@@ -131,9 +205,11 @@ const Register = () => {
       );
 
       console.log("Registration response:", response.data); // Debug log
+      toast.dismiss(loadingToast); // Dismiss loading toast
       toast.success("Registration Successful!");
       reset();
       setFileName(""); // Reset file name state
+      setResumeFile(null); // Reset the resume file state
       setTimeout(() => navigate("/login"), 2000);
     } catch (error) {
       toast.error(
@@ -144,9 +220,20 @@ const Register = () => {
     }
   };
 
+  // This function will handle the resume file selection
+  const handleResumeChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setResumeFile(e.target.files[0]); // Store the file object
+      setFileName(e.target.files[0].name); // Store the file name for display
+    } else {
+      setResumeFile(null);
+      setFileName("");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12">
-      <ToastContainer />
+      <ToastContainer position="top-right" autoClose={5000} />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="flex flex-col lg:flex-row">
@@ -336,15 +423,17 @@ const Register = () => {
                                 {...register("resume")}
                                 className="hidden"
                                 onChange={(e) => {
-                                  if (e.target.files && e.target.files[0]) {
-                                    setFileName(e.target.files[0].name);
-                                  } else {
-                                    setFileName("");
-                                  }
+                                  // Both register the file for validation and store it in state
+                                  handleResumeChange(e);
                                 }}
                               />
                             </label>
                           </div>
+                          {errors.resume && (
+                            <p className="text-red-500 text-xs mt-1">
+                              {errors.resume.message}
+                            </p>
+                          )}
                         </div>
 
                         <div className="mb-4">
@@ -356,6 +445,11 @@ const Register = () => {
                             placeholder="Write your cover letter here..."
                             className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#013954] focus:border-transparent text-sm h-32"
                           />
+                          {errors.coverLetter && (
+                            <p className="text-red-500 text-xs mt-1">
+                              {errors.coverLetter.message}
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}

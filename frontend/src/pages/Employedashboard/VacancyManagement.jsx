@@ -1,6 +1,7 @@
 // VacancyManagement.jsx - Component for managing job vacancies
 import axios from "axios";
 import React, { useState } from "react";
+import { useEffect } from "react";
 import {
   FaPlus,
   FaSearch,
@@ -17,6 +18,7 @@ const VacancyManagement = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [editVacancyId, setEditVacancyId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [vacancies, setVacancies] = useState([]);
@@ -38,6 +40,74 @@ const VacancyManagement = () => {
     jobNiche: "",
   });
 
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+  const fetchJobs = async () => {
+    setIsFetching(true);
+    try {
+      // Get token from user context or localStorage.user
+      let token = localStorage.getItem("authToken");
+      if (!token) {
+        // Try to get from user object if using AuthContext
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        token = storedUser?.token || storedUser?.authToken || null;
+      }
+      if (!token) {
+        toast.error("You are not logged in. Please login first.");
+        setIsFetching(false);
+        return;
+      }
+      const response = await axios.get(
+        "http://localhost:3000/api/v1/job/getmyjobs",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Fetched data:", response.data); // Debug log
+
+      if (response.data.success) {
+        // Use the correct property from backend response (myJobs or jobs)
+        const jobsArray = response.data.myJobs || response.data.jobs || [];
+
+        const transformedJobs = jobsArray.map((job) => ({
+          id: job._id,
+          title: job.title,
+          jobType: job.jobType,
+          location: job.location,
+          companyName: job.companyName,
+          introduction: job.introduction,
+          responsibilities: job.responsibilities,
+          qualifications: job.qualifications,
+          offers: job.offers,
+          salary: job.salary,
+          hiringMultipleCandidates: job.hiringMultipleCandidates === "Yes",
+          personalWebsite: {
+            title: job.personalWebsite?.title || "",
+            url: job.personalWebsite?.url || "",
+          },
+          jobNiche: job.jobNiche,
+          postedDate: new Date(job.jobPostedOn || job.createdAt)
+            .toISOString()
+            .split("T")[0],
+          status: job.status || "Active",
+          applicants: job.applications?.length || 0,
+        }));
+
+        setVacancies(transformedJobs);
+      } else {
+        toast.error("Failed to fetch jobs.");
+      }
+    } catch (error) {
+      console.error("Error fetching jobs:", error.response?.data || error);
+      toast.error(error.response?.data?.message || "Failed to fetch jobs.");
+    } finally {
+      setIsFetching(false);
+    }
+  };
   // Handle input changes for the new vacancy form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -92,6 +162,10 @@ const VacancyManagement = () => {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
         }
+      );
+      // Just above return statement
+      const filteredVacancies = vacancies.filter((vacancy) =>
+        vacancy.title.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
       // Add the new vacancy to the local state with proper formatting
@@ -263,150 +337,141 @@ const VacancyManagement = () => {
       </div>
 
       {/* Vacancies Table */}
+      {/* Search Bar */}
+      {/* <div className="mb-4">
+  <input
+    type="text"
+    placeholder="Search jobs by title..."
+    className="px-4 py-2 border rounded w-full md:w-1/3"
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+  />
+</div> */}
+
+      {/* Vacancies Table */}
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  <div className="flex items-center">
-                    Job Title <FaSort className="ml-1" />
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  <div className="flex items-center">
-                    Company <FaSort className="ml-1" />
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  <div className="flex items-center">
-                    Location <FaSort className="ml-1" />
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  <div className="flex items-center">Job Type</div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  <div className="flex items-center">Job Niche</div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  <div className="flex items-center">
-                    Posted Date <FaSort className="ml-1" />
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  <div className="flex items-center">Status</div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  <div className="flex items-center">Applicants</div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredVacancies.map((vacancy) => (
-                <tr key={vacancy.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {vacancy.title}
+          {isFetching ? (
+            <p className="text-center py-4">Loading jobs...</p>
+          ) : filteredVacancies.length === 0 ? (
+            <p className="text-center py-4">No vacancies found.</p>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center">
+                      Job Title <FaSort className="ml-1" />
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">
-                      {vacancy.companyName}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center">
+                      Company <FaSort className="ml-1" />
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">
-                      {vacancy.location}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center">
+                      Location <FaSort className="ml-1" />
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">
-                      {vacancy.jobType}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center">Job Type</div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center">Job Niche</div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center">
+                      Posted Date <FaSort className="ml-1" />
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">
-                      {vacancy.jobNiche}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">
-                      {vacancy.postedDate}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      ${
-                        vacancy.status === "Active"
-                          ? "bg-green-100 text-green-800"
-                          : vacancy.status === "Paused"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {vacancy.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">
-                      {vacancy.applicants}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button
-                        className="text-blue-600 hover:text-blue-900"
-                        onClick={() => handleEditClick(vacancy)}
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        className="text-red-600 hover:text-red-900"
-                        onClick={() => handleDeleteVacancy(vacancy.id)}
-                      >
-                        <FaTrash />
-                      </button>
-                      <button className="text-gray-600 hover:text-gray-900">
-                        <FaEye />
-                      </button>
-                    </div>
-                  </td>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center">Status</div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center">Applicants</div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredVacancies.map((vacancy) => (
+                  <tr key={vacancy.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {vacancy.title}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">
+                        {vacancy.companyName}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">
+                        {vacancy.location}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">
+                        {vacancy.jobType}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">
+                        {vacancy.jobNiche}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">
+                        {vacancy.postedDate}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                  ${
+                    vacancy.status === "Active"
+                      ? "bg-green-100 text-green-800"
+                      : vacancy.status === "Paused"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                      >
+                        {vacancy.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">
+                        {vacancy.applicants}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          className="text-blue-600 hover:text-blue-900"
+                          onClick={() => handleEditClick(vacancy)}
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          className="text-red-600 hover:text-red-900"
+                          onClick={() => handleDeleteVacancy(vacancy.id)}
+                        >
+                          <FaTrash />
+                        </button>
+                        <button className="text-gray-600 hover:text-gray-900">
+                          <FaEye />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 

@@ -17,10 +17,10 @@ const jobSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  companyLogo: {
-    public_id: String,
-    url: String,
-  },
+  // companyLogo: {
+  //   public_id: String,
+  //   url: String,
+  // },
   introduction: {
     type: String,
   },

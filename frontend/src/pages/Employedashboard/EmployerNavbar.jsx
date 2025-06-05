@@ -10,9 +10,16 @@ import {
   ChevronDown,
   Building2,
   Shield,
+  Users,
+  FileText,
+  Settings,
+  Clock,
+  PlusCircle,
+  BarChart2,
+  MessageSquare,
 } from "lucide-react";
 
-const Navbar = () => {
+const EmployerNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAuthDropdownOpen, setIsAuthDropdownOpen] = useState(false);
@@ -20,6 +27,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const dropdownRef = useRef(null);
   const authDropdownRef = useRef(null);
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -86,40 +94,13 @@ const Navbar = () => {
         {/* Logo Section */}
         <div className="flex items-center space-x-3 flex-shrink-0">
           <div className="h-10 w-10 bg-[#023854] rounded-lg flex items-center justify-center">
-            <Briefcase className="h-6 w-6 text-white" />
+            <Building2 className="h-6 w-6 text-white" />
           </div>
-          <Link to="/" className="text-2xl font-bold">
-            <span className="text-[#023854]">Career</span>
-            <span className="text-[#718B68]">Link</span>
-          </Link>
-        </div>
-
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex space-x-8 text-[15px] mx-auto font-medium">
-          <Link
-            to="/"
-            className="text-[#023854] hover:text-[#718B68] transition-colors py-2 border-b-2 border-transparent hover:border-[#718B68]"
-          >
-            Home
-          </Link>
-          <Link
-            to="/findjobs"
-            className="text-[#023854] hover:text-[#718B68] transition-colors py-2 border-b-2 border-transparent hover:border-[#718B68]"
-          >
-            FindJobs
-          </Link>
-
-          <Link
-            to="/about"
-            className="text-[#023854] hover:text-[#718B68] transition-colors py-2 border-b-2 border-transparent hover:border-[#718B68]"
-          >
-            About
-          </Link>
-          <Link
-            to="/contact"
-            className="text-[#023854] hover:text-[#718B68] transition-colors py-2 border-b-2 border-transparent hover:border-[#718B68]"
-          >
-            Contact
+          <Link to="/employer/dashboard">
+            <div className="text-2xl font-bold cursor-pointer">
+              <span className="text-[#023854]">Career</span>
+              <span className="text-[#718B68]">Link</span>
+            </div>
           </Link>
         </div>
 
@@ -128,18 +109,27 @@ const Navbar = () => {
           {user ? (
             <>
               <Link
-                to="/job/search"
+                to="/employer/candidates"
                 className="text-[#023854] hover:text-[#718B68]"
               >
                 <Search className="h-5 w-5" />
               </Link>
               <Link
-                to="/notifications"
+                to="/employer/notifications"
                 className="text-[#023854] hover:text-[#718B68] relative"
               >
                 <Bell className="h-5 w-5" />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  2
+                  3
+                </span>
+              </Link>
+              <Link
+                to="/employer/messages"
+                className="text-[#023854] hover:text-[#718B68] relative"
+              >
+                <MessageSquare className="h-5 w-5" />
+                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  5
                 </span>
               </Link>
               <div className="relative" ref={dropdownRef}>
@@ -148,10 +138,10 @@ const Navbar = () => {
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 >
                   <div className="h-8 w-8 bg-[#023854] rounded-full flex items-center justify-center text-white">
-                    {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                    {user.name ? user.name.charAt(0).toUpperCase() : "E"}
                   </div>
                   <span className="font-medium max-w-[100px] truncate">
-                    {user.name}
+                    {user.name || "Company Name"}
                   </span>
                   <ChevronDown className="h-4 w-4" />
                 </button>
@@ -159,24 +149,39 @@ const Navbar = () => {
                   <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 shadow-lg rounded-md overflow-hidden">
                     <div className="px-4 py-3 border-b border-gray-100 bg-[#f0f5f9]">
                       <p className="text-sm font-medium text-[#023854]">
-                        {user.name}
+                        {user.name || "Company Name"}
                       </p>
                       <p className="text-xs text-gray-500 truncate">
                         {user.email}
                       </p>
                       <div className="mt-1 px-2 py-1 bg-[#023854] text-white text-xs rounded-full inline-block">
-                        {user.role || "Job Seeker"}
+                        {user.role || "Employer"}
                       </div>
                     </div>
                     <Link
-                      to="/myprofile"
+                      to="/employer/company-profile"
                       className="flex items-center gap-2 px-4 py-3 text-[#023854] hover:bg-gray-50"
                       onClick={() => setIsDropdownOpen(false)}
                     >
-                      <User className="h-4 w-4" />
-                      <span>My Profile</span>
+                      <Building2 className="h-4 w-4" />
+                      <span>Company Profile</span>
                     </Link>
-
+                    <Link
+                      to="/employer/settings"
+                      className="flex items-center gap-2 px-4 py-3 text-[#023854] hover:bg-gray-50"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <Settings className="h-4 w-4" />
+                      <span>Account Settings</span>
+                    </Link>
+                    <Link
+                      to="/employer/billing"
+                      className="flex items-center gap-2 px-4 py-3 text-[#023854] hover:bg-gray-50"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span>Billing & Plans</span>
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="flex items-center gap-2 px-4 py-3 text-red-600 hover:bg-gray-50 w-full text-left"
@@ -190,18 +195,17 @@ const Navbar = () => {
             </>
           ) : (
             <>
-            <Link
-                to="/login"
-                className=" px-4 py-2 text-white font-medium rounded-md bg-[#023854] transition-colors"
-              >
-               Login
-              </Link>
-
               <Link
-                to="/register"
+                to="/login/employer"
+                className="px-4 py-2 text-white font-medium rounded-md bg-[#023854] transition-colors"
+              >
+                Employer Login
+              </Link>
+              <Link
+                to="/register/employer"
                 className="bg-[#718B68] px-4 py-2 text-white font-medium rounded-md hover:bg-[#5c7254] transition-colors"
               >
-                Register
+                Register Company
               </Link>
             </>
           )}
@@ -220,71 +224,102 @@ const Navbar = () => {
       {isOpen && (
         <div className="md:hidden bg-white shadow-lg flex flex-col py-4 px-6 absolute w-full">
           <Link
-            to="/"
+            to="/employer/dashboard"
             className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68]"
             onClick={() => setIsOpen(false)}
           >
-            Home
+            Dashboard
           </Link>
           <Link
-            to="/job"
-            className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68]"
+            to="/employer/post-job"
+            className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68] flex items-center space-x-2"
             onClick={() => setIsOpen(false)}
           >
-            Find Jobs
+            <PlusCircle className="h-4 w-4" />
+            <span>Post New Job</span>
           </Link>
           <Link
-            to="/companies"
-            className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68]"
+            to="/employer/manage-jobs"
+            className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68] flex items-center space-x-2"
             onClick={() => setIsOpen(false)}
           >
-            Companies
+            <Briefcase className="h-4 w-4" />
+            <span>Manage Jobs</span>
           </Link>
           <Link
-            to="/about"
-            className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68]"
+            to="/employer/applicants"
+            className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68] flex items-center space-x-2"
             onClick={() => setIsOpen(false)}
           >
-            About
+            <Users className="h-4 w-4" />
+            <span>View Applicants</span>
           </Link>
           <Link
-            to="/contact"
-            className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68]"
+            to="/employer/reports"
+            className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68] flex items-center space-x-2"
             onClick={() => setIsOpen(false)}
           >
-            Contact
+            <BarChart2 className="h-4 w-4" />
+            <span>Analytics & Reports</span>
+          </Link>
+          <Link
+            to="/employer/messages"
+            className="py-3 border-b border-gray-100 text-[#023854] hover:text-[#718B68] flex items-center space-x-2"
+            onClick={() => setIsOpen(false)}
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span>Messages</span>
+            <span className="ml-auto bg-green-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              5
+            </span>
           </Link>
 
           {user ? (
             <>
               <div className="flex items-center space-x-2 py-3 border-b border-gray-100">
                 <div className="h-8 w-8 bg-[#023854] rounded-full flex items-center justify-center text-white">
-                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                  {user.name ? user.name.charAt(0).toUpperCase() : "E"}
                 </div>
                 <div>
                   <span className="font-medium text-[#023854]">
-                    {user.name}
+                    {user.name || "Company Name"}
                   </span>
                   <div className="text-xs px-2 py-1 bg-[#023854] text-white rounded-full inline-block mt-1">
-                    {user.role || "Job Seeker"}
+                    {user.role || "Employer"}
                   </div>
                 </div>
               </div>
               <Link
-                to="/user"
+                to="/employer/company-profile"
                 className="py-3 border-b border-gray-100 flex items-center space-x-2 text-[#023854]"
                 onClick={() => setIsOpen(false)}
               >
-                <User className="h-4 w-4" />
-                <span>My Profile</span>
+                <Building2 className="h-4 w-4" />
+                <span>Company Profile</span>
               </Link>
               <Link
-                to="/user/applications"
+                to="/employer/pending-approvals"
                 className="py-3 border-b border-gray-100 flex items-center space-x-2 text-[#023854]"
                 onClick={() => setIsOpen(false)}
               >
-                <Briefcase className="h-4 w-4" />
-                <span>My Applications</span>
+                <Clock className="h-4 w-4" />
+                <span>Pending Approvals</span>
+              </Link>
+              <Link
+                to="/employer/settings"
+                className="py-3 border-b border-gray-100 flex items-center space-x-2 text-[#023854]"
+                onClick={() => setIsOpen(false)}
+              >
+                <Settings className="h-4 w-4" />
+                <span>Account Settings</span>
+              </Link>
+              <Link
+                to="/employer/billing"
+                className="py-3 border-b border-gray-100 flex items-center space-x-2 text-[#023854]"
+                onClick={() => setIsOpen(false)}
+              >
+                <FileText className="h-4 w-4" />
+                <span>Billing & Plans</span>
               </Link>
               <button
                 onClick={() => {
@@ -319,13 +354,13 @@ const Navbar = () => {
 
               <Link
                 to="/login/employer"
-                className="bg-white text-[#023854] border border-[#023854] px-4 py-3 rounded-md flex items-center space-x-3"
+                className="bg-[#023854] text-white px-4 py-3 rounded-md flex items-center space-x-3"
                 onClick={() => setIsOpen(false)}
               >
                 <Building2 className="h-5 w-5" />
                 <div>
                   <div className="font-medium text-left">Employer</div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-100">
                     Post jobs & find talent
                   </div>
                 </div>
@@ -347,11 +382,11 @@ const Navbar = () => {
                 Don't have an account?
               </div>
               <Link
-                to="/register"
+                to="/register/employer"
                 className="bg-[#718B68] px-4 py-2 text-white rounded-md text-center font-medium"
                 onClick={() => setIsOpen(false)}
               >
-                Register Now
+                Register Company
               </Link>
             </div>
           )}
@@ -361,4 +396,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default EmployerNavbar;
