@@ -77,6 +77,9 @@ const EmployerNavbar = () => {
     window.location.reload();
   };
 
+  // Get employer id from user object
+  const id = user && (user._id || user.id);
+
   // Link component replacement
   const Link = ({ to, className, onClick, children }) => (
     <a href={to} className={className} onClick={onClick}>
@@ -159,12 +162,12 @@ const EmployerNavbar = () => {
                       </div>
                     </div>
                     <Link
-                      to="/employer/company-profile"
+                      to={`/employer/dashboard/${id}`}
                       className="flex items-center gap-2 px-4 py-3 text-[#023854] hover:bg-gray-50"
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <Building2 className="h-4 w-4" />
-                      <span>Company Profile</span>
+                      <span>Dashboard</span>
                     </Link>
                     <Link
                       to="/employer/settings"
