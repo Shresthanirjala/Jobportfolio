@@ -23,6 +23,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 // Context
 import { AuthContext } from "./context/AuthContext";
+import MyJobApplications from "./pages/MyJobApplications";
+import PersonalInformation from "./pages/PersonalInformation";
 
 export default function App() {
   const { user } = useContext(AuthContext);
@@ -55,12 +57,13 @@ export default function App() {
           }
         /> */}
         <Route
-  path="/employer/dashboard/:id"
-  element={
-    <ProtectedRoute>
-      <EmployerDashboard />
-    </ProtectedRoute>
-  }/>
+          path="/employer/dashboard/:id"
+          element={
+            <ProtectedRoute>
+              <EmployerDashboard />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />

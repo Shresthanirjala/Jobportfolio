@@ -19,14 +19,25 @@ export const register = catchAsyncError(async (req, res, next) => {
       coverLetter,
     } = req.body;
 
-    // if (!name || !email || !phone || !address || !password || !role) {
-    //   return next(new ErrorHandler("All fields are required.", 400));
-    // }
+    // ✅ Basic validation for required fields
+    if (!name || !email || !phone || !address || !password || !role) {
+      return next(new ErrorHandler("All fields are required.", 400));
+    }
 
-    if (role === "job Seeker" && (!firstNiche || !secondNiche || !thirdNiche)) {
-      return next(
-        new ErrorHandler("Please provide your preferred job niche.", 400)
-      );
+    if (role === "job Seeker") {
+      if (!firstNiche || !secondNiche || !thirdNiche) {
+        return next(
+          new ErrorHandler("Please provide your preferred job niches.", 400)
+        );
+      }
+
+      if (!coverLetter) {
+        return next(new ErrorHandler("Cover letter is required.", 400));
+      }
+
+      if (!req.files || !req.files.resume) {
+        return next(new ErrorHandler("Resume upload is required.", 400));
+      }
     }
 
     const existingUser = await User.findOne({ email });
@@ -49,15 +60,20 @@ export const register = catchAsyncError(async (req, res, next) => {
       coverLetter,
     };
 
-    // Handle Resume Upload
+    // ✅ Resume upload (remove duplicate block)
     if (req.files && req.files.resume) {
       const { resume } = req.files;
+
       try {
+        const originalFileName = resume.name;
+
         const cloudinaryResponse = await cloudinary.uploader.upload(
           resume.tempFilePath,
           {
             resource_type: "raw",
             folder: "Job_Seekers_Resume",
+            public_id: originalFileName.replace(/\.[^/.]+$/, ""),
+            format: "pdf",
           }
         );
 
@@ -69,44 +85,13 @@ export const register = catchAsyncError(async (req, res, next) => {
 
         userData.resume = {
           public_id: cloudinaryResponse.public_id,
-          url: cloudinaryResponse.secure_url + ".pdf",
-        };
-      } catch (error) {
-        return next(new ErrorHandler("Failed to upload resume.", 500));
-      }
-    }
-    if (req.files && req.files.resume) {
-      const { resume } = req.files;
-
-      try {
-        const originalFileName = resume.name; // e.g., "my_cv.pdf"
-
-        const cloudinaryResponse = await cloudinary.uploader.upload(
-          resume.tempFilePath,
-          {
-            resource_type: "raw",
-            folder: "Job_Seekers_Resume",
-            public_id: originalFileName.replace(/\.[^/.]+$/, ""), // Removes extension
-            format: "pdf", // Ensures .pdf
-          }
-        );
-
-        if (!cloudinaryResponse || cloudinaryResponse.error) {
-          return next(
-            new ErrorHandler("Failed to upload resume to cloud.", 500)
-          );
-        }
-
-        userData.resume = {
-          public_id: cloudinaryResponse.public_id,
-          url: cloudinaryResponse.secure_url, // Don't append .pdf
+          url: cloudinaryResponse.secure_url,
         };
       } catch (error) {
         return next(new ErrorHandler("Failed to upload resume.", 500));
       }
     }
 
-    // Save user to the database
     const user = await User.create(userData);
     sendToken(user, 201, res, "User Registration.");
   } catch (error) {
@@ -114,26 +99,24 @@ export const register = catchAsyncError(async (req, res, next) => {
   }
 });
 
+// Rest of your functions remain unchanged...
+
 export const login = catchAsyncError(async (req, res, next) => {
   const { role, email, password } = req.body;
   if (!role || !email || !password) {
     return next(new ErrorHandler("All Fields are required.", 400));
   }
   const user = await User.findOne({ email }).select("+password ");
-
   if (!user) {
     return next(new ErrorHandler("Invalid email or password.", 400));
   }
   const isPasswordMatched = await user.comparePassword(password);
-  console.log("User found:", user);
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Invalid email or password.", 400));
   }
   if (user.role !== role) {
     return next(new ErrorHandler("Invalid user role.", 400));
   }
-  console.log("User Role in DB:", user.role);
-  console.log("Role from Request:", role);
   sendToken(user, 200, res, "User logged is successfully.");
 });
 

@@ -114,6 +114,7 @@ const Register = () => {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({ resolver: zodResolver(schema) });
 
@@ -225,9 +226,12 @@ const Register = () => {
     if (e.target.files && e.target.files[0]) {
       setResumeFile(e.target.files[0]); // Store the file object
       setFileName(e.target.files[0].name); // Store the file name for display
+      // Set the resume in react-hook-form state for validation
+      setValue("resume", e.target.files[0], { shouldValidate: true });
     } else {
       setResumeFile(null);
       setFileName("");
+      setValue("resume", null, { shouldValidate: true });
     }
   };
 
@@ -420,12 +424,8 @@ const Register = () => {
                               </div>
                               <input
                                 type="file"
-                                {...register("resume")}
                                 className="hidden"
-                                onChange={(e) => {
-                                  // Both register the file for validation and store it in state
-                                  handleResumeChange(e);
-                                }}
+                                onChange={handleResumeChange}
                               />
                             </label>
                           </div>
