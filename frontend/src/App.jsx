@@ -25,6 +25,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthContext } from "./context/AuthContext";
 import MyJobApplications from "./pages/MyJobApplications";
 import PersonalInformation from "./pages/PersonalInformation";
+import ApplyForm from "./pages/ApplyForm";
 
 export default function App() {
   const { user } = useContext(AuthContext);
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/myprofile" element={<MyProfile />} />
+        <Route path="/apply-form" element={<ApplyForm />} />
 
         {/* Protected route only for employers */}
         {/* <Route

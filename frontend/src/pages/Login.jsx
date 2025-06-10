@@ -100,7 +100,7 @@ const Login = () => {
 
             <div className="mt-12 space-y-6">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-[#023854]/40 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12   backdrop-blur-sm rounded-lg flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-6 w-6"

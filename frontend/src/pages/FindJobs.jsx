@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
+import ApplyForm from "./ApplyForm";
+
 import axios from "axios";
 import {
   MapPin,
@@ -18,14 +21,16 @@ import {
 // FFFFFF - White
 // 013954 - Navy Blue
 
-const JobPortal = () => {
+const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [applyJobId, setApplyJobId] = useState(null);
+  const [applyJobTitle, setApplyJobTitle] = useState("");
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedJob, setExpandedJob] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Track user login status
-  const [notification, setNotification] = useState(null); // For displaying notifications
 
   // Filter states
   const [selectedJobType, setSelectedJobType] = useState("");
@@ -56,16 +61,6 @@ const JobPortal = () => {
     };
 
     fetchJobs();
-
-    // Check if user is logged in
-    // This is a placeholder. In a real app, you would check with your authentication system
-    const checkLoginStatus = () => {
-      // For example, checking if a token exists in localStorage
-      const token = localStorage.getItem("authToken");
-      setIsLoggedIn(!!token);
-    };
-
-    checkLoginStatus();
   }, []);
 
   const toggleJobExpand = (id) => {
@@ -93,36 +88,23 @@ const JobPortal = () => {
 
   const normalizeString = (str) => (str ? str.toLowerCase().trim() : "");
 
-  // Handle job application
   const handleApply = (jobId, jobTitle) => {
-    if (isLoggedIn) {
-      // User is logged in, show success notification
-      setNotification({
-        type: "success",
-        message: `Job application for "${jobTitle}" submitted successfully!`,
-      });
-
-      // In a real application, you would make an API call to submit the application
-      // For example:
-      // axios.post('http://localhost:3000/api/v1/application/create', { jobId })
-      //   .then(response => {
-      //     // Handle success
-      //   })
-      //   .catch(error => {
-      //     // Handle error
-      //   });
+    // Check localStorage for authToken to determine if user is logged in
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      setApplyJobId(jobId);
+      setApplyJobTitle(jobTitle);
+      setShowApplyModal(true); // Show the popup form
     } else {
-      // User is not logged in, show error notification
-      setNotification({
-        type: "error",
-        message: "You need to log in first to apply for this job.",
-      });
+      if (setNotification) {
+        setNotification({
+          type: "error",
+          message: "Please log in to apply for jobs.",
+        });
+      } else {
+        window.alert("Please log in to apply for jobs.");
+      }
     }
-
-    // Auto-dismiss notification after 5 seconds
-    setTimeout(() => {
-      setNotification(null);
-    }, 5000);
   };
 
   // Filter jobs based on all criteria
@@ -662,6 +644,26 @@ const JobPortal = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal for ApplyForm */}
+      {showApplyModal && (
+        <div className="modal fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
+          <div className="modal-content bg-white p-6 rounded-lg shadow-lg relative w-full max-w-lg">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={() => setShowApplyModal(false)}
+            >
+              &times;
+            </button>
+            <ApplyForm
+              jobId={applyJobId}
+              jobTitle={applyJobTitle}
+              onClose={() => setShowApplyModal(false)}
+              setNotification={setNotification}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
