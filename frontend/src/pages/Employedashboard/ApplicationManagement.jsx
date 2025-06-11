@@ -1,5 +1,6 @@
 // ApplicationManagement.jsx - Component for managing job applications
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   FaSearch,
   FaSort,
@@ -25,94 +26,28 @@ const ApplicationManagement = () => {
   const [activeTab, setActiveTab] = useState("pending");
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [viewingResume, setViewingResume] = useState(false);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Sample applications data
-  const [applications, setApplications] = useState([
-    {
-      id: 1,
-      name: "John Smith",
-      email: "john.smith@example.com",
-      position: "Senior React Developer",
-      appliedDate: "2025-04-28",
-      status: "pending",
-      experience: "5 years",
-      education: "Bachelor in Computer Science",
-      skills: ["React", "JavaScript", "TypeScript", "Node.js", "GraphQL"],
-      rating: 4,
-      resume: "john_smith_resume.pdf",
-      coverLetter:
-        "I am excited to apply for the Senior React Developer position...",
-      notes: "",
-    },
-    {
-      id: 2,
-      name: "Emily Johnson",
-      email: "emily.j@example.com",
-      position: "UX Designer",
-      appliedDate: "2025-04-25",
-      status: "approved",
-      experience: "3 years",
-      education: "Master in Interaction Design",
-      skills: ["Figma", "Adobe XD", "UI/UX", "Prototyping", "User Research"],
-      rating: 5,
-      resume: "emily_johnson_resume.pdf",
-      coverLetter: "With my background in user experience design...",
-      notes: "Excellent portfolio. Schedule interview ASAP.",
-    },
-    {
-      id: 3,
-      name: "Michael Chen",
-      email: "michael.c@example.com",
-      position: "Data Analyst",
-      appliedDate: "2025-04-22",
-      status: "rejected",
-      experience: "2 years",
-      education: "Master in Data Science",
-      skills: ["Python", "SQL", "Tableau", "Excel", "Data Visualization"],
-      rating: 3,
-      resume: "michael_chen_resume.pdf",
-      coverLetter:
-        "I am writing to express my interest in the Data Analyst position...",
-      notes: "Not enough experience with our tech stack.",
-    },
-    {
-      id: 4,
-      name: "Sarah Williams",
-      email: "sarah.w@example.com",
-      position: "Marketing Manager",
-      appliedDate: "2025-04-26",
-      status: "pending",
-      experience: "7 years",
-      education: "MBA in Marketing",
-      skills: [
-        "Digital Marketing",
-        "Content Strategy",
-        "SEO",
-        "Social Media",
-        "Analytics",
-      ],
-      rating: 4,
-      resume: "sarah_williams_resume.pdf",
-      coverLetter:
-        "As an experienced marketing professional with 7 years in the field...",
-      notes: "",
-    },
-    {
-      id: 5,
-      name: "David Rodriguez",
-      email: "david.r@example.com",
-      position: "Full Stack Developer",
-      appliedDate: "2025-04-27",
-      status: "pending",
-      experience: "4 years",
-      education: "Bachelor in Software Engineering",
-      skills: ["JavaScript", "React", "Node.js", "MongoDB", "Express"],
-      rating: 5,
-      resume: "david_rodriguez_resume.pdf",
-      coverLetter: "I am applying for the Full Stack Developer position...",
-      notes: "",
-    },
-  ]);
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await axios.get(
+          "http://localhost:3000/api/v1/application/employer/getall",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setApplications(response.data.application || []);
+      } catch (err) {
+        setApplications([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchApplications();
+  }, []);
 
   // Handle approving an application
   const handleApprove = (id) => {
@@ -185,16 +120,19 @@ const ApplicationManagement = () => {
   // Filter applications based on active tab
   const filteredApplications = applications.filter((app) => {
     if (activeTab === "all") return true;
-    return app.status === activeTab;
+    return (app.status || "pending") === activeTab;
   });
 
   // Further filter by search query
-  const searchFilteredApplications = filteredApplications.filter(
-    (app) =>
-      app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const searchFilteredApplications = filteredApplications.filter((app) => {
+    const seeker = app.jobSeekerInfo || {};
+    const job = app.jobInfo || {};
+    return (
+      (seeker.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (job.jobTitle || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (seeker.email || "").toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
 
   return (
     <div className="h-full flex flex-col">
@@ -295,10 +233,10 @@ const ApplicationManagement = () => {
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="text-sm font-medium text-gray-900">
-                          {application.name}
+                          {application.jobSeekerInfo.name}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          {application.position}
+                          {application.jobInfo.jobTitle}
                         </p>
                       </div>
                       <div className="flex items-center">
@@ -345,7 +283,7 @@ const ApplicationManagement = () => {
               <div className="h-full">
                 <div className="bg-gray-100 p-4 flex justify-between items-center">
                   <h3 className="font-medium">
-                    {selectedApplication.name}'s Resume
+                    {selectedApplication.jobSeekerInfo.name}'s Resume
                   </h3>
                   <button
                     onClick={() => setViewingResume(false)}
@@ -375,23 +313,35 @@ const ApplicationManagement = () => {
                 <div className="flex justify-between items-start mb-6">
                   <div>
                     <h2 className="text-xl font-bold text-gray-800">
-                      {selectedApplication.name}
+                      {selectedApplication.jobSeekerInfo.name}
                     </h2>
-                    <p className="text-gray-600">{selectedApplication.email}</p>
+                    <p className="text-gray-600">
+                      {selectedApplication.jobSeekerInfo.email}
+                    </p>
+                    <p className="text-gray-600">
+                      {selectedApplication.jobSeekerInfo.phone}
+                    </p>
+                    <p className="text-gray-600">
+                      {selectedApplication.jobSeekerInfo.address}
+                    </p>
                     <div className="mt-2">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                        ${
-                          selectedApplication.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : selectedApplication.status === "approved"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {selectedApplication.status.charAt(0).toUpperCase() +
-                          selectedApplication.status.slice(1)}
-                      </span>
+                      {(() => {
+                        const status = selectedApplication.status || "pending";
+                        return (
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                              ${
+                                status === "pending"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : status === "approved"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                          >
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="flex space-x-2">
@@ -447,7 +397,7 @@ const ApplicationManagement = () => {
                       <FaBriefcase className="mr-2" /> Applied Position
                     </h3>
                     <p className="text-gray-600">
-                      {selectedApplication.position}
+                      {selectedApplication.jobInfo.jobTitle}
                     </p>
                   </div>
                   <div>
@@ -500,7 +450,7 @@ const ApplicationManagement = () => {
                   </div>
                   <div className="bg-gray-50 p-4 rounded-md">
                     <p className="text-gray-600">
-                      {selectedApplication.coverLetter}
+                      {selectedApplication.jobSeekerInfo.coverLetter}
                     </p>
                   </div>
                 </div>
@@ -510,12 +460,16 @@ const ApplicationManagement = () => {
                     <h3 className="text-md font-semibold text-gray-700">
                       Resume
                     </h3>
-                    <button
-                      onClick={() => setViewingResume(true)}
-                      className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
-                    >
-                      <FaFilePdf className="mr-1" /> View Resume
-                    </button>
+                    {selectedApplication.jobSeekerInfo.resume?.url && (
+                      <a
+                        href={selectedApplication.jobSeekerInfo.resume.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                      >
+                        <FaFilePdf className="mr-1" /> View Resume
+                      </a>
+                    )}
                   </div>
                 </div>
 
