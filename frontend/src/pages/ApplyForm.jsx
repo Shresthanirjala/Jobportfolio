@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { useEffect, useState } from "react";
 
 const ApplyForm = ({ jobId, jobTitle, onClose }) => {
@@ -7,28 +8,36 @@ const ApplyForm = ({ jobId, jobTitle, onClose }) => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        // Simulating the original API call
-        // Replace this with your actual axios call in your environment
-        const token =
-          typeof window !== "undefined" && window.localStorage
-            ? localStorage.getItem("authToken")
-            : null;
-
-        // Simulated data for demo - replace with actual API call
-        const mockData = {
-          fullName: "John Doe",
-          email: "john.doe@example.com",
-        };
-
-        setTimeout(() => {
-          setFormData(mockData);
-          setLoading(false);
-        }, 1000);
+        const token = localStorage.getItem("authToken");
+        const response = await axios.get(
+          "http://localhost:3000/api/v1/user/getuser", // change port if needed
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        console.log("Fetched user data:", response.data);
+        const user = response.data.user;
+        setFormData((prev) => ({
+          ...prev,
+          fullName: user.name || "",
+          email: user.email || "",
+          phone: user.phone || "",
+          address: user.address || "",
+          coverLetter: user.coverLetter || "",
+          resume: user.resume?.url || null, // optional: pre-fill resume URL (for download or display)
+        }));
+        setLoading(false);
       } catch (err) {
-        console.error("Failed to load profile data", err);
+        console.error(
+          "Failed to load profile data",
+          err.response?.data || err.message
+        );
         setLoading(false);
       }
     };
+
     fetchProfile();
   }, []);
 
@@ -39,18 +48,38 @@ const ApplyForm = ({ jobId, jobTitle, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Simulating the original API call
-      // Replace this with your actual axios call in your environment
       const token =
         typeof window !== "undefined" && window.localStorage
           ? localStorage.getItem("authToken")
           : null;
 
-      // Simulate API call
-      console.log("Submitting application:", formData);
-      alert(`Applied successfully for ${jobTitle}`);
-      onClose(); // close form or modal
+      const submitData = new FormData();
+      submitData.append("name", formData.fullName || "");
+      submitData.append("email", formData.email || "");
+      submitData.append("phone", formData.phone || "");
+      submitData.append("address", formData.address || "");
+      submitData.append("coverLetter", formData.coverLetter || "");
+      if (formData.resume && formData.resume instanceof File) {
+        submitData.append("resume", formData.resume);
+      }
+
+      const response = await axios.post(
+        `http://localhost:3000/api/v1/application/post/${jobId}`,
+        submitData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      alert("Applied successfully for " + jobTitle);
+      onClose();
     } catch (err) {
+      console.error(
+        "Failed to submit application",
+        err.response?.data || err.message
+      );
       alert("Failed to submit application");
     }
   };
@@ -162,6 +191,20 @@ const ApplyForm = ({ jobId, jobTitle, onClose }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address *
+                  </label>
+                  <input
+                    name="address"
+                    value={formData.address || ""}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#023854] focus:border-transparent transition-all duration-200 outline-none"
+                    placeholder="Enter your address"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Cover Letter
                   </label>
                   <textarea
@@ -171,6 +214,35 @@ const ApplyForm = ({ jobId, jobTitle, onClose }) => {
                     rows={4}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#023854] focus:border-transparent transition-all duration-200 outline-none resize-none"
                     placeholder="Tell us why you're interested in this position..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Upload Resume
+                  </label>
+                  {formData.resume && typeof formData.resume === "string" && (
+                    <div className="mb-2">
+                      <a
+                        href={formData.resume}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline text-sm"
+                      >
+                        View Current Resume
+                      </a>
+                    </div>
+                  )}
+                  <input
+                    name="resume"
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        resume: e.target.files[0],
+                      }))
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                   />
                 </div>
 
