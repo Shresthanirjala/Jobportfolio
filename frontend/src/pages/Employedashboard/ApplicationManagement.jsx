@@ -50,30 +50,64 @@ const ApplicationManagement = () => {
   }, []);
 
   // Handle approving an application
-  const handleApprove = (id) => {
-    setApplications(
-      applications.map((app) =>
-        app.id === id ? { ...app, status: "approved" } : app
-      )
-    );
-
-    // Update selected application if it's currently being viewed
-    if (selectedApplication && selectedApplication.id === id) {
-      setSelectedApplication({ ...selectedApplication, status: "approved" });
+  const handleApprove = async (id) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await axios.post(
+        `http://localhost:3000/api/v1/application/status/${id}`,
+        { status: "approved" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data.success) {
+        setApplications(
+          applications.map((app) =>
+            (app._id || app.id) === id ? { ...app, status: "approved" } : app
+          )
+        );
+        if (
+          selectedApplication &&
+          (selectedApplication._id || selectedApplication.id) === id
+        ) {
+          setSelectedApplication({
+            ...selectedApplication,
+            status: "approved",
+          });
+        }
+      }
+    } catch (error) {
+      // Optionally show error to user
+      console.error("Failed to approve application", error);
     }
   };
 
   // Handle rejecting an application
-  const handleReject = (id) => {
-    setApplications(
-      applications.map((app) =>
-        app.id === id ? { ...app, status: "rejected" } : app
-      )
-    );
-
-    // Update selected application if it's currently being viewed
-    if (selectedApplication && selectedApplication.id === id) {
-      setSelectedApplication({ ...selectedApplication, status: "rejected" });
+  const handleReject = async (id) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await axios.post(
+        `http://localhost:3000/api/v1/application/status/${id}`,
+        { status: "rejected" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data.success) {
+        setApplications(
+          applications.map((app) =>
+            (app._id || app.id) === id ? { ...app, status: "rejected" } : app
+          )
+        );
+        if (
+          selectedApplication &&
+          (selectedApplication._id || selectedApplication.id) === id
+        ) {
+          setSelectedApplication({
+            ...selectedApplication,
+            status: "rejected",
+          });
+        }
+      }
+    } catch (error) {
+      // Optionally show error to user
+      console.error("Failed to reject application", error);
     }
   };
 
@@ -109,12 +143,27 @@ const ApplicationManagement = () => {
   };
 
   // Handle deleting an application
-  const handleDelete = (id) => {
-    setApplications(applications.filter((app) => app.id !== id));
-
-    // Close detail view if the deleted application is currently being viewed
-    if (selectedApplication && selectedApplication.id === id) {
-      setSelectedApplication(null);
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await axios.delete(
+        `http://localhost:3000/api/v1/application/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data.success) {
+        setApplications(
+          applications.filter((app) => (app._id || app.id) !== id)
+        );
+        if (
+          selectedApplication &&
+          (selectedApplication._id || selectedApplication.id) === id
+        ) {
+          setSelectedApplication(null);
+        }
+      }
+    } catch (error) {
+      // Optionally show error to user
+      console.error("Failed to delete application", error);
     }
   };
 
@@ -396,7 +445,7 @@ const ApplicationManagement = () => {
                   <div className="flex flex-wrap gap-2">
                     {/* Only show Accept, Reject, and Delete buttons for all statuses */}
                     <button
-                      onClick={() => handleAccept(selectedApplication.id)}
+                      onClick={() => handleApprove(selectedApplication._id)}
                       className="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 flex items-center gap-1"
                       title="Approve Candidate"
                     >
@@ -404,7 +453,7 @@ const ApplicationManagement = () => {
                       <span className="text-sm">Approve</span>
                     </button>
                     <button
-                      onClick={() => handleReject(selectedApplication.id)}
+                      onClick={() => handleReject(selectedApplication._id)}
                       className="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 flex items-center gap-1"
                       title="Reject Candidate"
                     >
@@ -412,7 +461,7 @@ const ApplicationManagement = () => {
                       <span className="text-sm">Reject</span>
                     </button>
                     <button
-                      onClick={() => handleDelete(selectedApplication.id)}
+                      onClick={() => handleDelete(selectedApplication._id)}
                       className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-300 flex items-center gap-1"
                       title="Delete Application"
                     >

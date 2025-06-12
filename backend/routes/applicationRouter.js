@@ -30,7 +30,11 @@ router.get(
   isAuthorized("Job Seeker"),
   jobSeekerGetAllApplication
 );
-router.put("/application/status/:id", isAuthenticated, updateApplicationStatus);
+router.post(
+  "/status/:id",
+  isAuthenticated,
+  updateApplicationStatus
+);
 router.delete("/delete/:id", isAuthenticated, deleteApplication);
 
 export default router;
