@@ -77,6 +77,37 @@ const ApplicationManagement = () => {
     }
   };
 
+  // Handle accepting an application
+  const handleAccept = (id) => {
+    setApplications(
+      applications.map((app) =>
+        app.id === id ? { ...app, status: "approved" } : app
+      )
+    );
+
+    // Update selected application if it's currently being viewed
+    if (selectedApplication && selectedApplication.id === id) {
+      setSelectedApplication({ ...selectedApplication, status: "approved" });
+    }
+  };
+
+  // Handle final rejection of an application
+  const handleFinalReject = (id) => {
+    setApplications(
+      applications.map((app) =>
+        app.id === id ? { ...app, status: "final_rejected" } : app
+      )
+    );
+
+    // Update selected application if it's currently being viewed
+    if (selectedApplication && selectedApplication.id === id) {
+      setSelectedApplication({
+        ...selectedApplication,
+        status: "final_rejected",
+      });
+    }
+  };
+
   // Handle deleting an application
   const handleDelete = (id) => {
     setApplications(applications.filter((app) => app.id !== id));
@@ -218,8 +249,9 @@ const ApplicationManagement = () => {
             <ul className="divide-y divide-gray-200">
               {searchFilteredApplications.map((application) => (
                 <li
-                  key={application.id}
+                  key={application._id || application.id}
                   className={`hover:bg-gray-50 cursor-pointer ${
+                    selectedApplication?._id === application._id ||
                     selectedApplication?.id === application.id
                       ? "bg-blue-50"
                       : ""
@@ -253,6 +285,16 @@ const ApplicationManagement = () => {
                         {application.status === "rejected" && (
                           <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
                             Rejected
+                          </span>
+                        )}
+                        {application.status === "accepted" && (
+                          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                            Accepted
+                          </span>
+                        )}
+                        {application.status === "final_rejected" && (
+                          <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
+                            Final Rejected
                           </span>
                         )}
                       </div>
@@ -335,58 +377,47 @@ const ApplicationManagement = () => {
                                   ? "bg-yellow-100 text-yellow-800"
                                   : status === "approved"
                                   ? "bg-green-100 text-green-800"
+                                  : status === "accepted"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : status === "final_rejected"
+                                  ? "bg-gray-100 text-gray-800"
                                   : "bg-red-100 text-red-800"
                               }`}
                           >
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                            {status === "final_rejected"
+                              ? "Final Rejected"
+                              : status.charAt(0).toUpperCase() +
+                                status.slice(1)}
                           </span>
                         );
                       })()}
                     </div>
                   </div>
-                  <div className="flex space-x-2">
-                    {selectedApplication.status === "pending" && (
-                      <>
-                        <button
-                          onClick={() => handleApprove(selectedApplication.id)}
-                          className="bg-green-600 text-white p-2 rounded-md hover:bg-green-700"
-                          title="Approve"
-                        >
-                          <FaCheck />
-                        </button>
-                        <button
-                          onClick={() => handleReject(selectedApplication.id)}
-                          className="bg-red-600 text-white p-2 rounded-md hover:bg-red-700"
-                          title="Reject"
-                        >
-                          <FaTimes />
-                        </button>
-                      </>
-                    )}
-                    {selectedApplication.status === "rejected" && (
-                      <button
-                        onClick={() => handleApprove(selectedApplication.id)}
-                        className="bg-green-600 text-white p-2 rounded-md hover:bg-green-700"
-                        title="Move to Approved"
-                      >
-                        <FaCheck />
-                      </button>
-                    )}
-                    {selectedApplication.status === "approved" && (
-                      <button
-                        onClick={() => handleReject(selectedApplication.id)}
-                        className="bg-red-600 text-white p-2 rounded-md hover:bg-red-700"
-                        title="Move to Rejected"
-                      >
-                        <FaTimes />
-                      </button>
-                    )}
+                  <div className="flex flex-wrap gap-2">
+                    {/* Only show Accept, Reject, and Delete buttons for all statuses */}
+                    <button
+                      onClick={() => handleAccept(selectedApplication.id)}
+                      className="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 flex items-center gap-1"
+                      title="Approve Candidate"
+                    >
+                      <FaCheckCircle />
+                      <span className="text-sm">Approve</span>
+                    </button>
+                    <button
+                      onClick={() => handleReject(selectedApplication.id)}
+                      className="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 flex items-center gap-1"
+                      title="Reject Candidate"
+                    >
+                      <FaTimesCircle />
+                      <span className="text-sm">Reject</span>
+                    </button>
                     <button
                       onClick={() => handleDelete(selectedApplication.id)}
-                      className="bg-gray-200 text-gray-700 p-2 rounded-md hover:bg-gray-300"
+                      className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-300 flex items-center gap-1"
                       title="Delete Application"
                     >
                       <FaTrash />
+                      <span className="text-sm">Delete</span>
                     </button>
                   </div>
                 </div>
@@ -397,7 +428,7 @@ const ApplicationManagement = () => {
                       <FaBriefcase className="mr-2" /> Applied Position
                     </h3>
                     <p className="text-gray-600">
-                      {selectedApplication.jobInfo.jobTitle}
+                      {selectedApplication.jobInfo?.jobTitle}
                     </p>
                   </div>
                   <div>
@@ -408,46 +439,12 @@ const ApplicationManagement = () => {
                       {selectedApplication.appliedDate}
                     </p>
                   </div>
-                  <div>
-                    <h3 className="text-md font-semibold text-gray-700 mb-2 flex items-center">
-                      <FaUser className="mr-2" /> Experience
-                    </h3>
-                    <p className="text-gray-600">
-                      {selectedApplication.experience}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="text-md font-semibold text-gray-700 mb-2 flex items-center">
-                      <FaGraduationCap className="mr-2" /> Education
-                    </h3>
-                    <p className="text-gray-600">
-                      {selectedApplication.education}
-                    </p>
-                  </div>
                 </div>
 
                 <div className="mb-6">
                   <h3 className="text-md font-semibold text-gray-700 mb-2">
-                    Skills
+                    Cover Letter
                   </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedApplication.skills.map((skill, index) => (
-                      <span
-                        key={index}
-                        className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-md font-semibold text-gray-700">
-                      Cover Letter
-                    </h3>
-                  </div>
                   <div className="bg-gray-50 p-4 rounded-md">
                     <p className="text-gray-600">
                       {selectedApplication.jobSeekerInfo.coverLetter}
@@ -494,19 +491,6 @@ const ApplicationManagement = () => {
                       </button>
                     ))}
                   </div>
-                </div>
-
-                <div>
-                  <h3 className="text-md font-semibold text-gray-700 mb-2">
-                    Notes
-                  </h3>
-                  <textarea
-                    value={selectedApplication.notes}
-                    onChange={handleNoteChange}
-                    rows="4"
-                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Add notes about this candidate..."
-                  ></textarea>
                 </div>
               </div>
             )}

@@ -108,6 +108,32 @@ export const jobSeekerGetAllApplication = catchAsyncError(
     });
   }
 );
+
+export const updateApplicationStatus = catchAsyncError(
+  async (req, res, next) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!["approved", "rejected"].includes(status)) {
+      return next(new ErrorHandler("Invalid status.", 400));
+    }
+
+    const application = await Application.findById(id);
+    if (!application) {
+      return next(new ErrorHandler("Application not found.", 404));
+    }
+
+    application.status = status;
+    await application.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Application ${status}.`,
+      application,
+    });
+  }
+);
+
 export const deleteApplication = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const application = await Application.findById(id);

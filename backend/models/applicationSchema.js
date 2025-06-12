@@ -55,6 +55,13 @@ const applicationSchema = new mongoose.Schema({
       required: true,
     },
   },
+
+  status: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: "pending",
+  },
+
   deletedBy: {
     jobSeeker: {
       type: Boolean,
