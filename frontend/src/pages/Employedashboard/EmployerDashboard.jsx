@@ -1,4 +1,4 @@
-// EmployerDashboard.jsx - Main dashboard layout component with mock data
+// EmployerDashboard.jsx - Main dashboard layout component
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -19,47 +19,7 @@ import {
 import VacancyManagement from "./VacancyManagement";
 import ApplicationManagement from "./ApplicationManagement";
 import EmployerNavbar from "./EmployerNavbar";
-
-// Mock data
-const mockEmployerData = {
-  id: "1",
-  name: "Tech Solutions Inc.",
-  logo: "https://via.placeholder.com/50",
-  subscription: "Premium",
-  email: "contact@techsolutions.com",
-  industry: "Technology"
-};
-
-const mockStats = {
-  activeVacancies: 12,
-  newApplications: 8,
-  jobViews: 1243,
-  hired: 5
-};
-
-const mockRecentActivity = [
-  {
-    type: "application",
-    message: "<strong>John Doe</strong> applied for <strong>Frontend Developer</strong> position",
-    time: "2 hours ago",
-    iconColor: "blue",
-    action: "View"
-  },
-  {
-    type: "job_post",
-    message: "New job posting <strong>Backend Developer</strong> was published",
-    time: "1 day ago",
-    iconColor: "green",
-    action: null
-  },
-  {
-    type: "approval",
-    message: "<strong>Sarah Johnson</strong> was hired for <strong>UI/UX Designer</strong>",
-    time: "2 days ago",
-    iconColor: "yellow",
-    action: null
-  }
-];
+import axios from "axios";
 
 // Loading component
 const LoadingState = ({ fullScreen }) => {
@@ -95,7 +55,7 @@ const ErrorState = ({ message, onRetry }) => {
 };
 
 const EmployerDashboard = () => {
-  const { id } = useParams(); // Get the employer ID from URL parameters
+  const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [employer, setEmployer] = useState(null);
@@ -109,7 +69,6 @@ const EmployerDashboard = () => {
   });
   const [recentActivity, setRecentActivity] = useState([]);
 
-  // Fetch employer data based on ID
   useEffect(() => {
     const fetchEmployerData = async () => {
       if (!id) {
@@ -117,57 +76,70 @@ const EmployerDashboard = () => {
         setLoading(false);
         return;
       }
-
       try {
         setLoading(true);
-        
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Check if we should use mock data or try real API
-        const USE_MOCK_DATA = true; // Set to false when you have real API
-        
-        if (USE_MOCK_DATA) {
-          // Use mock data
-          setEmployer(mockEmployerData);
-          setStats(mockStats);
-          setRecentActivity(mockRecentActivity);
-          setLoading(false);
-          return;
-        }
-        
-        // Real API calls (uncomment when backend is ready)
-        /*
-        const response = await fetch(`/api/employers/${id}`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch employer data: ${response.status}`);
-        }
-        const data = await response.json();
-        setEmployer(data);
-
-        // Fetch employer stats
-        const statsResponse = await fetch(`/api/employers/${id}/stats`);
-        if (statsResponse.ok) {
-          const statsData = await statsResponse.json();
-          setStats(statsData);
-        }
-
-        // Fetch recent activity
-        const activityResponse = await fetch(`/api/employers/${id}/activity`);
-        if (activityResponse.ok) {
-          const activityData = await activityResponse.json();
-          setRecentActivity(activityData);
-        }
-        */
-
+        const token = localStorage.getItem("authToken");
+        // Fetch employer jobs (vacancies)
+        const jobsRes = await axios.get(
+          "http://localhost:3000/api/v1/job/getmyjobs",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const jobs = jobsRes.data.jobs || [];
+        // Fetch employer applications
+        const appsRes = await axios.get(
+          "http://localhost:3000/api/v1/application/employer/getall",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const applications = appsRes.data.application || [];
+        // Calculate stats
+        const activeVacancies = jobs.length;
+        const newApplications = applications.filter(
+          (app) => (app.status || "pending") === "pending"
+        ).length;
+        const hired = applications.filter(
+          (app) => (app.status || "") === "approved"
+        ).length;
+        // For jobViews, you may need a separate API or field; using 0 for now
+        setStats({
+          activeVacancies,
+          newApplications,
+          jobViews: 0,
+          hired,
+        });
+        // Recent activity: show last 5 applications and job posts
+        const recentApps = applications.slice(-5).map((app) => ({
+          type: "application",
+          message: `<strong>${
+            app.jobSeekerInfo?.name || "A candidate"
+          }</strong> applied for <strong>${
+            app.jobInfo?.jobTitle || "a job"
+          }</strong>`,
+          time: app.appliedDate || "-",
+          iconColor: "blue",
+          action: "View",
+        }));
+        const recentJobs = jobs.slice(-2).map((job) => ({
+          type: "job_post",
+          message: `New job posting <strong>${job.title}</strong> was published`,
+          time: job.createdAt
+            ? new Date(job.createdAt).toLocaleDateString()
+            : "-",
+          iconColor: "green",
+          action: null,
+        }));
+        setRecentActivity([...recentApps, ...recentJobs]);
+        // Set employer info (from jobs or token, fallback)
+        setEmployer({
+          name: jobs[0]?.companyName || "Employer",
+          logo: jobs[0]?.companyLogo || "https://via.placeholder.com/50",
+          subscription: "Standard",
+        });
         setLoading(false);
       } catch (err) {
-        console.error("Error fetching employer data:", err);
         setError("Failed to load employer data. Please try again later.");
         setLoading(false);
       }
     };
-
     fetchEmployerData();
   }, [id]);
 
@@ -206,17 +178,30 @@ const EmployerDashboard = () => {
       case "applications":
         return <ApplicationManagement employerId={id} />;
       case "resumes":
-        return <div className="text-center py-8 text-gray-500">Resume Viewer Component (Coming Soon)</div>;
+        return (
+          <div className="text-center py-8 text-gray-500">
+            Resume Viewer Component (Coming Soon)
+          </div>
+        );
       case "analytics":
-        return <div className="text-center py-8 text-gray-500">Analytics Component (Coming Soon)</div>;
+        return (
+          <div className="text-center py-8 text-gray-500">
+            Analytics Component (Coming Soon)
+          </div>
+        );
       case "settings":
-        return <div className="text-center py-8 text-gray-500">Settings Component (Coming Soon)</div>;
+        return (
+          <div className="text-center py-8 text-gray-500">
+            Settings Component (Coming Soon)
+          </div>
+        );
       default:
         return (
           <DashboardHome
             employer={employer}
             stats={stats}
             recentActivity={recentActivity}
+            navigate={navigate}
           />
         );
     }
@@ -387,7 +372,12 @@ const EmployerDashboard = () => {
 };
 
 // Dashboard home component for the main dashboard view
-const DashboardHome = ({ employer, stats, recentActivity }) => {
+const DashboardHome = ({ employer, stats, recentActivity, navigate }) => {
+  const handleViewProfile = (activity) => {
+    if (activity.type === "application" && activity.jobSeekerId) {
+      navigate(`/employer/jobseeker/${activity.jobSeekerId}`);
+    }
+  };
   return (
     <>
       <h2 className="text-2xl font-bold text-gray-800 mb-6">
@@ -485,7 +475,10 @@ const DashboardHome = ({ employer, stats, recentActivity }) => {
                 </div>
                 {activity.action && (
                   <div className="ml-auto">
-                    <button className="text-blue-600 text-sm">
+                    <button
+                      className="text-blue-600 text-sm"
+                      onClick={() => handleViewProfile(activity)}
+                    >
                       {activity.action}
                     </button>
                   </div>

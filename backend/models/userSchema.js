@@ -30,6 +30,7 @@ const userSchema = new mongoose.Schema({
       thirdNiche: String,
     },
     required: true,
+    _id: false, // Prevents Mongoose from adding an _id to the nested object
   },
   password: {
     type: String,

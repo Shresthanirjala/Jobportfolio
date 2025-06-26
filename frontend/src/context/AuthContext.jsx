@@ -5,15 +5,27 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) setUser(storedUser);
+    const storedToken = localStorage.getItem("authToken");
+    if (storedUser) {
+      // If token missing in localStorage but present in user, restore it
+      if (!storedToken && storedUser.token) {
+        localStorage.setItem("authToken", storedUser.token);
+      }
+      setUser(storedUser);
+    }
+    setAuthLoading(false);
   }, []);
 
   const login = (userData) => {
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
+    if (userData.token) {
+      localStorage.setItem("authToken", userData.token);
+    }
     window.dispatchEvent(new Event("user-login"));
   };
 
@@ -25,7 +37,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, authLoading }}>
       {children}
     </AuthContext.Provider>
   );

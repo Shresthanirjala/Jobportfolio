@@ -93,7 +93,7 @@ const EmployerNavbar = () => {
         isScrolled ? "shadow-lg" : "shadow-md"
       }`}
     >
-      <div className="w-full flex items-center justify-between px-4 sm:px-10 md:px-16 lg:px-32 max-w-screen-xl mx-auto">
+      <div className="w-full flex items-center justify-between px-4 sm:px-10 md:px-16 lg:px-32 max-w-screen-xl ">
         {/* Logo Section */}
         <div className="flex items-center space-x-3 flex-shrink-0">
           <div className="h-10 w-10 bg-[#023854] rounded-lg flex items-center justify-center">
@@ -108,7 +108,7 @@ const EmployerNavbar = () => {
         </div>
 
         {/* Desktop Auth Section */}
-        <div className="hidden md:flex items-center space-x-4 ml-auto">
+        <div className="hidden justify-end md:flex items-center space-x-4 ml-auto">
           {user ? (
             <>
               <Link

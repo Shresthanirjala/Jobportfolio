@@ -13,18 +13,23 @@ export const register = catchAsyncError(async (req, res, next) => {
       address,
       password,
       role,
-      firstNiche,
-      secondNiche,
-      thirdNiche,
+      niche1,
+      niche2,
+      niche3,
       coverLetter,
     } = req.body;
+
+    // Map frontend fields to backend fields
+    const firstNiche = niche1;
+    const secondNiche = niche2;
+    const thirdNiche = niche3;
 
     // ✅ Basic validation for required fields
     if (!name || !email || !phone || !address || !password || !role) {
       return next(new ErrorHandler("All fields are required.", 400));
     }
 
-    if (role === "job Seeker") {
+    if (role === "job Seeker" || role === "Job Seeker") {
       if (!firstNiche || !secondNiche || !thirdNiche) {
         return next(
           new ErrorHandler("Please provide your preferred job niches.", 400)

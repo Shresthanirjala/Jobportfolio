@@ -46,6 +46,10 @@ const PersonalInformation = () => {
       address: profileData.address,
       coverLetter: profileData.coverLetter,
       resume: profileData.resume,
+      // Add niche fields for editing
+      firstNiche: profileData.niches?.firstNiche || "",
+      secondNiche: profileData.niches?.secondNiche || "",
+      thirdNiche: profileData.niches?.thirdNiche || "",
     });
     setEditing(true);
   };
@@ -178,6 +182,20 @@ const PersonalInformation = () => {
                 </span>
               )}
             </div>
+            <div className="md:col-span-2 flex flex-col">
+              <label className="text-sm text-gray-500 mb-1">Niches</label>
+              <div className="flex flex-wrap gap-2">
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs">
+                  {profileData.niches?.firstNiche || "-"}
+                </span>
+                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs">
+                  {profileData.niches?.secondNiche || "-"}
+                </span>
+                <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs">
+                  {profileData.niches?.thirdNiche || "-"}
+                </span>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-4">
@@ -275,6 +293,32 @@ const PersonalInformation = () => {
                   Remove selected file
                 </button>
               )}
+            </div>
+            <div className="md:col-span-2 flex flex-col">
+              <label className="text-sm text-gray-500 mb-1">First Niche</label>
+              <input
+                type="text"
+                name="firstNiche"
+                value={editData.firstNiche || ""}
+                onChange={handleInputChange}
+                className="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+              />
+              <label className="text-sm text-gray-500 mb-1">Second Niche</label>
+              <input
+                type="text"
+                name="secondNiche"
+                value={editData.secondNiche || ""}
+                onChange={handleInputChange}
+                className="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+              />
+              <label className="text-sm text-gray-500 mb-1">Third Niche</label>
+              <input
+                type="text"
+                name="thirdNiche"
+                value={editData.thirdNiche || ""}
+                onChange={handleInputChange}
+                className="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
           </div>
         )}

@@ -443,23 +443,27 @@ const ApplicationManagement = () => {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {/* Only show Accept, Reject, and Delete buttons for all statuses */}
-                    <button
-                      onClick={() => handleApprove(selectedApplication._id)}
-                      className="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 flex items-center gap-1"
-                      title="Approve Candidate"
-                    >
-                      <FaCheckCircle />
-                      <span className="text-sm">Approve</span>
-                    </button>
-                    <button
-                      onClick={() => handleReject(selectedApplication._id)}
-                      className="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 flex items-center gap-1"
-                      title="Reject Candidate"
-                    >
-                      <FaTimesCircle />
-                      <span className="text-sm">Reject</span>
-                    </button>
+                    {/* Only show Approve/Reject if status is pending */}
+                    {selectedApplication.status === "pending" && (
+                      <>
+                        <button
+                          onClick={() => handleApprove(selectedApplication._id)}
+                          className="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 flex items-center gap-1"
+                          title="Approve Candidate"
+                        >
+                          <FaCheckCircle />
+                          <span className="text-sm">Approve</span>
+                        </button>
+                        <button
+                          onClick={() => handleReject(selectedApplication._id)}
+                          className="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 flex items-center gap-1"
+                          title="Reject Candidate"
+                        >
+                          <FaTimesCircle />
+                          <span className="text-sm">Reject</span>
+                        </button>
+                      </>
+                    )}
                     <button
                       onClick={() => handleDelete(selectedApplication._id)}
                       className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-300 flex items-center gap-1"
