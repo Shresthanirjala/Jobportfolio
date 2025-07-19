@@ -3,8 +3,10 @@ import Hero from "../components/Hero";
 import TopNiches from "../components/TopNiches";
 import HowItWorks from "../components/HowItWorks";
 import LandingJobs from "../components/LandingJobs";
+// import FindJobs from "../pages/FindJobs"
 import CompaniesHiringNow from "../components/CompaniesHiringNow";
-import Jobs from "./Jobs";
+import Jobs from "../pages/Jobs"
+
 
 
 const Home = () => {
@@ -12,10 +14,12 @@ const Home = () => {
     <div className="bg-[#f8f5f5]">
       <Hero />
       <HowItWorks />
-      <TopNiches />
-      <CompaniesHiringNow/>
+      {/* <TopNiches /> */}
+      {/* <CompaniesHiringNow/> */}
       <LandingJobs/>
+      {/* <FindJobs/> */}
       <Jobs/>
+    
 
     </div>
   );

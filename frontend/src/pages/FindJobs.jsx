@@ -15,6 +15,7 @@ import {
   X,
   Check,
   LogIn,
+  ArrowRight,
 } from "lucide-react";
 
 // Theme colors
@@ -53,7 +54,7 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
   const [errorRecommended, setErrorRecommended] = useState(null);
 
   // Pagination states
-  const JOBS_PER_PAGE = 4;
+  const JOBS_PER_PAGE = 3;
   const [recommendedPage, setRecommendedPage] = useState(1);
   const [jobsPage, setJobsPage] = useState(1);
 
@@ -148,6 +149,11 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
   const filteredJobs = jobs.filter((job) => {
     // Exclude jobs already shown in recommended
     if (recommendedJobIds.has(job._id)) return false;
+    // Only show jobs posted within the last 25 days
+    const postedDate = new Date(job.jobPostedOn);
+    const now = new Date();
+    const diffDays = (now - postedDate) / (1000 * 60 * 60 * 24);
+    if (diffDays > 25) return false;
     const matchesJobType = selectedJobType
       ? normalizeString(job.jobType) === normalizeString(selectedJobType)
       : true;
@@ -255,19 +261,7 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
 
       {/* User Login Status Indicator */}
       <div className="bg-[#718B68] text-white py-2">
-        <div className="w-full max-w-screen-xl mx-auto px-4 sm:px-10 md:px-16 lg:px-32 flex justify-end">
-          {isLoggedIn ? (
-            <div className="flex items-center">
-              <span className="mr-2">Logged in</span>
-              <div className="h-3 w-3 bg-green-400 rounded-full"></div>
-            </div>
-          ) : (
-            <div className="flex items-center">
-              <span className="mr-2">Not logged in</span>
-              <div className="h-3 w-3 bg-red-400 rounded-full"></div>
-            </div>
-          )}
-        </div>
+        <div className="w-full max-w-screen-xl mx-auto px-4 sm:px-10 md:px-16 lg:px-32 flex justify-end"></div>
       </div>
 
       {/* Search Bar */}
@@ -318,21 +312,19 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
 
                 {filterExpanded.jobType && (
                   <div className="space-y-2 pl-1">
-                    {["Full-time", "Part-time", "Contract", "Internship"].map(
-                      (type) => (
-                        <label key={type} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="jobType"
-                            value={type}
-                            checked={selectedJobType === type}
-                            onChange={(e) => setSelectedJobType(e.target.value)}
-                            className="mr-2 accent-[#718B68]"
-                          />
-                          <span className="text-gray-700">{type}</span>
-                        </label>
-                      )
-                    )}
+                    {["Full-time", "Part-time"].map((type) => (
+                      <label key={type} className="flex items-center">
+                        <input
+                          type="radio"
+                          name="jobType"
+                          value={type}
+                          checked={selectedJobType === type}
+                          onChange={(e) => setSelectedJobType(e.target.value)}
+                          className="mr-2 accent-[#718B68]"
+                        />
+                        <span className="text-gray-700">{type}</span>
+                      </label>
+                    ))}
                   </div>
                 )}
               </div>
@@ -353,102 +345,35 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
 
                 {filterExpanded.location && (
                   <div className="space-y-2 pl-1">
-                    {["Kathmandu", "Nepal", "Remote", "Onsite"].map(
-                      (location) => (
-                        <label key={location} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="location"
-                            value={location}
-                            checked={selectedLocation === location}
-                            onChange={(e) =>
-                              setSelectedLocation(e.target.value)
-                            }
-                            className="mr-2 accent-[#718B68]"
-                          />
-                          <span className="text-gray-700">{location}</span>
-                        </label>
-                      )
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Experience Level */}
-              <div className="mb-6">
-                <div
-                  className="flex items-center justify-between cursor-pointer mb-2"
-                  onClick={() => toggleSection("experience")}
-                >
-                  <h4 className="font-semibold text-[#013954]">
-                    Experience Level
-                  </h4>
-                  {filterExpanded.experience ? (
-                    <ChevronUp size={16} />
-                  ) : (
-                    <ChevronDown size={16} />
-                  )}
-                </div>
-
-                {filterExpanded.experience && (
-                  <div className="space-y-2 pl-1">
                     {[
-                      "Entry Level",
-                      "Mid Level",
-                      "Senior Level",
-                      "Manager",
-                    ].map((level) => (
-                      <label key={level} className="flex items-center">
+                      "Kathmandu",
+                      "Nepal",
+                      "Pokhara",
+                      "Nepalgunj",
+                      "Manang",
+                      "Mustang",
+                      "Dang",
+                      "Jorpati",
+                      "Lalitpur",
+                      "Bhaktapur",
+                      "Makwanpur",
+                      "Banasthali",
+                      "Swoyambhu",
+                      "Chabhil",
+                      "Baneswor",
+                    ].map((location) => (
+                      <label key={location} className="flex items-center">
                         <input
                           type="radio"
-                          name="experienceLevel"
-                          value={level}
-                          checked={selectedExperienceLevel === level}
-                          onChange={(e) =>
-                            setSelectedExperienceLevel(e.target.value)
-                          }
+                          name="location"
+                          value={location}
+                          checked={selectedLocation === location}
+                          onChange={(e) => setSelectedLocation(e.target.value)}
                           className="mr-2 accent-[#718B68]"
                         />
-                        <span className="text-gray-700">{level}</span>
+                        <span className="text-gray-700">{location}</span>
                       </label>
                     ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Salary Range */}
-              <div className="mb-6">
-                <div
-                  className="flex items-center justify-between cursor-pointer mb-2"
-                  onClick={() => toggleSection("salary")}
-                >
-                  <h4 className="font-semibold text-[#013954]">Salary Range</h4>
-                  {filterExpanded.salary ? (
-                    <ChevronUp size={16} />
-                  ) : (
-                    <ChevronDown size={16} />
-                  )}
-                </div>
-
-                {filterExpanded.salary && (
-                  <div className="space-y-2 pl-1">
-                    {["$0-$50k", "$50k-$100k", "$100k-$150k", "$150k+"].map(
-                      (range) => (
-                        <label key={range} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="salaryRange"
-                            value={range}
-                            checked={selectedSalaryRange === range}
-                            onChange={(e) =>
-                              setSelectedSalaryRange(e.target.value)
-                            }
-                            className="mr-2 accent-[#718B68]"
-                          />
-                          <span className="text-gray-700">{range}</span>
-                        </label>
-                      )
-                    )}
                   </div>
                 )}
               </div>
@@ -468,150 +393,125 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
                 <h2 className="text-xl font-bold text-[#013954] mb-4">
                   Jobs According to Your Interest
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
                   {paginatedRecommendedJobs.map((job) => (
                     <div
                       key={job._id}
-                      className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white h-full flex flex-col"
+                      className="group p-4 border border-gray-200 rounded-xl hover:border-[#718B68] hover:shadow-lg transition-all duration-300 bg-white hover:bg-gray-50"
+                      style={{
+                        minHeight: "260px",
+                        maxHeight: "340px",
+                        overflow: "hidden",
+                        display: "flex",
+                        alignItems: "stretch",
+                      }}
                     >
-                      {/* Job Card Header (same as other jobs) */}
-                      <div
-                        className="p-4 cursor-pointer flex-grow"
-                        onClick={() => toggleJobExpand(job._id)}
-                      >
-                        <div className="flex flex-row gap-4 justify-between items-start flex-wrap">
-                          {/* Left: Job Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-2 mb-2">
-                              <span className="px-2 py-1 bg-[#718B68] bg-opacity-20 text-[#718B68] rounded-full text-xs font-medium">
-                                {job.jobType}
-                              </span>
-                              <h3 className="text-lg font-bold text-[#013954] line-clamp-1 break-all">
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full h-full">
+                        <div className="flex-1 flex flex-col justify-between h-full">
+                          <div className="flex items-start gap-3 mb-2">
+                            <div className="p-2 bg-gray-100 group-hover:bg-[#718B68] group-hover:bg-opacity-10 rounded-lg transition-all">
+                              <Briefcase className="w-5 h-5 text-gray-600 group-hover:text-[#718B68]" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-lg font-bold text-[#013954] mb-1 group-hover:text-[#718B68] transition-colors">
                                 {job.title}
                               </h3>
-                            </div>
-                            <div className="flex items-center mt-1 text-gray-600 text-sm">
-                              <Briefcase
-                                size={14}
-                                className="mr-1 flex-shrink-0"
-                              />
-                              <span className="font-medium truncate">
-                                {job.companyName}
-                              </span>
-                            </div>
-                            <div className="flex items-center mt-1 text-gray-600 text-sm">
-                              <MapPin
-                                size={14}
-                                className="mr-1 flex-shrink-0"
-                              />
-                              <span className="truncate">{job.location}</span>
-                            </div>
-                          </div>
-                          {/* Right: Date & Salary, always right-aligned and stacked */}
-                          <div className="flex flex-col items-end min-w-[110px] mt-2 md:mt-0">
-                            <div className="flex items-center text-gray-600 text-xs mb-1">
-                              <Calendar
-                                size={14}
-                                className="mr-1 flex-shrink-0"
-                              />
-                              <span>
-                                {new Date(job.jobPostedOn).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <div className="flex items-center text-gray-800 font-medium text-sm">
-                              <DollarSign
-                                size={14}
-                                className="mr-1 flex-shrink-0"
-                              />
-                              <span>{job.salary}</span>
+                              <div className="flex flex-wrap items-center gap-3 text-gray-600 mb-2">
+                                <span className="flex items-center gap-2 font-medium">
+                                  <div className="w-2 h-2 bg-[#718B68] rounded-full"></div>
+                                  {job.companyName}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="w-4 h-4" />
+                                  {job.location}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="w-4 h-4" />
+                                  {new Date(
+                                    job.jobPostedOn
+                                  ).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="text-gray-600 mb-2 leading-relaxed text-sm">
+                                {job.introduction || "No description available"}
+                              </p>
                             </div>
                           </div>
-                        </div>
-                        <div className="mt-3 text-gray-600 text-sm">
-                          <p className="line-clamp-2">
-                            {job.introduction || "No description available"}
-                          </p>
-                        </div>
-                        <div className="mt-3 flex justify-center">
-                          <button
-                            className="flex items-center text-[#013954] hover:text-opacity-80 text-sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleJobExpand(job._id);
-                            }}
-                          >
-                            {expandedJob === job._id ? (
-                              <>
-                                View Less{" "}
-                                <ChevronUp size={14} className="ml-1" />
-                              </>
-                            ) : (
-                              <>
-                                View More{" "}
-                                <ChevronDown size={14} className="ml-1" />
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                      {expandedJob === job._id && (
-                        <div className="p-4 border-t border-gray-200 bg-gray-50">
-                          {job.responsibilities && (
-                            <div className="mb-3">
-                              <h4 className="font-bold text-base text-[#013954] mb-1">
-                                Responsibilities
-                              </h4>
-                              <ul className="list-disc pl-5 space-y-1 text-sm">
-                                {job.responsibilities
-                                  .split(/,\s*/)
-                                  .map((item, index) => (
-                                    <li key={index} className="text-gray-700">
-                                      {item.trim()}
-                                    </li>
-                                  ))}
-                              </ul>
+                          <div className="flex items-center gap-4 text-xs text-gray-500 mb-1">
+                            <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full font-medium">
+                              {job.jobType}
+                            </span>
+                          </div>
+                          {/* Responsibilities & Qualifications (fixed height, scrollable) */}
+                          {(job.responsibilities || job.qualifications) && (
+                            <div
+                              className="flex flex-wrap gap-3 mt-2"
+                              style={{ maxHeight: "90px", overflowY: "auto" }}
+                            >
+                              {job.responsibilities && (
+                                <div
+                                  className="flex-1 min-w-[120px] bg-gray-50 border border-gray-100 rounded-xl p-2"
+                                  style={{
+                                    maxHeight: "90px",
+                                    overflowY: "auto",
+                                  }}
+                                >
+                                  <h4 className="font-semibold text-[#013954] mb-1 flex items-center gap-2 text-xs">
+                                    <span className="w-2 h-2 bg-[#718B68] rounded-full"></span>
+                                    Responsibilities
+                                  </h4>
+                                  <ul className="list-disc pl-4 text-gray-700 text-xs space-y-1">
+                                    {job.responsibilities
+                                      .split(/,\s*/)
+                                      .map((item, idx) => (
+                                        <li key={idx}>{item.trim()}</li>
+                                      ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {job.qualifications && (
+                                <div
+                                  className="flex-1 min-w-[120px] bg-gray-50 border border-gray-100 rounded-xl p-2"
+                                  style={{
+                                    maxHeight: "90px",
+                                    overflowY: "auto",
+                                  }}
+                                >
+                                  <h4 className="font-semibold text-[#013954] mb-1 flex items-center gap-2 text-xs">
+                                    <span className="w-2 h-2 bg-[#718B68] rounded-full"></span>
+                                    Qualifications
+                                  </h4>
+                                  <ul className="list-disc pl-4 text-gray-700 text-xs space-y-1">
+                                    {job.qualifications
+                                      .split(/,\s*/)
+                                      .map((item, idx) => (
+                                        <li key={idx}>{item.trim()}</li>
+                                      ))}
+                                  </ul>
+                                </div>
+                              )}
                             </div>
                           )}
-                          {job.qualifications && (
-                            <div className="mb-3">
-                              <h4 className="font-bold text-base text-[#013954] mb-1">
-                                Qualifications
-                              </h4>
-                              <ul className="list-disc pl-5 space-y-1 text-sm">
-                                {job.qualifications
-                                  .split(/,\s*/)
-                                  .map((item, index) => (
-                                    <li key={index} className="text-gray-700">
-                                      {item.trim()}
-                                    </li>
-                                  ))}
-                              </ul>
+                        </div>
+                        <div className="flex flex-col items-end gap-2 justify-between h-full">
+                          <div className="text-right">
+                            <div className="flex items-center gap-1 text-lg font-bold text-[#718B68] mb-1">
+                              <DollarSign className="w-5 h-5" />
+                              {job.salary}
                             </div>
-                          )}
-                          {job.offers && (
-                            <div className="mb-3">
-                              <h4 className="font-bold text-base text-[#013954] mb-1">
-                                What We Offer
-                              </h4>
-                              <ul className="list-disc pl-5 space-y-1 text-sm">
-                                {job.offers.split(/,\s*/).map((item, index) => (
-                                  <li key={index} className="text-gray-700">
-                                    {item.trim()}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          <div className="mt-4 flex justify-end">
+                            <p className="text-xs text-gray-500">per year</p>
+                          </div>
+                          <div className="flex gap-2">
                             <button
-                              className="bg-[#718B68] text-white px-4 py-2 rounded-md hover:bg-opacity-90 font-medium text-sm"
+                              className="px-4 py-2 bg-[#013954] text-white rounded-lg hover:bg-[#025373] transition-all duration-300 font-medium flex items-center gap-2 text-xs"
                               onClick={() => handleApply(job._id, job.title)}
                             >
                               Apply Now
+                              <ArrowRight className="w-4 h-4" />
                             </button>
                           </div>
                         </div>
-                      )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -651,171 +551,122 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
             </h2>
 
             {filteredJobs.length > 0 ? (
-              <div>
-                {/* Grid layout for job cards - two columns */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {paginatedFilteredJobs.map((job) => (
-                    <div
-                      key={job._id}
-                      className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white h-full flex flex-col"
-                    >
-                      {/* Job Card Header */}
-                      <div
-                        className="p-4 cursor-pointer flex-grow"
-                        onClick={() => toggleJobExpand(job._id)}
-                      >
-                        <div className="flex flex-row gap-4 justify-between items-start flex-wrap">
-                          {/* Left: Job Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-2 mb-2">
-                              <span className="px-2 py-1 bg-[#718B68] bg-opacity-20 text-[#718B68] rounded-full text-xs font-medium">
-                                {job.jobType}
-                              </span>
-                              <h3 className="text-lg font-bold text-[#013954] line-clamp-1 break-all">
-                                {job.title}
-                              </h3>
-                            </div>
-                            <div className="flex items-center mt-1 text-gray-600 text-sm">
-                              <Briefcase
-                                size={14}
-                                className="mr-1 flex-shrink-0"
-                              />
-                              <span className="font-medium truncate">
+              <div className="space-y-4">
+                {paginatedFilteredJobs.map((job) => (
+                  <div
+                    key={job._id}
+                    className="group p-4 border border-gray-200 rounded-xl hover:border-[#718B68] hover:shadow-lg transition-all duration-300 bg-white hover:bg-gray-50"
+                    style={{
+                      minHeight: "260px",
+                      maxHeight: "340px",
+                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "stretch",
+                    }}
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full h-full">
+                      <div className="flex-1 flex flex-col justify-between h-full">
+                        <div className="flex items-start gap-3 mb-2">
+                          <div className="p-2 bg-gray-100 group-hover:bg-[#718B68] group-hover:bg-opacity-10 rounded-lg transition-all">
+                            <Briefcase className="w-5 h-5 text-gray-600 group-hover:text-[#718B68]" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-[#013954] mb-1 group-hover:text-[#718B68] transition-colors">
+                              {job.title}
+                            </h3>
+                            <div className="flex flex-wrap items-center gap-3 text-gray-600 mb-2">
+                              <span className="flex items-center gap-2 font-medium">
+                                <div className="w-2 h-2 bg-[#718B68] rounded-full"></div>
                                 {job.companyName}
                               </span>
-                            </div>
-                            <div className="flex items-center mt-1 text-gray-600 text-sm">
-                              <MapPin
-                                size={14}
-                                className="mr-1 flex-shrink-0"
-                              />
-                              <span className="truncate">{job.location}</span>
-                            </div>
-                          </div>
-                          {/* Right: Date & Salary, always right-aligned and stacked */}
-                          <div className="flex flex-col items-end min-w-[110px] mt-2 md:mt-0">
-                            <div className="flex items-center text-gray-600 text-xs mb-1">
-                              <Calendar
-                                size={14}
-                                className="mr-1 flex-shrink-0"
-                              />
-                              <span>
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-4 h-4" />
+                                {job.location}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4" />
                                 {new Date(job.jobPostedOn).toLocaleDateString()}
                               </span>
                             </div>
-                            <div className="flex items-center text-gray-800 font-medium text-sm">
-                              <DollarSign
-                                size={14}
-                                className="mr-1 flex-shrink-0"
-                              />
-                              <span>{job.salary}</span>
-                            </div>
+                            <p className="text-gray-600 mb-2 leading-relaxed text-sm">
+                              {job.introduction || "No description available"}
+                            </p>
                           </div>
                         </div>
-
-                        {/* Short description (always visible) */}
-                        <div className="mt-3 text-gray-600 text-sm">
-                          <p className="line-clamp-2">
-                            {job.introduction || "No description available"}
-                          </p>
+                        <div className="flex items-center gap-4 text-xs text-gray-500 mb-1">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full font-medium">
+                            {job.jobType}
+                          </span>
                         </div>
-
-                        {/* Expand/Collapse button */}
-                        <div className="mt-3 flex justify-center">
-                          <button
-                            className="flex items-center text-[#013954] hover:text-opacity-80 text-sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleJobExpand(job._id);
-                            }}
+                        {/* Responsibilities & Qualifications (fixed height, scrollable) */}
+                        {(job.responsibilities || job.qualifications) && (
+                          <div
+                            className="flex flex-wrap gap-3 mt-2"
+                            style={{ maxHeight: "90px", overflowY: "auto" }}
                           >
-                            {expandedJob === job._id ? (
-                              <>
-                                View Less{" "}
-                                <ChevronUp size={14} className="ml-1" />
-                              </>
-                            ) : (
-                              <>
-                                View More{" "}
-                                <ChevronDown size={14} className="ml-1" />
-                              </>
+                            {job.responsibilities && (
+                              <div
+                                className="flex-1 min-w-[120px] bg-gray-50 border border-gray-100 rounded-xl p-2"
+                                style={{ maxHeight: "90px", overflowY: "auto" }}
+                              >
+                                <h4 className="font-semibold text-[#013954] mb-1 flex items-center gap-2 text-xs">
+                                  <span className="w-2 h-2 bg-[#718B68] rounded-full"></span>
+                                  Responsibilities
+                                </h4>
+                                <ul className="list-disc pl-4 text-gray-700 text-xs space-y-1">
+                                  {job.responsibilities
+                                    .split(/,\s*/)
+                                    .map((item, idx) => (
+                                      <li key={idx}>{item.trim()}</li>
+                                    ))}
+                                </ul>
+                              </div>
                             )}
+                            {job.qualifications && (
+                              <div
+                                className="flex-1 min-w-[120px] bg-gray-50 border border-gray-100 rounded-xl p-2"
+                                style={{ maxHeight: "90px", overflowY: "auto" }}
+                              >
+                                <h4 className="font-semibold text-[#013954] mb-1 flex items-center gap-2 text-xs">
+                                  <span className="w-2 h-2 bg-[#718B68] rounded-full"></span>
+                                  Qualifications
+                                </h4>
+                                <ul className="list-disc pl-4 text-gray-700 text-xs space-y-1">
+                                  {job.qualifications
+                                    .split(/,\s*/)
+                                    .map((item, idx) => (
+                                      <li key={idx}>{item.trim()}</li>
+                                    ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-end gap-2 justify-between h-full">
+                        <div className="text-right">
+                          <div className="flex items-center gap-1 text-lg font-bold text-[#718B68] mb-1">
+                            <DollarSign className="w-5 h-5" />
+                            {job.salary}
+                          </div>
+                          <p className="text-xs text-gray-500">per year</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            className="px-4 py-2 bg-[#013954] text-white rounded-lg hover:bg-[#025373] transition-all duration-300 font-medium flex items-center gap-2 text-xs"
+                            onClick={() => handleApply(job._id, job.title)}
+                          >
+                            Apply Now
+                            <ArrowRight className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
-
-                      {/* Expanded details */}
-                      {expandedJob === job._id && (
-                        <div className="p-4 border-t border-gray-200 bg-gray-50">
-                          {/* Responsibilities */}
-                          {job.responsibilities && (
-                            <div className="mb-3">
-                              <h4 className="font-bold text-base text-[#013954] mb-1">
-                                Responsibilities
-                              </h4>
-                              <ul className="list-disc pl-5 space-y-1 text-sm">
-                                {job.responsibilities
-                                  .split(/,\s*/)
-                                  .map((item, index) => (
-                                    <li key={index} className="text-gray-700">
-                                      {item.trim()}
-                                    </li>
-                                  ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* Qualifications */}
-                          {job.qualifications && (
-                            <div className="mb-3">
-                              <h4 className="font-bold text-base text-[#013954] mb-1">
-                                Qualifications
-                              </h4>
-                              <ul className="list-disc pl-5 space-y-1 text-sm">
-                                {job.qualifications
-                                  .split(/,\s*/)
-                                  .map((item, index) => (
-                                    <li key={index} className="text-gray-700">
-                                      {item.trim()}
-                                    </li>
-                                  ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* Offers */}
-                          {job.offers && (
-                            <div className="mb-3">
-                              <h4 className="font-bold text-base text-[#013954] mb-1">
-                                What We Offer
-                              </h4>
-                              <ul className="list-disc pl-5 space-y-1 text-sm">
-                                {job.offers.split(/,\s*/).map((item, index) => (
-                                  <li key={index} className="text-gray-700">
-                                    {item.trim()}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* Apply button */}
-                          <div className="mt-4 flex justify-end">
-                            <button
-                              className="bg-[#718B68] text-white px-4 py-2 rounded-md hover:bg-opacity-90 font-medium text-sm"
-                              onClick={() => handleApply(job._id, job.title)}
-                            >
-                              Apply Now
-                            </button>
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
                 {/* Pagination for filtered jobs */}
                 {totalJobsPages > 1 && (
-                  <div className="mt-8 flex justify-center space-x-2">
+                  <div className="mt-6 flex justify-center space-x-2">
                     <button
                       className="px-3 py-2 border rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                       onClick={() => setJobsPage((p) => Math.max(1, p - 1))}

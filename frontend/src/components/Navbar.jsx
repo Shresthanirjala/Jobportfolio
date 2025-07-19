@@ -22,6 +22,8 @@ const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showSearchBar, setShowSearchBar] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -65,6 +67,14 @@ const Navbar = () => {
     setIsDropdownOpen(false);
     setIsOpen(false);
     navigate("/");
+  };
+
+  const handleSearch = () => {
+    if (searchValue.trim()) {
+      navigate(`/findjobs?search=${encodeURIComponent(searchValue)}`);
+      setShowSearchBar(false);
+      setSearchValue("");
+    }
   };
 
   return (
@@ -117,12 +127,41 @@ const Navbar = () => {
         <div className="hidden md:flex items-center space-x-4 ml-auto">
           {user ? (
             <>
-              <Link
-                to="/job/search"
+              <button
+                onClick={() => setShowSearchBar((prev) => !prev)}
                 className="text-[#023854] hover:text-[#718B68]"
+                aria-label="Search Jobs"
               >
                 <Search className="h-5 w-5" />
-              </Link>
+              </button>
+              {showSearchBar && (
+                <div className="absolute top-16 right-32 z-50 bg-white shadow-lg rounded-lg flex items-center px-3 py-2 border border-gray-200">
+                  <input
+                    type="text"
+                    className="border-none outline-none px-2 py-1 text-[#023854] w-56"
+                    placeholder="Search jobs, companies..."
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSearch();
+                    }}
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleSearch}
+                    className="ml-2 px-3 py-1 bg-[#718B68] text-white rounded hover:bg-[#5c7254]"
+                  >
+                    Go
+                  </button>
+                  <button
+                    onClick={() => setShowSearchBar(false)}
+                    className="ml-1 text-gray-400 hover:text-gray-600"
+                    aria-label="Close Search"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              )}
               <Link
                 to="/notifications"
                 className="text-[#023854] hover:text-[#718B68] relative"

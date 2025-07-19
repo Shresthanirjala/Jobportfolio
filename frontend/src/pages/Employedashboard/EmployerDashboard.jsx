@@ -212,15 +212,15 @@ const EmployerDashboard = () => {
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen mx-auto">
+    <div className="bg-gray-100 min-h-screen w-full">
       <EmployerNavbar />
       {/* Header */}
-      <header className="bg-blue-600 text-white p-4 shadow-md">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">JobPortal</h1>
+      <header className="bg-blue-600 text-white w-full shadow-md sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
+          <h1 className="text-2xl font-bold tracking-tight">JobPortal</h1>
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <button className="flex items-center space-x-2">
+              <button className="flex items-center space-x-2 focus:outline-none">
                 <span className="text-sm">Notifications</span>
                 <FaBell />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -232,7 +232,7 @@ const EmployerDashboard = () => {
               <img
                 src={employer?.logo || "https://via.placeholder.com/40"}
                 alt="Profile"
-                className="w-8 h-8 rounded-full"
+                className="w-8 h-8 rounded-full border border-white shadow"
               />
               <span className="text-sm font-medium">
                 {employer?.name || "Loading..."}
@@ -244,14 +244,14 @@ const EmployerDashboard = () => {
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto flex">
+      <main className="max-w-7xl mx-auto flex flex-row gap-6 px-4 md:px-8 py-8 min-h-[calc(100vh-80px)]">
         {/* Sidebar */}
-        <div className="bg-white w-64 shadow-md p-4 h-[calc(100vh-64px)]">
+        <aside className="bg-white w-64 shrink-0 rounded-xl shadow-lg p-4 flex flex-col h-[calc(100vh-120px)] sticky top-24">
           <div className="company-info flex items-center p-3 mb-6 bg-blue-50 rounded-md">
             <img
               src={employer?.logo || "https://via.placeholder.com/50"}
               alt="Company Logo"
-              className="w-12 h-12 rounded mr-3"
+              className="w-12 h-12 rounded mr-3 border border-blue-100"
             />
             <div>
               <h3 className="font-bold text-gray-800">
@@ -263,7 +263,7 @@ const EmployerDashboard = () => {
             </div>
           </div>
 
-          <nav>
+          <nav className="flex-1">
             <ul className="space-y-2">
               <li>
                 <button
@@ -360,13 +360,13 @@ const EmployerDashboard = () => {
               <span className="ml-3">Logout</span>
             </button>
           </div>
-        </div>
+        </aside>
 
         {/* Content Area */}
-        <div className="flex-1 p-6 h-[calc(100vh-64px)] overflow-y-auto">
+        <section className="flex-1 min-w-0 bg-white rounded-xl shadow-lg p-6 h-fit">
           {renderContent()}
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 };
