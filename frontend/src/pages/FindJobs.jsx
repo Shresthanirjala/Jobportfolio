@@ -52,6 +52,7 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
   const [recommendedJobs, setRecommendedJobs] = useState([]);
   const [loadingRecommended, setLoadingRecommended] = useState(true);
   const [errorRecommended, setErrorRecommended] = useState(null);
+  const [appliedJobIds, setAppliedJobIds] = useState([]);
 
   // Pagination states
   const JOBS_PER_PAGE = 3;
@@ -94,8 +95,27 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
       }
     };
 
+    // Fetch applied jobs for the user
+    const fetchAppliedJobs = async () => {
+      if (user && user.token) {
+        try {
+          const res = await axios.get(
+            "http://localhost:3000/api/v1/application/my-applications",
+            { headers: { Authorization: `Bearer ${user.token}` } }
+          );
+          // Assuming response.data.applications is an array of applications with jobId
+          setAppliedJobIds(res.data.applications.map((app) => app.jobId));
+        } catch (err) {
+          // Ignore error for applied jobs
+        }
+      } else {
+        setAppliedJobIds([]);
+      }
+    };
+
     fetchJobs();
     fetchRecommendedJobs();
+    fetchAppliedJobs();
   }, [user]);
 
   const toggleJobExpand = (id) => {
@@ -127,6 +147,17 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
     // Check localStorage for authToken to determine if user is logged in
     const token = localStorage.getItem("authToken");
     if (token) {
+      if (appliedJobIds.includes(jobId)) {
+        if (setNotification) {
+          setNotification({
+            type: "error",
+            message: "You already applied to this job.",
+          });
+        } else {
+          window.alert("You already applied to this job.");
+        }
+        return;
+      }
       setApplyJobId(jobId);
       setApplyJobTitle(jobTitle);
       setShowApplyModal(true); // Show the popup form
@@ -503,11 +534,33 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
                           </div>
                           <div className="flex gap-2">
                             <button
-                              className="px-4 py-2 bg-[#013954] text-white rounded-lg hover:bg-[#025373] transition-all duration-300 font-medium flex items-center gap-2 text-xs"
-                              onClick={() => handleApply(job._id, job.title)}
+                              className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 text-xs transition-all duration-300 ${
+                                appliedJobIds.includes(job._id)
+                                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                  : "bg-[#013954] text-white hover:bg-[#025373]"
+                              }`}
+                              onClick={() => {
+                                if (!appliedJobIds.includes(job._id)) {
+                                  handleApply(job._id, job.title);
+                                } else if (setNotification) {
+                                  setNotification({
+                                    type: "error",
+                                    message: "You already applied to this job.",
+                                  });
+                                } else {
+                                  window.alert(
+                                    "You already applied to this job."
+                                  );
+                                }
+                              }}
+                              disabled={appliedJobIds.includes(job._id)}
                             >
-                              Apply Now
-                              <ArrowRight className="w-4 h-4" />
+                              {appliedJobIds.includes(job._id)
+                                ? "Already Applied"
+                                : "Apply Now"}
+                              {!appliedJobIds.includes(job._id) && (
+                                <ArrowRight className="w-4 h-4" />
+                              )}
                             </button>
                           </div>
                         </div>
@@ -746,6 +799,7 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
             <ApplyForm
               jobId={applyJobId}
               jobTitle={applyJobTitle}
+              appliedJobIds={appliedJobIds}
               onClose={() => setShowApplyModal(false)}
               setNotification={setNotification}
             />

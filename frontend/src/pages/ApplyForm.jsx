@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
-const ApplyForm = ({ jobId, jobTitle, onClose }) => {
+const ApplyForm = ({ jobId, jobTitle, appliedJobIds = [], onClose }) => {
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,8 +45,14 @@ const ApplyForm = ({ jobId, jobTitle, onClose }) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const alreadyApplied = appliedJobIds.includes(jobId);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (alreadyApplied) {
+      alert("You already applied to this job.");
+      return;
+    }
     try {
       const token =
         typeof window !== "undefined" && window.localStorage
@@ -253,7 +259,12 @@ const ApplyForm = ({ jobId, jobTitle, onClose }) => {
               <div className="flex gap-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={handleSubmit}
-                  className="flex-1 bg-gradient-to-r from-[#023854] to-[#045a7f] hover:from-[#034a68] hover:to-[#056899] text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[#023854] focus:ring-offset-2 shadow-lg"
+                  className={`flex-1 font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform focus:outline-none focus:ring-2 focus:ring-[#023854] focus:ring-offset-2 shadow-lg ${
+                    alreadyApplied
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-gradient-to-r from-[#023854] to-[#045a7f] hover:from-[#034a68] hover:to-[#056899] text-white hover:scale-[1.02]"
+                  }`}
+                  disabled={alreadyApplied}
                 >
                   <div className="flex items-center justify-center gap-2">
                     <svg
@@ -269,7 +280,7 @@ const ApplyForm = ({ jobId, jobTitle, onClose }) => {
                         d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                       />
                     </svg>
-                    Submit Application
+                    {alreadyApplied ? "Already Applied" : "Submit Application"}
                   </div>
                 </button>
                 <button
