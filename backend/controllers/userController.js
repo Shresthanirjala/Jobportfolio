@@ -3,6 +3,7 @@ import ErrorHandler from "../middlewares/error.js";
 import { User } from "../models/userSchema.js";
 import { v2 as cloudinary } from "cloudinary";
 import { sendToken } from "../utils/jwtToken.js";
+import bcrypt from "bcrypt"
 
 export const register = catchAsyncError(async (req, res, next) => {
   try {
@@ -105,26 +106,39 @@ export const register = catchAsyncError(async (req, res, next) => {
 });
 
 // Rest of your functions remain unchanged...
-
 export const login = catchAsyncError(async (req, res, next) => {
-  const { role, email, password } = req.body;
-  if (!role || !email || !password) {
-    return next(new ErrorHandler("All Fields are required.", 400));
-  }
-  const user = await User.findOne({ email }).select("+password ");
-  if (!user) {
-    return next(new ErrorHandler("Invalid email or password.", 400));
-  }
-  const isPasswordMatched = await user.comparePassword(password);
-  if (!isPasswordMatched) {
-    return next(new ErrorHandler("Invalid email or password.", 400));
-  }
-  if (user.role !== role) {
-    return next(new ErrorHandler("Invalid user role.", 400));
-  }
-  sendToken(user, 200, res, "User logged is successfully.");
-});
+  const { email, password, role } = req.body;
 
+  // Basic validation
+  if (!email || !password || !role) {
+    return next(new ErrorHandler("All fields (email, password, role) are required.", 400));
+  }
+
+  console.log(`Received login request for ${email} with role ${role}`);  // Log the input
+
+  // Find user by email and role
+  const user = await User.findOne({ email, role }).select("+password");
+
+  // If user not found, return error
+  if (!user) {
+    console.log(`No user found with email: ${email} and role: ${role}`);
+    return next(new ErrorHandler("Invalid email or password.", 400));
+  }
+
+  console.log(`User found: ${user.email} with role: ${user.role}`);  // Log user details for debugging
+
+  // Compare entered password with stored hashed password
+  const isPasswordMatched = await bcrypt.compare(password, user.password);
+
+  // If password doesn't match
+  if (!isPasswordMatched) {
+    console.log("Password mismatch for user:", email);
+    return next(new ErrorHandler("Invalid email or password.", 400));
+  }
+
+  // If everything is correct, generate and send JWT token
+  sendToken(user, 200, res, `${role} logged in successfully.`);
+});
 export const logout = catchAsyncError(async (req, res, next) => {
   res
     .status(200)

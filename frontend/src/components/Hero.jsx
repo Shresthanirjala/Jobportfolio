@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import ApplyForm from "../pages/ApplyForm";
+import { AuthContext } from "../context/AuthContext";
 import {
   Search,
   MapPin,
@@ -14,7 +16,48 @@ import {
   Heart,
 } from "lucide-react";
 
-const Hero = () => {
+const Hero = ({ jobs = [] }) => {
+  const { user } = useContext(AuthContext);
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [applyJobId, setApplyJobId] = useState(null);
+  const [applyJobTitle, setApplyJobTitle] = useState("");
+  const [appliedJobIds, setAppliedJobIds] = useState([]);
+  useEffect(() => {
+    // Fetch applied jobs for the user (if logged in)
+    const fetchAppliedJobs = async () => {
+      if (user && user.token) {
+        try {
+          const res = await fetch(
+            "http://localhost:3000/api/v1/application/my-applications",
+            {
+              headers: { Authorization: `Bearer ${user.token}` },
+            }
+          );
+          const data = await res.json();
+          setAppliedJobIds(data.applications.map((app) => app.jobId));
+        } catch (err) {
+          // Ignore error for applied jobs
+        }
+      } else {
+        setAppliedJobIds([]);
+      }
+    };
+    fetchAppliedJobs();
+  }, [user]);
+  const handleApply = (jobId, jobTitle) => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      if (appliedJobIds.includes(jobId)) {
+        window.alert("You already applied to this job.");
+        return;
+      }
+      setApplyJobId(jobId);
+      setApplyJobTitle(jobTitle);
+      setShowApplyModal(true);
+    } else {
+      window.alert("Please log in to apply for jobs.");
+    }
+  };
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -25,104 +68,10 @@ const Hero = () => {
 
   const trendingSearches = [
     { title: "UiUx Designer", count: "1.2k+ jobs" },
-    { title: "Developers", count: "3.5k+ jobs" },
+    { title: "ML Engineer", count: "3.5k+ jobs" },
     { title: "App developers", count: "2.1k+ jobs" },
     { title: "Backend Developer", count: "1.8k+ jobs" },
     { title: "QA Engineer", count: "950+ jobs" },
-  ];
-
-  // Enhanced mock job data
-  const mockJobs = [
-    {
-      id: 1,
-      title: "Senior UiUx Designer",
-      company: "TechCorp",
-      location: "San Francisco",
-      type: "Full-time",
-      salary: "$80k-120k",
-      rating: 4.8,
-      applicants: 45,
-      posted: "2 days ago",
-      featured: true,
-      skills: ["Figma", "Adobe XD", "Prototyping"],
-      description:
-        "Lead design projects and collaborate with cross-functional teams to create exceptional user experiences.",
-    },
-    {
-      id: 2,
-      title: "Frontend Developer",
-      company: "StartupXYZ",
-      location: "New York",
-      type: "Remote",
-      salary: "$70k-100k",
-      rating: 4.5,
-      applicants: 78,
-      posted: "1 day ago",
-      featured: false,
-      skills: ["React", "TypeScript", "CSS"],
-      description:
-        "Build responsive web applications using modern frontend technologies.",
-    },
-    {
-      id: 3,
-      title: "Backend Developer",
-      company: "CloudSystems",
-      location: "Seattle",
-      type: "Full-time",
-      salary: "$90k-130k",
-      rating: 4.7,
-      applicants: 32,
-      posted: "3 days ago",
-      featured: true,
-      skills: ["Node.js", "Python", "AWS"],
-      description:
-        "Design and implement scalable backend systems for enterprise applications.",
-    },
-    {
-      id: 4,
-      title: "Mobile App Developer",
-      company: "AppStudio",
-      location: "Austin",
-      type: "Hybrid",
-      salary: "$75k-110k",
-      rating: 4.6,
-      applicants: 56,
-      posted: "1 week ago",
-      featured: false,
-      skills: ["React Native", "Flutter", "iOS"],
-      description:
-        "Develop cross-platform mobile applications with focus on performance and user experience.",
-    },
-    {
-      id: 5,
-      title: "QA Engineer",
-      company: "QualityFirst",
-      location: "Boston",
-      type: "Full-time",
-      salary: "$60k-85k",
-      rating: 4.4,
-      applicants: 23,
-      posted: "4 days ago",
-      featured: false,
-      skills: ["Selenium", "Jest", "Automation"],
-      description:
-        "Ensure product quality through comprehensive testing strategies and automation.",
-    },
-    {
-      id: 6,
-      title: "Full Stack Developer",
-      company: "DevHouse",
-      location: "Chicago",
-      type: "Remote",
-      salary: "$85k-125k",
-      rating: 4.9,
-      applicants: 67,
-      posted: "5 days ago",
-      featured: true,
-      skills: ["MERN Stack", "GraphQL", "Docker"],
-      description:
-        "Work on full-stack applications using cutting-edge technologies in an agile environment.",
-    },
   ];
 
   // Animated typing effect
@@ -163,35 +112,48 @@ const Hero = () => {
 
   const handleSearch = () => {
     if (!searchQuery.trim()) return;
-
     setIsSearching(true);
-
-    setTimeout(() => {
-      const filteredJobs = mockJobs.filter(
-        (job) =>
-          job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          job.skills.some((skill) =>
-            skill.toLowerCase().includes(searchQuery.toLowerCase())
-          )
-      );
-      setSearchResults(filteredJobs);
-      setIsSearching(false);
-    }, 1500);
+    const normalizedSearch = searchQuery.toLowerCase().replace(/\s+/g, "");
+    const filteredJobs = jobs.filter((job) => {
+      const titleMatch =
+        job.title &&
+        job.title.toLowerCase().replace(/\s+/g, "").includes(normalizedSearch);
+      const companyMatch =
+        job.companyName &&
+        job.companyName
+          .toLowerCase()
+          .replace(/\s+/g, "")
+          .includes(normalizedSearch);
+      const skillsMatch =
+        Array.isArray(job.skills) &&
+        job.skills.some((skill) =>
+          skill.toLowerCase().replace(/\s+/g, "").includes(normalizedSearch)
+        );
+      return titleMatch || companyMatch || skillsMatch;
+    });
+    setSearchResults(filteredJobs);
+    setIsSearching(false);
   };
 
-  const handleTrendingClick = (searchTerm) => {
+  const handleTrendingClick = async (searchTerm) => {
     setSearchQuery(searchTerm);
     setLocation("");
-
     setIsSearching(true);
-    setTimeout(() => {
-      const filteredJobs = mockJobs.filter((job) =>
-        job.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setSearchResults(filteredJobs);
-      setIsSearching(false);
-    }, 1500);
+    // Normalize both job title, skills, and search term for flexible matching
+    const normalizedSearch = searchTerm.toLowerCase().replace(/\s+/g, "");
+    const filteredJobs = jobs.filter((job) => {
+      const titleMatch =
+        job.title &&
+        job.title.toLowerCase().replace(/\s+/g, "").includes(normalizedSearch);
+      const skillsMatch =
+        Array.isArray(job.skills) &&
+        job.skills.some((skill) =>
+          skill.toLowerCase().replace(/\s+/g, "").includes(normalizedSearch)
+        );
+      return titleMatch || skillsMatch;
+    });
+    setSearchResults(filteredJobs);
+    setIsSearching(false);
   };
 
   const toggleSaveJob = (jobId) => {
@@ -381,18 +343,11 @@ const Hero = () => {
               <div className="grid gap-6">
                 {searchResults.map((job, index) => (
                   <div
-                    key={job.id}
+                    key={job._id}
                     className="group p-6 border border-gray-200 rounded-xl hover:border-[#718B68] hover:shadow-lg transition-all duration-300 bg-white hover:bg-gray-50"
                   >
-                    {job.featured && (
-                      <div className="absolute top-4 right-4 px-3 py-1 bg-[#013954] text-white text-sm font-medium rounded-full flex items-center gap-1">
-                        <Star className="w-3 h-3" />
-                        Featured
-                      </div>
-                    )}
-
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                      <div className="flex-1">
+                      <div className="flex-1 flex flex-col justify-between h-full">
                         <div className="flex items-start gap-4 mb-4">
                           <div className="p-3 bg-gray-100 group-hover:bg-[#718B68] group-hover:bg-opacity-10 rounded-lg transition-all">
                             <Briefcase className="w-6 h-6 text-gray-600 group-hover:text-[#718B68]" />
@@ -404,7 +359,7 @@ const Hero = () => {
                             <div className="flex flex-wrap items-center gap-4 text-gray-600 mb-3">
                               <span className="flex items-center gap-2 font-medium">
                                 <div className="w-2 h-2 bg-[#718B68] rounded-full"></div>
-                                {job.company}
+                                {job.companyName}
                               </span>
                               <span className="flex items-center gap-1">
                                 <MapPin className="w-4 h-4" />
@@ -412,14 +367,18 @@ const Hero = () => {
                               </span>
                               <span className="flex items-center gap-1">
                                 <Clock className="w-4 h-4" />
-                                {job.posted}
+                                {job.jobPostedOn
+                                  ? new Date(
+                                      job.jobPostedOn
+                                    ).toLocaleDateString()
+                                  : ""}
                               </span>
                             </div>
                             <p className="text-gray-600 mb-4 leading-relaxed">
-                              {job.description}
+                              {job.introduction || "No description available"}
                             </p>
-                            <div className="flex flex-wrap gap-2">
-                              {job.skills.map((skill, idx) => (
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {(job.skills ?? []).map((skill, idx) => (
                                 <span
                                   key={idx}
                                   className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium"
@@ -428,25 +387,65 @@ const Hero = () => {
                                 </span>
                               ))}
                             </div>
+                            {/* Responsibilities & Qualifications (fixed height, scrollable) */}
+                            {(job.responsibilities || job.qualifications) && (
+                              <div
+                                className="flex flex-wrap gap-3 mt-2"
+                                style={{ maxHeight: "90px", overflowY: "auto" }}
+                              >
+                                {job.responsibilities && (
+                                  <div
+                                    className="flex-1 min-w-[120px] bg-gray-50 border border-gray-100 rounded-xl p-2"
+                                    style={{
+                                      maxHeight: "90px",
+                                      overflowY: "auto",
+                                    }}
+                                  >
+                                    <h4 className="font-semibold text-[#013954] mb-1 flex items-center gap-2 text-xs">
+                                      <span className="w-2 h-2 bg-[#718B68] rounded-full"></span>
+                                      Responsibilities
+                                    </h4>
+                                    <ul className="list-disc pl-4 text-gray-700 text-xs space-y-1">
+                                      {job.responsibilities
+                                        .split(/,\s*/)
+                                        .map((item, idx) => (
+                                          <li key={idx}>{item.trim()}</li>
+                                        ))}
+                                    </ul>
+                                  </div>
+                                )}
+                                {job.qualifications && (
+                                  <div
+                                    className="flex-1 min-w-[120px] bg-gray-50 border border-gray-100 rounded-xl p-2"
+                                    style={{
+                                      maxHeight: "90px",
+                                      overflowY: "auto",
+                                    }}
+                                  >
+                                    <h4 className="font-semibold text-[#013954] mb-1 flex items-center gap-2 text-xs">
+                                      <span className="w-2 h-2 bg-[#718B68] rounded-full"></span>
+                                      Qualifications
+                                    </h4>
+                                    <ul className="list-disc pl-4 text-gray-700 text-xs space-y-1">
+                                      {job.qualifications
+                                        .split(/,\s*/)
+                                        .map((item, idx) => (
+                                          <li key={idx}>{item.trim()}</li>
+                                        ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
-
-                        <div className="flex items-center gap-6 text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                            <span className="font-medium">{job.rating}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="w-4 h-4" />
-                            <span>{job.applicants} applicants</span>
-                          </div>
+                        <div className="flex items-center gap-6 text-sm text-gray-500 mb-2">
                           <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full font-medium">
-                            {job.type}
+                            {job.jobType}
                           </span>
                         </div>
                       </div>
-
-                      <div className="flex flex-col items-end gap-4">
+                      <div className="flex flex-col items-end gap-4 justify-between h-full">
                         <div className="text-right">
                           <div className="flex items-center gap-1 text-xl font-bold text-[#718B68] mb-1">
                             <DollarSign className="w-5 h-5" />
@@ -454,27 +453,63 @@ const Hero = () => {
                           </div>
                           <p className="text-sm text-gray-500">per year</p>
                         </div>
-
                         <div className="flex gap-3">
                           <button
-                            onClick={() => toggleSaveJob(job.id)}
+                            onClick={() => toggleSaveJob(job._id)}
                             className={`p-3 rounded-lg transition-all duration-300 ${
-                              savedJobs.has(job.id)
+                              savedJobs.has(job._id)
                                 ? "bg-red-100 text-red-600 hover:bg-red-200"
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                             }`}
                           >
                             <Heart
                               className={`w-4 h-4 ${
-                                savedJobs.has(job.id) ? "fill-current" : ""
+                                savedJobs.has(job._id) ? "fill-current" : ""
                               }`}
                             />
                           </button>
-                          <button className="px-6 py-3 bg-[#013954] text-white rounded-lg hover:bg-[#025373] transition-all duration-300 font-medium flex items-center gap-2">
-                            Apply Now
-                            <ArrowRight className="w-4 h-4" />
+                          <button
+                            className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 text-xs ${
+                              appliedJobIds.includes(job._id)
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-[#013954] text-white hover:bg-[#025373]"
+                            }`}
+                            onClick={() => {
+                              if (!appliedJobIds.includes(job._id)) {
+                                handleApply(job._id, job.title);
+                              } else {
+                                window.alert("You already applied to this job.");
+                              }
+                            }}
+                            disabled={appliedJobIds.includes(job._id)}
+                          >
+                            {appliedJobIds.includes(job._id)
+                              ? "Already Applied"
+                              : "Apply Now"}
+                            {!appliedJobIds.includes(job._id) && (
+                              <ArrowRight className="w-4 h-4" />
+                            )}
                           </button>
                         </div>
+      {/* Modal for ApplyForm */}
+      {showApplyModal && (
+        <div className="modal fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
+          <div className="modal-content bg-white p-6 rounded-lg shadow-lg relative w-full max-w-lg">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={() => setShowApplyModal(false)}
+            >
+              &times;
+            </button>
+            <ApplyForm
+              jobId={applyJobId}
+              jobTitle={applyJobTitle}
+              appliedJobIds={appliedJobIds}
+              onClose={() => setShowApplyModal(false)}
+            />
+          </div>
+        </div>
+      )}
                       </div>
                     </div>
                   </div>

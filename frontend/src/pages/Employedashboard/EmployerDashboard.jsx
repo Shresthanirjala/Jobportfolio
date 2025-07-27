@@ -309,45 +309,8 @@ const EmployerDashboard = () => {
                   )}
                 </button>
               </li>
-              <li>
-                <button
-                  onClick={() => setActiveTab("resumes")}
-                  className={`flex items-center w-full p-3 rounded-md ${
-                    activeTab === "resumes"
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <FaFileAlt className="w-5" />
-                  <span className="ml-3">Resumes</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => setActiveTab("analytics")}
-                  className={`flex items-center w-full p-3 rounded-md ${
-                    activeTab === "analytics"
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <FaChartBar className="w-5" />
-                  <span className="ml-3">Analytics</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => setActiveTab("settings")}
-                  className={`flex items-center w-full p-3 rounded-md ${
-                    activeTab === "settings"
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <FaCog className="w-5" />
-                  <span className="ml-3">Settings</span>
-                </button>
-              </li>
+             
+              
             </ul>
           </nav>
 

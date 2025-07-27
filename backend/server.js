@@ -11,6 +11,7 @@ import jobRouter from "./routes/jobRouter.js";
 import applicationRouter from "./routes/applicationRouter.js";
 import { newsLetterCron } from "./automation/newsLetterCron.js";
 import recommendedJobRoutes from "./routes/recommendedJobRoutes.js";
+import adminRouter from "./routes/adminRouter.js";
 
 // Load environment variables
 dotenv.config();
@@ -41,6 +42,7 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/job", jobRouter);
 app.use("/api/v1/application", applicationRouter);
 app.use("/api/v1/recommend-jobs", recommendedJobRoutes);
+app.use("/api/v1/admin", adminRouter);
 
 newsLetterCron();
 // Connect to MongoDB

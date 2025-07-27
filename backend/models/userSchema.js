@@ -13,15 +13,19 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    validate: [validator.isEmail, "Please provide valid email"],
+    validate: [validator.isEmail, "Please provide a valid email"],
   },
   phone: {
     type: Number,
-    required: true,
+    required: function() {
+      return this.role === "Job Seeker" || this.role === "Employer"; // Only required for Job Seeker and Employer
+    },
   },
   address: {
     type: String,
-    required: true,
+    required: function() {
+      return this.role === "Job Seeker" || this.role === "Employer"; // Only required for Job Seeker and Employer
+    },
   },
   niches: {
     type: {
@@ -29,13 +33,15 @@ const userSchema = new mongoose.Schema({
       secondNiche: String,
       thirdNiche: String,
     },
-    required: true,
+    required: function() {
+      return this.role === "Job Seeker"; // Only required for Job Seeker
+    },
     _id: false, // Prevents Mongoose from adding an _id to the nested object
   },
   password: {
     type: String,
     required: true,
-    minLength: [8, "password must contain at least 8 characters"],
+    minLength: [8, "Password must contain at least 8 characters"],
     select: false,
   },
   resume: {
@@ -48,7 +54,7 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     required: true,
-    enum: ["Job Seeker", "Employer"],
+    enum: ["Job Seeker", "Employer", "Admin"], // Only allows these roles
   },
   createdAt: {
     type: Date,
@@ -56,18 +62,18 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function(next) {
   if (!this.isModified("password")) {
     next();
   }
   this.password = await bcrypt.hash(this.password, 10);
 });
 
-userSchema.methods.comparePassword = async function (enteredPassword) {
+userSchema.methods.comparePassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-userSchema.methods.getJWTToken = function () {
+userSchema.methods.getJWTToken = function() {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET_KEY, {
     expiresIn: process.env.JWT_EXPIRE,
   });

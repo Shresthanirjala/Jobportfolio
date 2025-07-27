@@ -46,13 +46,27 @@ const LandingJobs = () => {
 
   // Reusable job card with the same style as before
   const JobCard = ({ job }) => (
-    <div className="bg-gray-100 p-4 rounded-lg flex justify-between items-center">
-      <div>
-        <h2 className="text-sm">{job.title}</h2>
-        <p className="text-sm text-gray-600">
-          {job.numbers}+ <span className="ml-2">jobs</span>
-        </p>
+    <div className="bg-gray-100 p-4 rounded-lg flex flex-col gap-2">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-sm">{job.title}</h2>
+          <p className="text-sm text-gray-600">
+            {job.numbers}+ <span className="ml-2">jobs</span>
+          </p>
+        </div>
       </div>
+      {job.resume && (
+        <div className="mt-2">
+          <a
+            href={job.resume}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-lg font-medium hover:bg-blue-200 transition"
+          >
+            View Resume
+          </a>
+        </div>
+      )}
     </div>
   );
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Modal from "../components/Modal";
 import axios from "axios";
 import { ChevronDown, ChevronUp, Search } from "lucide-react";
 
@@ -8,6 +9,12 @@ const MyJobApplications = () => {
   const [jobFilter, setJobFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedDetails, setExpandedDetails] = useState({});
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [editCoverLetter, setEditCoverLetter] = useState("");
+  const [editCV, setEditCV] = useState("");
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState("");
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -67,6 +74,40 @@ const MyJobApplications = () => {
     }
   };
 
+  // Handle view full application
+  const handleViewApplication = (job) => {
+    setSelectedApplication(job);
+    setEditCoverLetter(job.jobSeekerInfo?.coverLetter || "");
+    setEditCV(job.jobSeekerInfo?.cv || "");
+    setModalOpen(true);
+    setEditError("");
+  };
+
+  // Handle edit and save
+  const handleSaveEdit = async () => {
+    if (!selectedApplication) return;
+    setEditLoading(true);
+    setEditError("");
+    try {
+      const token = localStorage.getItem("authToken");
+      await axios.put(
+        `http://localhost:3000/api/v1/application/jobseeker/update/${selectedApplication._id}`,
+        {
+          coverLetter: editCoverLetter,
+          cv: editCV,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setModalOpen(false);
+      // Optionally, refresh applications
+      window.location.reload();
+    } catch (err) {
+      setEditError("Failed to update application. Try again.");
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-4 bg-gray-50">
       <h1 className="text-3xl font-bold mb-8 text-gray-800">
@@ -77,7 +118,9 @@ const MyJobApplications = () => {
           Job Applications
         </h2>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
+          {/* ...existing filter/search UI... */}
           <div className="flex gap-2">
+            {/* ...existing filter buttons... */}
             <button
               onClick={() => setJobFilter("all")}
               className={`px-3 py-1 rounded-full text-sm ${
@@ -186,7 +229,10 @@ const MyJobApplications = () => {
                       </p>
                     </div>
                     <div className="flex justify-end">
-                      <button className="text-blue-600 hover:text-blue-800 text-sm">
+                      <button
+                        className="text-blue-600 hover:text-blue-800 text-sm"
+                        onClick={() => handleViewApplication(job)}
+                      >
                         View Full Application
                       </button>
                     </div>
@@ -201,6 +247,100 @@ const MyJobApplications = () => {
               No job applications match your filters.
             </p>
           </div>
+        )}
+        {/* Modal for full application view/edit */}
+        {modalOpen && selectedApplication && (
+          <Modal onClose={() => setModalOpen(false)}>
+            <div className="p-6 max-w-lg mx-auto">
+              <h3 className="text-xl font-bold mb-4">Full Application</h3>
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Cover Letter
+                </label>
+                {selectedApplication.status === "pending" ? (
+                  <textarea
+                    value={editCoverLetter}
+                    onChange={(e) => setEditCoverLetter(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg p-2"
+                    rows={5}
+                  />
+                ) : (
+                  <p className="text-gray-700 whitespace-pre-line">
+                    {editCoverLetter}
+                  </p>
+                )}
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Resume (CV)
+                </label>
+                {/* Always show previously uploaded resume link if available */}
+                {editCV && (
+                  <div className="mb-2">
+                    <a
+                      href={editCV}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium hover:bg-blue-200 transition"
+                    >
+                      View Resume
+                    </a>
+                  </div>
+                )}
+                {selectedApplication.status === "pending" && (
+                  <input
+                    type="file"
+                    accept="application/pdf,image/*"
+                    className="w-full border border-gray-300 rounded-lg p-2"
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      // Upload to Cloudinary
+                      const formData = new FormData();
+                      formData.append("file", file);
+                      formData.append(
+                        "upload_preset",
+                        "YOUR_CLOUDINARY_PRESET"
+                      );
+                      try {
+                        const res = await fetch(
+                          "https://api.cloudinary.com/v1_1/YOUR_CLOUDINARY_CLOUD_NAME/auto/upload",
+                          {
+                            method: "POST",
+                            body: formData,
+                          }
+                        );
+                        const data = await res.json();
+                        if (data.secure_url) {
+                          setEditCV(data.secure_url);
+                        }
+                      } catch (err) {
+                        alert("Failed to upload resume. Try again.");
+                      }
+                    }}
+                  />
+                )}
+              </div>
+              {editError && <p className="text-red-600 mb-2">{editError}</p>}
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700"
+                  onClick={() => setModalOpen(false)}
+                >
+                  Close
+                </button>
+                {selectedApplication.status === "pending" && (
+                  <button
+                    className="px-4 py-2 rounded-lg bg-blue-600 text-white"
+                    onClick={handleSaveEdit}
+                    disabled={editLoading}
+                  >
+                    {editLoading ? "Saving..." : "Save Changes"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </Modal>
         )}
       </div>
     </div>

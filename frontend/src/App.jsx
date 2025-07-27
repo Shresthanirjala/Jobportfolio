@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 // Pages
 import Home from "./pages/Home";
 import Jobs from "./pages/Jobs";
-import Dashboard from "./pages/Dashboard";
 import PostApplication from "./pages/PostApplication";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -26,6 +25,7 @@ import { AuthContext } from "./context/AuthContext";
 import MyJobApplications from "./pages/MyJobApplications";
 import PersonalInformation from "./pages/PersonalInformation";
 import ApplyForm from "./pages/ApplyForm";
+import AdminDashboard from "./pages/Admindashboard/Dashboard";
 
 export default function App() {
   const { user } = useContext(AuthContext);
@@ -42,7 +42,7 @@ export default function App() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/findjobs" element={<FindJobs />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+
         <Route path="/post/application/:jobId" element={<PostApplication />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
@@ -66,6 +66,14 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+         <Route
+  path="/admin/dashboard"
+  element={
+    <ProtectedRoute allowedRoles={['admin']}>
+      <AdminDashboard />
+    </ProtectedRoute>
+  }
+/>
 
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />

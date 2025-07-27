@@ -169,22 +169,8 @@ const EmployerNavbar = () => {
                       <Building2 className="h-4 w-4" />
                       <span>Dashboard</span>
                     </Link>
-                    <Link
-                      to="/employer/settings"
-                      className="flex items-center gap-2 px-4 py-3 text-[#023854] hover:bg-gray-50"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <Settings className="h-4 w-4" />
-                      <span>Account Settings</span>
-                    </Link>
-                    <Link
-                      to="/employer/billing"
-                      className="flex items-center gap-2 px-4 py-3 text-[#023854] hover:bg-gray-50"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <FileText className="h-4 w-4" />
-                      <span>Billing & Plans</span>
-                    </Link>
+                  
+                   
                     <button
                       onClick={handleLogout}
                       className="flex items-center gap-2 px-4 py-3 text-red-600 hover:bg-gray-50 w-full text-left"
@@ -308,22 +294,7 @@ const EmployerNavbar = () => {
                 <Clock className="h-4 w-4" />
                 <span>Pending Approvals</span>
               </Link>
-              <Link
-                to="/employer/settings"
-                className="py-3 border-b border-gray-100 flex items-center space-x-2 text-[#023854]"
-                onClick={() => setIsOpen(false)}
-              >
-                <Settings className="h-4 w-4" />
-                <span>Account Settings</span>
-              </Link>
-              <Link
-                to="/employer/billing"
-                className="py-3 border-b border-gray-100 flex items-center space-x-2 text-[#023854]"
-                onClick={() => setIsOpen(false)}
-              >
-                <FileText className="h-4 w-4" />
-                <span>Billing & Plans</span>
-              </Link>
+
               <button
                 onClick={() => {
                   handleLogout();

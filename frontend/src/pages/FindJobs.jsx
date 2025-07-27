@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import Hero from "../components/Hero";
 import React, { useEffect, useState, useContext } from "react";
 import ApplyForm from "./ApplyForm";
 import { AuthContext } from "../context/AuthContext";
@@ -246,6 +247,7 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 left-0 z-50 py-4">
+      {/* ...removed Hero section from FindJobs... */}
       {/* Notification Toast */}
       {notification && (
         <div
