@@ -17,15 +17,17 @@ export const getAllSeekers = catchAsyncError(async (req, res) => {
 
 // Get all jobs
 export const getAllJobs = catchAsyncError(async (req, res) => {
-  const jobs = await Job.find().populate("employerId", "name email");
+  const jobs = await Job.find().populate("postedBy", "name email");
   res.status(200).json({ success: true, jobs });
 });
 
 // Get all applications
 export const getAllApplications = catchAsyncError(async (req, res) => {
   const applications = await Application.find()
-    .populate("jobId", "title")
-    .populate("seekerId", "name email");
+    .populate("jobInfo.jobId", "title")
+    .populate("jobSeekerInfo.id", "name email")
+    .lean();
+
   res.status(200).json({ success: true, applications });
 });
 
