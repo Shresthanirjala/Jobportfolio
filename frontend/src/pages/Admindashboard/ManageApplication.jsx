@@ -115,14 +115,17 @@ const ManageApplications = () => {
       app.jobSeekerInfo.email.toLowerCase().includes(lowerSearch) ||
       app.jobInfo.jobTitle.toLowerCase().includes(lowerSearch);
     const matchesStatus = filterStatus === "all" || app.status === filterStatus;
-    const matchesJob = filterJob === "all" || app.jobInfo.jobTitle === filterJob;
+    const matchesJob =
+      filterJob === "all" || app.jobInfo.jobTitle === filterJob;
 
     return matchesSearch && matchesStatus && matchesJob;
   });
 
   if (loading) {
     return (
-      <div className="text-center text-gray-500 py-20">Loading applications...</div>
+      <div className="text-center text-gray-500 py-20">
+        Loading applications...
+      </div>
     );
   }
 
@@ -135,8 +138,12 @@ const ManageApplications = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Manage Applications</h2>
-          <p className="text-gray-600">Review and manage all job applications</p>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Manage Applications
+          </h2>
+          <p className="text-gray-600">
+            Review and manage all job applications
+          </p>
         </div>
       </div>
 
@@ -148,8 +155,12 @@ const ManageApplications = () => {
               <FileText className="w-5 h-5 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Applications</p>
-              <p className="text-2xl font-bold text-gray-900">{applications.length}</p>
+              <p className="text-sm font-medium text-gray-600">
+                Total Applications
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {applications.length}
+              </p>
             </div>
           </div>
         </div>
@@ -233,7 +244,9 @@ const ManageApplications = () => {
       {/* Applications Table */}
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-6 border-b">
-          <h3 className="text-lg font-semibold text-gray-900">Applications List</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Applications List
+          </h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -295,7 +308,8 @@ const ManageApplications = () => {
                     </div>
                     {/* Assuming employerInfo.companyName or similar is available, otherwise omit */}
                     <div className="text-sm text-gray-500">
-                      {application.employerInfo?.companyName || "Unknown Company"}
+                      {application.employerInfo?.companyName ||
+                        "Unknown Company"}
                     </div>
                   </td>
                   <td className="px-6 py-4 max-w-xs whitespace-normal text-sm text-gray-700">
@@ -317,7 +331,10 @@ const ManageApplications = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2 mb-2">
-                      <button className="text-blue-600 hover:text-blue-900" title="View Details">
+                      <button
+                        className="text-blue-600 hover:text-blue-900"
+                        title="View Details"
+                      >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button
@@ -332,7 +349,10 @@ const ManageApplications = () => {
                       >
                         <Download className="w-4 h-4" />
                       </button>
-                      <button className="text-purple-600 hover:text-purple-900" title="Edit">
+                      <button
+                        className="text-purple-600 hover:text-purple-900"
+                        title="Edit"
+                      >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
@@ -343,17 +363,6 @@ const ManageApplications = () => {
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-                    <select
-                      value={application.status}
-                      onChange={(e) =>
-                        handleStatusChange(application._id, e.target.value)
-                      }
-                      className="text-xs border border-gray-300 rounded px-2 py-1 w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="approved">Approved</option>
-                      <option value="rejected">Rejected</option>
-                    </select>
                   </td>
                 </tr>
               ))}
@@ -364,7 +373,9 @@ const ManageApplications = () => {
         {filteredApplications.length === 0 && (
           <div className="text-center py-12">
             <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No applications found matching your criteria.</p>
+            <p className="text-gray-500">
+              No applications found matching your criteria.
+            </p>
           </div>
         )}
       </div>

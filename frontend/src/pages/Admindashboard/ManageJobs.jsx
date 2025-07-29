@@ -274,9 +274,7 @@ const ManageJobs = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Type & Salary
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
+               
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Applications
                 </th>
@@ -300,12 +298,12 @@ const ManageJobs = () => {
                         <div className="text-sm font-medium text-gray-900">
                           {job.title}
                         </div>
-                        <div className="text-sm text-gray-500">{job.category}</div>
+                        <div className="text-sm text-gray-500">{}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{job.company}</div>
+                    <div className="text-sm text-gray-900">{job.companyName}</div>
                     <div className="flex items-center text-sm text-gray-500">
                       <MapPin className="w-3 h-3 mr-1" />
                       {job.location}
@@ -316,19 +314,14 @@ const ManageJobs = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="mb-2">
-                      <span className={getTypeBadge(job.type)}>{job.type}</span>
+                      <span className={getTypeBadge(job.type)}>{job.jobType}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-500">
                       <DollarSign className="w-3 h-3 mr-1" />
                       {job.salary}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      {getStatusIcon(job.status)}
-                      <span className={getStatusBadge(job.status)}>{job.status}</span>
-                    </div>
-                  </td>
+               
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="flex items-center">
                       <Eye className="w-4 h-4 mr-1 text-gray-400" />
@@ -338,7 +331,7 @@ const ManageJobs = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="flex items-center">
                       <Calendar className="w-4 h-4 mr-1 text-gray-400" />
-                      {job.postedDate}
+                      {job.jobPostedOn}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -356,18 +349,7 @@ const ManageJobs = () => {
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-                    <div className="mt-2">
-                      <select
-                        value={job.status}
-                        onChange={(e) => handleStatusChange(job.id, e.target.value)}
-                        className="text-xs border border-gray-300 rounded px-2 py-1 w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      >
-                        <option value="active">Active</option>
-                        <option value="pending">Pending</option>
-                        <option value="rejected">Rejected</option>
-                        <option value="expired">Expired</option>
-                      </select>
-                    </div>
+                   
                   </td>
                 </tr>
               ))}

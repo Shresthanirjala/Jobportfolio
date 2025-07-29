@@ -23,6 +23,7 @@ import ManageUsers from "./ManageUsers";
 import ManageEmployers from "./ManageEmployers";
 import ManageJobs from "./ManageJobs";
 import ManageApplication from "./ManageApplication";
+import AdminNavbar from "./AdminNavbar";
 
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -122,6 +123,7 @@ const AdminDashboard = () => {
     const Icon = stat.icon;
     return (
       <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <AdminNavbar/>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-600">{stat.title}</p>
@@ -336,7 +338,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 ml-40 mr-40">
       {/* Sidebar */}
       <div
         className={`${
