@@ -408,7 +408,7 @@ const DashboardHome = ({ employer, stats, recentActivity, navigate }) => {
       <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-gray-800">Recent Activity</h3>
-          <button className="text-blue-600 text-sm">View All</button>
+          
         </div>
 
         <div className="space-y-4">

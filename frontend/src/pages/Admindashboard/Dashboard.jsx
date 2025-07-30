@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Users,
   Building,
   Briefcase,
   FileText,
   BarChart3,
-  Settings,
   Bell,
   Search,
   Menu,
@@ -18,7 +18,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 
-// Import the separate management components
+// Import your management components as needed
 import ManageUsers from "./ManageUsers";
 import ManageEmployers from "./ManageEmployers";
 import ManageJobs from "./ManageJobs";
@@ -29,7 +29,7 @@ const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
 
-  // Sample data for dashboard
+  // Stats sample data
   const stats = [
     {
       title: "Total Users",
@@ -61,69 +61,74 @@ const AdminDashboard = () => {
     },
   ];
 
-  const recentUsers = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
-      status: "active",
-      joinDate: "2024-01-15",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane@example.com",
-      status: "pending",
-      joinDate: "2024-01-14",
-    },
-    {
-      id: 3,
-      name: "Mike Johnson",
-      email: "mike@example.com",
-      status: "active",
-      joinDate: "2024-01-13",
-    },
-  ];
+  // State for recent users and jobs + loading states
+  const [recentUsers, setRecentUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [recentJobs, setRecentJobs] = useState([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
 
-  const recentJobs = [
-    {
-      id: 1,
-      title: "Senior Developer",
-      company: "Tech Corp",
-      status: "pending",
-      date: "2024-01-15",
-    },
-    {
-      id: 2,
-      title: "UI/UX Designer",
-      company: "Design Studio",
-      status: "approved",
-      date: "2024-01-14",
-    },
-    {
-      id: 3,
-      title: "Product Manager",
-      company: "StartupXYZ",
-      status: "rejected",
-      date: "2024-01-13",
-    },
-  ];
+  useEffect(() => {
+    const fetchRecentUsers = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await axios.get("http://localhost:3000/api/v1/admin/seekers", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.data.success && Array.isArray(res.data.seekers)) {
+          setRecentUsers(res.data.seekers);
+        } else {
+          setRecentUsers([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch recent users", error);
+        setRecentUsers([]);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
 
-  const sidebarItems = [
-    { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-    { id: "users", label: "Manage Users", icon: Users },
-    { id: "employers", label: "Manage Employers", icon: Building },
-    { id: "jobs", label: "Manage Jobs", icon: Briefcase },
-    { id: "applications", label: "Applications", icon: FileText },
-    { id: "reports", label: "Reports", icon: BarChart3 },
-    { id: "settings", label: "Settings", icon: Settings },
-  ];
+    const fetchRecentJobs = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await axios.get("http://localhost:3000/api/v1/admin/jobs", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.data.success && Array.isArray(res.data.jobs)) {
+          setRecentJobs(res.data.jobs);
+        } else {
+          setRecentJobs([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch recent jobs", error);
+        setRecentJobs([]);
+      } finally {
+        setLoadingJobs(false);
+      }
+    };
+
+    fetchRecentUsers();
+    fetchRecentJobs();
+  }, []);
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "active":
+      case "approved":
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case "pending":
+        return <Clock className="w-4 h-4 text-yellow-500" />;
+      case "rejected":
+        return <XCircle className="w-4 h-4 text-red-500" />;
+      default:
+        return null;
+    }
+  };
 
   const StatCard = ({ stat }) => {
     const Icon = stat.icon;
     return (
       <div className="bg-white p-6 rounded-lg shadow-sm border">
-        <AdminNavbar/>
+        <AdminNavbar />
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-600">{stat.title}</p>
@@ -152,38 +157,21 @@ const AdminDashboard = () => {
     );
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "active":
-      case "approved":
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case "pending":
-        return <Clock className="w-4 h-4 text-yellow-500" />;
-      case "rejected":
-        return <XCircle className="w-4 h-4 text-red-500" />;
-      default:
-        return null;
-    }
-  };
-
   const DashboardContent = () => (
     <div className="space-y-6">
-      {/* Stats Grid */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
           <StatCard key={index} stat={stat} />
         ))}
       </div>
 
-      {/* Recent Activity */}
+      {/* Recent Users */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Users */}
         <div className="bg-white rounded-lg shadow-sm border">
           <div className="p-6 border-b flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Recent Users
-            </h3>
-            <button 
+            <h3 className="text-lg font-semibold text-gray-900">Recent Users</h3>
+            <button
               onClick={() => setActiveTab("users")}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center space-x-1"
             >
@@ -192,44 +180,44 @@ const AdminDashboard = () => {
             </button>
           </div>
           <div className="p-6">
-            <div className="space-y-4">
-              {recentUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-medium text-blue-600">
-                        {user.name.charAt(0).toUpperCase()}
-                      </span>
+            {loadingUsers ? (
+              <p className="text-center text-gray-500">Loading users...</p>
+            ) : recentUsers.length === 0 ? (
+              <p className="text-center text-gray-500">No recent users found.</p>
+            ) : (
+              <div className="space-y-4">
+                {recentUsers.slice(0, 4).map((user) => (
+                  <div
+                    key={user._id || user.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-blue-600">
+                          {user.name?.charAt(0).toUpperCase() || "U"}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{user.name || "Unnamed User"}</p>
+                        <p className="text-xs text-gray-500">{user.email || "No email"}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {user.name}
-                      </p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
+                    <div className="flex items-center space-x-2">
+                      {getStatusIcon(user.status)}
+                      <span className="text-xs text-gray-500">{user.joinDate || ""}</span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    {getStatusIcon(user.status)}
-                    <span className="text-xs text-gray-500">
-                      {user.joinDate}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Recent Jobs */}
         <div className="bg-white rounded-lg shadow-sm border">
           <div className="p-6 border-b flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Recent Job Postings
-            </h3>
-            <button 
+            <h3 className="text-lg font-semibold text-gray-900">Recent Job Postings</h3>
+            <button
               onClick={() => setActiveTab("jobs")}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center space-x-1"
             >
@@ -238,25 +226,29 @@ const AdminDashboard = () => {
             </button>
           </div>
           <div className="p-6">
-            <div className="space-y-4">
-              {recentJobs.map((job) => (
-                <div
-                  key={job.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {job.title}
-                    </p>
-                    <p className="text-xs text-gray-500">{job.company}</p>
+            {loadingJobs ? (
+              <p className="text-center text-gray-500">Loading jobs...</p>
+            ) : recentJobs.length === 0 ? (
+              <p className="text-center text-gray-500">No recent jobs found.</p>
+            ) : (
+              <div className="space-y-4">
+                {recentJobs.slice(0, 4).map((job) => (
+                  <div
+                    key={job._id || job.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{job.title || "Untitled Job"}</p>
+                      <p className="text-xs text-gray-500">{job.companyName || job.company || "Unknown Company"}</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {getStatusIcon(job.status)}
+                      <span className="text-xs text-gray-500">{job.postedDate || job.date || ""}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    {getStatusIcon(job.status)}
-                    <span className="text-xs text-gray-500">{job.date}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -268,7 +260,7 @@ const AdminDashboard = () => {
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button 
+            <button
               onClick={() => setActiveTab("users")}
               className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-left"
             >
@@ -276,7 +268,7 @@ const AdminDashboard = () => {
               <p className="text-sm font-medium text-gray-900">Manage Users</p>
               <p className="text-xs text-gray-500">View and manage all users</p>
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("employers")}
               className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-left"
             >
@@ -284,7 +276,7 @@ const AdminDashboard = () => {
               <p className="text-sm font-medium text-gray-900">Manage Employers</p>
               <p className="text-xs text-gray-500">View and manage employers</p>
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("jobs")}
               className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-left"
             >
@@ -292,7 +284,7 @@ const AdminDashboard = () => {
               <p className="text-sm font-medium text-gray-900">Manage Jobs</p>
               <p className="text-xs text-gray-500">View and manage job postings</p>
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("applications")}
               className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-left"
             >
@@ -328,10 +320,6 @@ const AdminDashboard = () => {
         return <ManageJobs />;
       case "applications":
         return <ManageApplication />;
-      case "reports":
-        return <GenericContent title="Reports" />;
-      case "settings":
-        return <GenericContent title="Settings" />;
       default:
         return <DashboardContent />;
     }
@@ -358,9 +346,14 @@ const AdminDashboard = () => {
             )}
           </div>
         </div>
-
         <nav className="mt-6">
-          {sidebarItems.map((item) => {
+          {[
+            { id: "dashboard", label: "Dashboard", icon: BarChart3 },
+            { id: "users", label: "Manage Users", icon: Users },
+            { id: "employers", label: "Manage Employers", icon: Building },
+            { id: "jobs", label: "Manage Jobs", icon: Briefcase },
+            { id: "applications", label: "Applications", icon: FileText },
+          ].map((item) => {
             const Icon = item.icon;
             return (
               <button
@@ -404,7 +397,6 @@ const AdminDashboard = () => {
                   : activeTab.replace("_", " ")}
               </h2>
             </div>
-
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />

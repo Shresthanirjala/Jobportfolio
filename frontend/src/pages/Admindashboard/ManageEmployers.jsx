@@ -243,12 +243,12 @@ const ManageEmployers = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Location & Industry
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Verification
-                </th>
+                </th> */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Jobs/Applications
                 </th>
@@ -266,7 +266,7 @@ const ManageEmployers = () => {
                         <Building className="w-5 h-5 text-purple-600" />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{employer.companyName}</div>
+                        <div className="text-sm font-medium text-gray-900">{employer.name}</div>
                         <div className="text-sm text-gray-500">{employer.employeeCount} employees</div>
                       </div>
                     </div>
@@ -281,32 +281,28 @@ const ManageEmployers = () => {
                       <MapPin className="w-3 h-3 mr-1" />
                       {employer.location}
                     </div>
-                    <div className="text-sm text-gray-500">{employer.industry}</div>
+                    <div className="text-sm text-gray-500">{employer.address}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  {/* <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2">
                       {getStatusIcon(employer.status)}
                       <span className={getStatusBadge(employer.status)}>{employer.status}</span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  </td> */}
+                  {/* <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2">
                       {getStatusIcon(employer.verificationStatus)}
                       <span className={getStatusBadge(employer.verificationStatus)}>{employer.verificationStatus}</span>
                     </div>
-                  </td>
+                  </td> */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{employer.activeJobs} active jobs</div>
                     <div className="text-sm text-gray-500">{employer.totalApplications} applications</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="text-green-600 hover:text-green-900">
-                        <Edit className="w-4 h-4" />
-                      </button>
+                     
+                      
                       <button
                         onClick={() => handleDeleteEmployer(employer.id)}
                         className="text-red-600 hover:text-red-900"
@@ -314,26 +310,7 @@ const ManageEmployers = () => {
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-                    <div className="mt-2 space-y-1">
-                      <select
-                        value={employer.status}
-                        onChange={(e) => handleStatusChange(employer.id, e.target.value)}
-                        className="text-xs border border-gray-300 rounded px-2 py-1 w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      >
-                        <option value="active">Active</option>
-                        <option value="pending">Pending</option>
-                        <option value="suspended">Suspended</option>
-                      </select>
-                      <select
-                        value={employer.verificationStatus}
-                        onChange={(e) => handleVerificationChange(employer.id, e.target.value)}
-                        className="text-xs border border-gray-300 rounded px-2 py-1 w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      >
-                        <option value="verified">Verified</option>
-                        <option value="pending">Pending</option>
-                        <option value="rejected">Rejected</option>
-                      </select>
-                    </div>
+                   
                   </td>
                 </tr>
               ))}

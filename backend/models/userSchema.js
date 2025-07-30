@@ -13,21 +13,23 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
+    unique: true,
     validate: [validator.isEmail, "Please provide a valid email"],
   },
   phone: {
     type: Number,
-    required: function() {
-      return this.role === "Job Seeker" || this.role === "Employer"; // Only required for Job Seeker and Employer
+    required: function () {
+      return this.role === "Job Seeker" || this.role === "Employer";
     },
   },
   address: {
     type: String,
-    required: function() {
-      return this.role === "Job Seeker" || this.role === "Employer"; // Only required for Job Seeker and Employer
+    required: function () {
+      return this.role === "Job Seeker" || this.role === "Employer";
     },
   },
-  niches: {
+
+   niches: {
     type: {
       firstNiche: String,
       secondNiche: String,
@@ -38,6 +40,7 @@ const userSchema = new mongoose.Schema({
     },
     _id: false, // Prevents Mongoose from adding an _id to the nested object
   },
+
   password: {
     type: String,
     required: true,
@@ -54,7 +57,7 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     required: true,
-    enum: ["Job Seeker", "Employer", "Admin"], // Only allows these roles
+    enum: ["Job Seeker", "Employer", "Admin"],
   },
   createdAt: {
     type: Date,
@@ -62,18 +65,22 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-userSchema.pre("save", async function(next) {
+// Hash password before saving
+userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
-    next();
+    return next();
   }
   this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
 
-userSchema.methods.comparePassword = async function(enteredPassword) {
+// Compare password method
+userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-userSchema.methods.getJWTToken = function() {
+// JWT token method
+userSchema.methods.getJWTToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET_KEY, {
     expiresIn: process.env.JWT_EXPIRE,
   });

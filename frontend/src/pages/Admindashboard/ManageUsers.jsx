@@ -47,13 +47,6 @@ const ManageUsers = () => {
     fetchUsers();
   }, []);
 
-  const handleStatusChange = (userId, newStatus) => {
-    setUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user._id === userId ? { ...user, status: newStatus } : user
-      )
-    );
-  };
 
   const handleDeleteUser = (userId) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
@@ -226,18 +219,12 @@ const ManageUsers = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Contact
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Applications
-                </th>
+              
+               
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Join Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Active
-                </th>
+               
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -267,38 +254,27 @@ const ManageUsers = () => {
                     <div className="text-sm text-gray-900">{user.email}</div>
                     <div className="text-sm text-gray-500">{user.phone}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      {getStatusIcon(user.status)}
-                      <span className={getStatusBadge(user.status)}>
-                        {user.status}
-                      </span>
-                    </div>
-                  </td>
+                
+                 
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.applicationsCount}
+                    {user.createdAt}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.joinDate}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.lastActive}
-                  </td>
+                 
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900">
+                      {/* <button className="text-blue-600 hover:text-blue-900">
                         <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="text-green-600 hover:text-green-900">
+                      </button> */}
+                      {/* <button className="text-green-600 hover:text-green-900">
                         <Edit className="w-4 h-4" />
-                      </button>
+                      </button> */}
                       <button
                         onClick={() => handleDeleteUser(user._id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600 hover:text-red-900 "
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4 " />
                       </button>
-                      <select
+                      {/* <select
                         value={user.status}
                         onChange={(e) =>
                           handleStatusChange(user._id, e.target.value)
@@ -308,7 +284,7 @@ const ManageUsers = () => {
                         <option value="active">Active</option>
                         <option value="pending">Pending</option>
                         <option value="suspended">Suspended</option>
-                      </select>
+                      </select> */}
                     </div>
                   </td>
                 </tr>

@@ -77,4 +77,5 @@ const applicationSchema = new mongoose.Schema({
   default: Date.now,
 }
 });
+
 export const Application = mongoose.model("Application", applicationSchema);

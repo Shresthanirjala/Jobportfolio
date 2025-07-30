@@ -3,9 +3,7 @@ import {
   Briefcase,
   Search,
   Filter,
-  Edit,
   Trash2,
-  Eye,
   Plus,
   CheckCircle,
   XCircle,
@@ -39,11 +37,10 @@ const ManageJobs = () => {
       setLoading(true);
       setError(null);
       try {
-        const token = localStorage.getItem("authToken"); // adjust/remove if no auth required
+        const token = localStorage.getItem("authToken");
         const res = await axios.get("http://localhost:3000/api/v1/admin/jobs", {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
-        // Adjust if your API returns data differently
         setJobs(res.data?.jobs || []);
       } catch (err) {
         console.error("Error fetching jobs:", err);
@@ -103,15 +100,23 @@ const ManageJobs = () => {
     }
   };
 
-  const handleStatusChange = (jobId, newStatus) => {
-    setJobs(
-      jobs.map((job) => (job.id === jobId ? { ...job, status: newStatus } : job))
-    );
-  };
-
-  const handleDeleteJob = (jobId) => {
-    if (window.confirm("Are you sure you want to delete this job posting?")) {
+  // Delete job handler with backend API call
+  const handleDeleteJob = async (jobId) => {
+    if (!window.confirm("Are you sure you want to delete this job posting?")) {
+      return;
+    }
+    try {
+      const token = localStorage.getItem("authToken");
+      await axios.delete(`http://localhost:3000/api/v1/admin/delete/${jobId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      // Remove deleted job from state
       setJobs(jobs.filter((job) => job.id !== jobId));
+    } catch (error) {
+      console.error("Failed to delete job:", error);
+      alert("Failed to delete job. Please try again.");
     }
   };
 
@@ -185,7 +190,9 @@ const ManageJobs = () => {
               <Clock className="w-5 h-5 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Pending Review</p>
+              <p className="text-sm font-medium text-gray-600">
+                Pending Review
+              </p>
               <p className="text-2xl font-bold text-gray-900">
                 {jobs.filter((j) => j.status === "pending").length}
               </p>
@@ -196,10 +203,12 @@ const ManageJobs = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <div className="flex items-center">
             <div className="p-2 bg-purple-100 rounded-lg">
-              <Eye className="w-5 h-5 text-purple-600" />
+              <Briefcase className="w-5 h-5 text-purple-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Applications</p>
+              <p className="text-sm font-medium text-gray-600">
+                Total Applications
+              </p>
               <p className="text-2xl font-bold text-gray-900">
                 {jobs.reduce((sum, job) => sum + (job.applications || 0), 0)}
               </p>
@@ -274,10 +283,6 @@ const ManageJobs = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Type & Salary
                 </th>
-               
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Applications
-                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Posted Date
                 </th>
@@ -298,12 +303,16 @@ const ManageJobs = () => {
                         <div className="text-sm font-medium text-gray-900">
                           {job.title}
                         </div>
-                        <div className="text-sm text-gray-500">{}</div>
+                        <div className="text-sm text-gray-500">
+                          {job.postedBy?.name || "Unknown User"}
+                        </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{job.companyName}</div>
+                    <div className="text-sm text-gray-900">
+                      {job.companyName}
+                    </div>
                     <div className="flex items-center text-sm text-gray-500">
                       <MapPin className="w-3 h-3 mr-1" />
                       {job.location}
@@ -314,42 +323,32 @@ const ManageJobs = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="mb-2">
-                      <span className={getTypeBadge(job.type)}>{job.jobType}</span>
+                      <span className={getTypeBadge(job.jobType)}>
+                        {job.jobType}
+                      </span>
                     </div>
                     <div className="flex items-center text-sm text-gray-500">
                       <DollarSign className="w-3 h-3 mr-1" />
                       {job.salary}
                     </div>
                   </td>
-               
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <div className="flex items-center">
-                      <Eye className="w-4 h-4 mr-1 text-gray-400" />
-                      {job.applications}
-                    </div>
-                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="flex items-center">
                       <Calendar className="w-4 h-4 mr-1 text-gray-400" />
-                      {job.jobPostedOn}
+                      {job.jobPostedOn?.split("T")[0]}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="text-green-600 hover:text-green-900">
-                        <Edit className="w-4 h-4" />
-                      </button>
                       <button
                         onClick={() => handleDeleteJob(job.id)}
                         className="text-red-600 hover:text-red-900"
+                        title="Delete Job"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
+                      {/* Add Edit/View buttons here if needed */}
                     </div>
-                   
                   </td>
                 </tr>
               ))}
@@ -360,7 +359,9 @@ const ManageJobs = () => {
         {filteredJobs.length === 0 && (
           <div className="text-center py-12">
             <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No jobs found matching your criteria.</p>
+            <p className="text-gray-500">
+              No jobs found matching your criteria.
+            </p>
           </div>
         )}
       </div>

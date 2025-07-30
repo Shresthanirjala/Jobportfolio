@@ -46,6 +46,10 @@ const jobSchema = new mongoose.Schema({
     title: String,
     url: String,
   },
+  jobKeywords: {
+    type: [String],
+    default: [],
+  },
   jobNiche: {
     type: String,
     required: true,

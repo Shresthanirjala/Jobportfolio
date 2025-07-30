@@ -125,14 +125,11 @@ const VacancyManagement = () => {
     }
   };
 
-  // Handle form submission to add a new vacancy
   const handleAddVacancy = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    console.log(newVacancy);
-
-    // Format hiringMultipleCandidates as "Yes" or "No" to match schema expectations
+    // Convert jobKeywords string to array and format data according to schema
     const formattedData = {
       title: newVacancy.title,
       jobType: newVacancy.jobType,
@@ -143,39 +140,38 @@ const VacancyManagement = () => {
       qualifications: newVacancy.qualifications,
       offers: newVacancy.offers,
       salary: newVacancy.salary,
-      hiringMultipleCandidates: newVacancy.hiringMultipleCandidates
-        ? "Yes"
-        : "No", // Convert to string enum value
-      personalWebsite: {
+      hiringMultipleCandidates: newVacancy.hiringMultipleCandidates, // boolean as per schema
+      personalWebsites: {
         title: newVacancy.personalWebsiteTitle || "",
         url: newVacancy.personalWebsiteUrl || "",
       },
-      jobNiche: newVacancy.jobNiche,
+      jobNiche: newVacancy.jobNiche || "",
+      jobKeywords: newVacancy.jobKeywords
+        ? newVacancy.jobKeywords
+            .split(",")
+            .map((kw) => kw.trim())
+            .filter((kw) => kw.length > 0)
+        : [],
     };
 
     try {
       const response = await axios.post(
         "http://localhost:3000/api/v1/job/post",
-        newVacancy,
+        formattedData, // send formattedData here
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
         }
       );
-      // Just above return statement
-      const filteredVacancies = vacancies.filter((vacancy) =>
-        vacancy.title.toLowerCase().includes(searchQuery.toLowerCase())
-      );
 
-      // Add the new vacancy to the local state with proper formatting
       if (response.data.success) {
         const newJob = response.data.job;
-        // Add the new job to the local state with proper formatting for UI
+
         setVacancies([
           ...vacancies,
           {
-            id: newJob._id, // Using MongoDB id
+            id: newJob._id,
             title: newJob.title,
             jobType: newJob.jobType,
             location: newJob.location,
@@ -185,24 +181,26 @@ const VacancyManagement = () => {
             qualifications: newJob.qualifications,
             offers: newJob.offers,
             salary: newJob.salary,
-            hiringMultipleCandidates: newJob.hiringMultipleCandidates === "Yes",
-            personalWebsite: {
-              title: newJob.personalWebsite?.title || "",
-              url: newJob.personalWebsite?.url || "",
+            hiringMultipleCandidates: newJob.hiringMultipleCandidates,
+            personalWebsites: {
+              title: newJob.personalWebsites?.title || "",
+              url: newJob.personalWebsites?.url || "",
             },
+            jobKeywords: newJob.jobKeywords,
             jobNiche: newJob.jobNiche,
             postedDate: new Date(newJob.jobPostedOn)
               .toISOString()
               .split("T")[0],
-            status: "Active", // Default status for new jobs
-            applicants: 0, // Default applicants count
+            status: "Active",
+            applicants: 0,
           },
         ]);
 
-        // Close modal and reset form
         setIsAddModalOpen(false);
         resetForm();
         toast.success("Job posted successfully!");
+      } else {
+        toast.error("Failed to post the job.");
       }
     } catch (error) {
       console.error("Error adding vacancy:", error);
@@ -226,14 +224,36 @@ const VacancyManagement = () => {
       salary: "",
       hiringMultipleCandidates: false,
       personalWebsiteTitle: "",
+      jobKeywords: "",
       personalWebsiteUrl: "",
       jobNiche: "",
     });
   };
 
   // Handle deleting a vacancy
-  const handleDeleteVacancy = (id) => {
-    setVacancies(vacancies.filter((vacancy) => vacancy.id !== id));
+   const handleDeleteVacancy = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this vacancy?")) {
+      return;
+    }
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        toast.error("You are not logged in. Please login first.");
+        return;
+      }
+
+      await axios.delete(`http://localhost:3000/api/v1/job/delete/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setVacancies((prev) => prev.filter((vacancy) => vacancy.id !== id));
+      toast.success("Vacancy deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting vacancy:", error.response?.data || error);
+      toast.error(error.response?.data?.message || "Failed to delete vacancy.");
+    }
   };
 
   // Handle editing a vacancy
@@ -283,6 +303,7 @@ const VacancyManagement = () => {
       vacancy.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       vacancy.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       vacancy.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      vacancy.jobKeywords.toLowerCase().includes(searchQuery.toLowerCase()) ||
       vacancy.jobNiche.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -378,6 +399,9 @@ const VacancyManagement = () => {
                     <div className="flex items-center">Job Type</div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center">Job Keywords</div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center">Job Niche</div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -417,6 +441,11 @@ const VacancyManagement = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
                         {vacancy.jobType}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">
+                        {vacancy.jobKeywords}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -560,6 +589,21 @@ const VacancyManagement = () => {
                     type="text"
                     name="jobNiche"
                     value={newVacancy.jobNiche}
+                    onChange={handleInputChange}
+                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                    placeholder="e.g. Frontend Development, UX Design"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Job Keywords*
+                  </label>
+                  <input
+                    type="text"
+                    name="jobKeywords"
+                    value={newVacancy.jobKeywords}
                     onChange={handleInputChange}
                     className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required

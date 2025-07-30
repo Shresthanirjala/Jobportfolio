@@ -10,6 +10,7 @@ export const errorMiddleware = (err, req, res, next) => {
   err.message = err.message || "Internal Server Error";
 
   // Handle Mongoose CastError (Invalid MongoDB ID)
+  
   if (err.name === "CastError") {
     err = new ErrorHandler(`Invalid ${err.path}`, 400);
   }

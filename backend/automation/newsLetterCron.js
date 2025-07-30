@@ -11,9 +11,9 @@ export const newsLetterCron = () => {
 
     for (const job of jobs) {
       try {
-        console.log(
-          `✅ Found job to process: ${job.title} (Niche: ${job.jobNiche})`
-        );
+        // console.log(
+        //   `✅ Found job to process: ${job.title} (Niche: ${job.jobNiche})`
+        // );
 
         const filteredUsers = await User.find({
           $or: [
