@@ -3,6 +3,30 @@ import { User, Mail, Phone, MapPin, Edit, Save, X } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 
+const jobNiches = [
+  "Web Development",
+  "Mobile Development",
+  "Data Science",
+  "Graphic Design",
+  "Marketing",
+  "Sales",
+  "UI/UX Design",
+  "AI/ML",
+  "Blockchain",
+  "Cybersecurity",
+  "Finance",
+  "HR",
+  "Education",
+  "Writing",
+  "Customer Service",
+  "Project Management",
+  "Legal",
+  "DevOps",
+  "Software Testing",
+  "Software Developer"
+  ,
+];
+
 const PersonalInformation = () => {
   const { user, authLoading } = useContext(AuthContext);
   const [profileData, setProfileData] = useState(null);
@@ -19,9 +43,7 @@ const PersonalInformation = () => {
           const res = await axios.get(
             "http://localhost:3000/api/v1/user/getuser",
             {
-              headers: {
-                Authorization: `Bearer ${user.token}`,
-              },
+              headers: { Authorization: `Bearer ${user.token}` },
             }
           );
           setProfileData(res.data.user);
@@ -46,7 +68,6 @@ const PersonalInformation = () => {
       address: profileData.address,
       coverLetter: profileData.coverLetter,
       resume: profileData.resume,
-      // Add niche fields for editing
       firstNiche: profileData.niches?.firstNiche || "",
       secondNiche: profileData.niches?.secondNiche || "",
       thirdNiche: profileData.niches?.thirdNiche || "",
@@ -57,21 +78,47 @@ const PersonalInformation = () => {
   const cancelEditing = () => {
     setEditing(false);
     setEditData({});
+    setError("");
   };
 
-  const saveProfile = () => {
-    // You may want to handle file upload here using FormData (if backend supports it)
-    setProfileData({
-      ...profileData,
-      name: editData.name,
-      email: editData.email,
-      phone: editData.phone,
-      address: editData.address,
-      coverLetter: editData.coverLetter,
-      resume: editData.resume,
-    });
-    setEditing(false);
-    setEditData({});
+  const saveProfile = async () => {
+    try {
+      let formData = new FormData();
+      formData.append("name", editData.name);
+      formData.append("email", editData.email);
+      formData.append("phone", editData.phone);
+      formData.append("address", editData.address);
+      formData.append("coverLetter", editData.coverLetter);
+      formData.append("firstNiche", editData.firstNiche || "");
+      formData.append("secondNiche", editData.secondNiche || "");
+      formData.append("thirdNiche", editData.thirdNiche || "");
+
+      // Append resume if it is a new file object (not an existing URL)
+      if (editData.resume && typeof editData.resume === "object") {
+        formData.append("resume", editData.resume);
+      }
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      };
+
+      const res = await axios.put(
+        "http://localhost:3000/api/v1/user/update/profile",
+        formData,
+        config
+      );
+
+      setProfileData(res.data.user);
+      setEditing(false);
+      setEditData({});
+      setError("");
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+      setError("Failed to update profile. Please try again.");
+    }
   };
 
   const handleInputChange = (e) => {
@@ -252,18 +299,20 @@ const PersonalInformation = () => {
             <div className="md:col-span-2 flex flex-col">
               <label className="text-sm text-gray-500 mb-1">Resume</label>
 
-              {profileData.resume && profileData.resume.url && (
-                <div className="mb-2">
-                  <a
-                    href={profileData.resume.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline font-medium"
-                  >
-                    View Current Resume
-                  </a>
-                </div>
-              )}
+              {profileData.resume &&
+                profileData.resume.url &&
+                !(editData.resume && typeof editData.resume === "object") && (
+                  <div className="mb-2">
+                    <a
+                      href={profileData.resume.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline font-medium"
+                    >
+                      View Current Resume
+                    </a>
+                  </div>
+                )}
 
               <input
                 type="file"
@@ -289,36 +338,78 @@ const PersonalInformation = () => {
                 <button
                   onClick={() => setEditData({ ...editData, resume: null })}
                   className="text-red-500 text-sm hover:underline mt-1 w-fit"
+                  type="button"
                 >
                   Remove selected file
                 </button>
               )}
             </div>
-            <div className="md:col-span-2 flex flex-col">
-              <label className="text-sm text-gray-500 mb-1">First Niche</label>
-              <input
-                type="text"
-                name="firstNiche"
-                value={editData.firstNiche || ""}
-                onChange={handleInputChange}
-                className="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
-              />
-              <label className="text-sm text-gray-500 mb-1">Second Niche</label>
-              <input
-                type="text"
-                name="secondNiche"
-                value={editData.secondNiche || ""}
-                onChange={handleInputChange}
-                className="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
-              />
-              <label className="text-sm text-gray-500 mb-1">Third Niche</label>
-              <input
-                type="text"
-                name="thirdNiche"
-                value={editData.thirdNiche || ""}
-                onChange={handleInputChange}
-                className="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            <div className="md:col-span-2 flex flex-col space-y-4">
+              {/* First Niche */}
+              <div className="flex flex-col">
+                <label className="text-sm text-gray-500 mb-1">
+                  First Niche
+                </label>
+                <select
+                  name="firstNiche"
+                  value={editData.firstNiche}
+                  onChange={handleInputChange}
+                  className="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="" disabled>
+                    Select First Niche
+                  </option>
+                  {jobNiches.map((niche) => (
+                    <option key={niche} value={niche}>
+                      {niche}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Second Niche */}
+              <div className="flex flex-col">
+                <label className="text-sm text-gray-500 mb-1">
+                  Second Niche
+                </label>
+                <select
+                  name="secondNiche"
+                  value={editData.secondNiche}
+                  onChange={handleInputChange}
+                  className="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="" disabled>
+                    Select Second Niche
+                  </option>
+                  {jobNiches.map((niche) => (
+                    <option key={niche} value={niche}>
+                      {niche}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Third Niche */}
+              <div className="flex flex-col">
+                <label className="text-sm text-gray-500 mb-1">
+                  Third Niche
+                </label>
+                <select
+                  name="thirdNiche"
+                  value={editData.thirdNiche}
+                  onChange={handleInputChange}
+                  className="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="" disabled>
+                    Select Third Niche
+                  </option>
+                  {jobNiches.map((niche) => (
+                    <option key={niche} value={niche}>
+                      {niche}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         )}

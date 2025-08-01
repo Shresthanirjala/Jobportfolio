@@ -43,7 +43,7 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/job", jobRouter);
 app.use("/api/v1/application", applicationRouter);
 app.use("/api/v1/recommend-jobs", recommendedJobRoutes);
-app.use("api/v1/recommended",jobRoutes);
+app.use("/api/v1/recommended",jobRoutes);
 app.use("/api/v1/admin", adminRouter);
 
 newsLetterCron();

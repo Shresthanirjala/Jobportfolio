@@ -4,6 +4,6 @@ import { isAuthenticated } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.get("/recommended", isAuthenticated, getRecommendedJobs);
+router.get("/", isAuthenticated, getRecommendedJobs);
 
 export default router;

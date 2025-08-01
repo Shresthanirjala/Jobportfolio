@@ -13,6 +13,7 @@ import {
   Clock,
 } from "lucide-react";
 import axios from "axios";
+import AdminNavbar from "./AdminNavbar";
 
 const ManageUsers = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -102,15 +103,13 @@ const ManageUsers = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
+          <AdminNavbar />
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Manage Users</h2>
           <p className="text-gray-600">Manage and monitor all registered users</p>
         </div>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
-          <Plus className="w-4 h-4" />
-          <span>Add User</span>
-        </button>
+     
       </div>
 
       {/* Stats Cards */}

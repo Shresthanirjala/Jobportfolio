@@ -13,6 +13,7 @@ import {
   Calendar,
 } from "lucide-react";
 import axios from "axios";
+import AdminNavbar from "./AdminNavbar";
 
 const ManageJobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -145,15 +146,13 @@ const ManageJobs = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
+          <AdminNavbar />
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Manage Jobs</h2>
           <p className="text-gray-600">Manage and monitor all job postings</p>
         </div>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
-          <Plus className="w-4 h-4" />
-          <span>Add Job</span>
-        </button>
+        
       </div>
 
       {/* Stats Cards */}

@@ -17,6 +17,8 @@ import {
   Phone,
 } from "lucide-react";
 import axios from "axios";
+import AdminNavbar from "./AdminNavbar";
+
 
 const ManageApplications = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -136,6 +138,7 @@ const ManageApplications = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
+          <AdminNavbar />
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">

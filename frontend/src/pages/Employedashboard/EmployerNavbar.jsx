@@ -99,42 +99,17 @@ const EmployerNavbar = () => {
           <div className="h-10 w-10 bg-[#023854] rounded-lg flex items-center justify-center">
             <Building2 className="h-6 w-6 text-white" />
           </div>
-          <Link to="/employer/dashboard">
-            <div className="text-2xl font-bold cursor-pointer">
-              <span className="text-[#023854]">Career</span>
-              <span className="text-[#718B68]">Link</span>
-            </div>
-          </Link>
+
+          <div className="text-2xl font-bold cursor-pointer">
+            <span className="text-[#023854]">Career</span>
+            <span className="text-[#718B68]">Link</span>
+          </div>
         </div>
 
         {/* Desktop Auth Section */}
         <div className="hidden justify-end md:flex items-center space-x-4 ml-auto">
           {user ? (
             <>
-              <Link
-                to="/employer/candidates"
-                className="text-[#023854] hover:text-[#718B68]"
-              >
-                <Search className="h-5 w-5" />
-              </Link>
-              <Link
-                to="/employer/notifications"
-                className="text-[#023854] hover:text-[#718B68] relative"
-              >
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  3
-                </span>
-              </Link>
-              <Link
-                to="/employer/messages"
-                className="text-[#023854] hover:text-[#718B68] relative"
-              >
-                <MessageSquare className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  5
-                </span>
-              </Link>
               <div className="relative" ref={dropdownRef}>
                 <button
                   className="flex items-center space-x-2 text-[#023854] px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
@@ -169,8 +144,7 @@ const EmployerNavbar = () => {
                       <Building2 className="h-4 w-4" />
                       <span>Dashboard</span>
                     </Link>
-                  
-                   
+
                     <button
                       onClick={handleLogout}
                       className="flex items-center gap-2 px-4 py-3 text-red-600 hover:bg-gray-50 w-full text-left"

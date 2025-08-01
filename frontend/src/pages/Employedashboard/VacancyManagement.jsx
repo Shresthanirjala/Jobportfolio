@@ -90,6 +90,7 @@ const VacancyManagement = () => {
             url: job.personalWebsite?.url || "",
           },
           jobNiche: job.jobNiche,
+          jobKeywords: Array.isArray(job.jobKeywords) ? job.jobKeywords : [],
           postedDate: new Date(job.jobPostedOn || job.createdAt)
             .toISOString()
             .split("T")[0],
@@ -195,6 +196,7 @@ const VacancyManagement = () => {
             applicants: 0,
           },
         ]);
+          
 
         setIsAddModalOpen(false);
         resetForm();
@@ -231,7 +233,7 @@ const VacancyManagement = () => {
   };
 
   // Handle deleting a vacancy
-   const handleDeleteVacancy = async (id) => {
+  const handleDeleteVacancy = async (id) => {
     if (!window.confirm("Are you sure you want to delete this vacancy?")) {
       return;
     }
@@ -445,12 +447,13 @@ const VacancyManagement = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
-                        {vacancy.jobKeywords}
+                        {vacancy.jobKeywords?.join(", ")}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
                         {vacancy.jobNiche}
+                     
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

@@ -100,12 +100,102 @@ const Register = () => {
   const [fileName, setFileName] = useState("");
   const [resumeFile, setResumeFile] = useState(null);
   const [niches] = useState([
-    "Web Development",
-    "Mobile Development",
-    "Data Science",
-    "Graphic Design",
-    "Marketing",
-    "Sales",
+      // Technology & Development
+  "Web Development",
+  "Mobile Development",
+  "Full Stack Development",
+  "Backend Development",
+  "Frontend Development",
+  "DevOps",
+  "Cybersecurity",
+  "Data Science",
+  "Machine Learning",
+  "Artificial Intelligence",
+  "Blockchain",
+  "Game Development",
+  "Embedded Systems",
+  "QA / Testing",
+  "Software Engineering",
+  "Cloud Computing",
+  "UI/UX Design",
+
+  // Business & Marketing
+  "Marketing",
+  "Digital Marketing",
+  "Content Marketing",
+  "SEO / SEM",
+  "Social Media Management",
+  "Product Management",
+  "Business Analysis",
+  "Sales",
+  "Customer Success",
+  "Project Management",
+  "E-commerce",
+  "Branding",
+
+  // Creative & Design
+  "Graphic Design",
+  "UI Design",
+  "UX Research",
+  "Motion Graphics",
+  "Illustration",
+  "Animation",
+  "3D Design",
+  "Video Editing",
+  "Photography",
+  "Creative Direction",
+
+  // Data & Analytics
+  "Data Analysis",
+  "Business Intelligence",
+  "Data Engineering",
+  "Statistics",
+  "Financial Analysis",
+  "Research & Insights",
+
+  // Education & Writing
+  "Academic Tutoring",
+  "Technical Writing",
+  "Content Writing",
+  "Curriculum Development",
+  "Instructional Design",
+  "Language Teaching",
+  "Online Course Creation",
+
+  // Health & Wellness
+  "Nursing",
+  "General Medicine",
+  "Mental Health",
+  "Physiotherapy",
+  "Pharmacy",
+  "Nutrition",
+
+  // Engineering & Manufacturing
+  "Mechanical Engineering",
+  "Civil Engineering",
+  "Electrical Engineering",
+  "Chemical Engineering",
+  "Industrial Design",
+  "Quality Assurance",
+
+  // Administration & Support
+  "Virtual Assistance",
+  "Customer Service",
+  "HR & Recruiting",
+  "Office Management",
+  "Data Entry",
+  "Accounting",
+  "Legal",
+
+  // Other
+  "NGO / Non-profit",
+  "Journalism",
+  "Real Estate",
+  "Logistics",
+  "Travel & Tourism",
+  "Hospitality",
+  "Agriculture",
+  "Environment / Sustainability"
   ]);
 
   const navigate = useNavigate();
