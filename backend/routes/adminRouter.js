@@ -21,4 +21,5 @@ router.get("/applications", isAuthenticated, isAuthorized("Admin"), getAllApplic
 router.delete("/user/:id", isAuthenticated, isAuthorized("Admin"), deleteUser);
 router.delete("/job/:id", isAuthenticated, isAuthorized("Admin"), deleteJob);
 
+
 export default router;

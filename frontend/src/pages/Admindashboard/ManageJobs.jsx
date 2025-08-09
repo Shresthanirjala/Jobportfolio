@@ -4,7 +4,6 @@ import {
   Search,
   Filter,
   Trash2,
-  Plus,
   CheckCircle,
   XCircle,
   Clock,
@@ -22,6 +21,7 @@ const ManageJobs = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deletingJobId, setDeletingJobId] = useState(null);
 
   const categories = [
     "Technology",
@@ -39,13 +39,31 @@ const ManageJobs = () => {
       setError(null);
       try {
         const token = localStorage.getItem("authToken");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
         const res = await axios.get("http://localhost:3000/api/v1/admin/jobs", {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          headers,
         });
+
         setJobs(res.data?.jobs || []);
       } catch (err) {
         console.error("Error fetching jobs:", err);
-        setError("Failed to fetch jobs");
+
+        // More detailed error handling for diagnosis:
+        if (err.response) {
+          // Server responded with status code outside 2xx
+          setError(
+            `Failed to fetch jobs: ${err.response.status} ${
+              err.response.statusText
+            } - ${err.response.data?.message || ""}`
+          );
+        } else if (err.request) {
+          // No response received from server
+          setError("No response from server. Please check your backend.");
+        } else {
+          // Other errors like setting up the request
+          setError(`Error: ${err.message}`);
+        }
       } finally {
         setLoading(false);
       }
@@ -101,23 +119,31 @@ const ManageJobs = () => {
     }
   };
 
-  // Delete job handler with backend API call
   const handleDeleteJob = async (jobId) => {
     if (!window.confirm("Are you sure you want to delete this job posting?")) {
       return;
     }
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("You are not authorized to perform this action.");
+      return;
+    }
+
     try {
-      const token = localStorage.getItem("authToken");
-      await axios.delete(`http://localhost:3000/api/v1/admin/delete/${jobId}`, {
+      setDeletingJobId(jobId);
+      await axios.delete(`http://localhost:3000/api/v1/admin/job/${jobId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      // Remove deleted job from state
-      setJobs(jobs.filter((job) => job.id !== jobId));
+
+      setJobs((prevJobs) => prevJobs.filter((job) => job._id !== jobId));
     } catch (error) {
       console.error("Failed to delete job:", error);
       alert("Failed to delete job. Please try again.");
+    } finally {
+      setDeletingJobId(null);
     }
   };
 
@@ -125,7 +151,7 @@ const ManageJobs = () => {
     const lowerSearch = searchTerm.toLowerCase();
     const matchesSearch =
       job.title?.toLowerCase().includes(lowerSearch) ||
-      job.company?.toLowerCase().includes(lowerSearch) ||
+      job.companyName?.toLowerCase().includes(lowerSearch) ||
       job.location?.toLowerCase().includes(lowerSearch);
     const matchesStatus = filterStatus === "all" || job.status === filterStatus;
     const matchesCategory =
@@ -145,17 +171,14 @@ const ManageJobs = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-          <AdminNavbar />
+      <AdminNavbar />
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Manage Jobs</h2>
           <p className="text-gray-600">Manage and monitor all job postings</p>
         </div>
-        
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <div className="flex items-center">
@@ -216,7 +239,6 @@ const ManageJobs = () => {
         </div>
       </div>
 
-      {/* Filters and Search */}
       <div className="bg-white p-6 rounded-lg shadow-sm border">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
@@ -264,7 +286,6 @@ const ManageJobs = () => {
         </div>
       </div>
 
-      {/* Jobs Table */}
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-6 border-b">
           <h3 className="text-lg font-semibold text-gray-900">Jobs List</h3>
@@ -292,7 +313,7 @@ const ManageJobs = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredJobs.map((job) => (
-                <tr key={job.id} className="hover:bg-gray-50">
+                <tr key={job._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -340,13 +361,17 @@ const ManageJobs = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => handleDeleteJob(job.id)}
-                        className="text-red-600 hover:text-red-900"
+                        onClick={() => handleDeleteJob(job._id)}
+                        className={`text-red-600 hover:text-red-900 ${
+                          deletingJobId === job._id
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
                         title="Delete Job"
+                        disabled={deletingJobId === job._id}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
-                      {/* Add Edit/View buttons here if needed */}
                     </div>
                   </td>
                 </tr>

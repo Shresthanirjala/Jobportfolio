@@ -110,10 +110,12 @@ const Hero = ({ jobs = [] }) => {
     typeWriter();
   }, []);
 
+  // Search bar functionality: filter jobs by query and location
   const handleSearch = () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim() && !location.trim()) return;
     setIsSearching(true);
     const normalizedSearch = searchQuery.toLowerCase().replace(/\s+/g, "");
+    const normalizedLocation = location.toLowerCase().replace(/\s+/g, "");
     const filteredJobs = jobs.filter((job) => {
       const titleMatch =
         job.title &&
@@ -129,7 +131,14 @@ const Hero = ({ jobs = [] }) => {
         job.skills.some((skill) =>
           skill.toLowerCase().replace(/\s+/g, "").includes(normalizedSearch)
         );
-      return titleMatch || companyMatch || skillsMatch;
+      const locationMatch =
+        location.trim() === "" ||
+        (job.location &&
+          job.location
+            .toLowerCase()
+            .replace(/\s+/g, "")
+            .includes(normalizedLocation));
+      return (titleMatch || companyMatch || skillsMatch) && locationMatch;
     });
     setSearchResults(filteredJobs);
     setIsSearching(false);
@@ -478,7 +487,9 @@ const Hero = ({ jobs = [] }) => {
                               if (!appliedJobIds.includes(job._id)) {
                                 handleApply(job._id, job.title);
                               } else {
-                                window.alert("You already applied to this job.");
+                                window.alert(
+                                  "You already applied to this job."
+                                );
                               }
                             }}
                             disabled={appliedJobIds.includes(job._id)}
@@ -491,25 +502,25 @@ const Hero = ({ jobs = [] }) => {
                             )}
                           </button>
                         </div>
-      {/* Modal for ApplyForm */}
-      {showApplyModal && (
-        <div className="modal fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
-          <div className="modal-content bg-white p-6 rounded-lg shadow-lg relative w-full max-w-lg">
-            <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-              onClick={() => setShowApplyModal(false)}
-            >
-              &times;
-            </button>
-            <ApplyForm
-              jobId={applyJobId}
-              jobTitle={applyJobTitle}
-              appliedJobIds={appliedJobIds}
-              onClose={() => setShowApplyModal(false)}
-            />
-          </div>
-        </div>
-      )}
+                        {/* Modal for ApplyForm */}
+                        {showApplyModal && (
+                          <div className="modal fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
+                            <div className="modal-content bg-white p-6 rounded-lg shadow-lg relative w-full max-w-lg">
+                              <button
+                                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                                onClick={() => setShowApplyModal(false)}
+                              >
+                                &times;
+                              </button>
+                              <ApplyForm
+                                jobId={applyJobId}
+                                jobTitle={applyJobTitle}
+                                appliedJobIds={appliedJobIds}
+                                onClose={() => setShowApplyModal(false)}
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -1,13 +1,9 @@
-
 import React, { useEffect, useState } from "react";
 import {
   Users as UserIcon,
   Search,
   Filter,
-  Edit,
   Trash2,
-  Eye,
-  Plus,
   CheckCircle,
   XCircle,
   Clock,
@@ -24,23 +20,18 @@ const ManageUsers = () => {
 
   useEffect(() => {
     const fetchUsers = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const token = localStorage.getItem("authToken");
-
-        const res = await axios.get(
-          "http://localhost:3000/api/v1/admin/seekers",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
+        const res = await axios.get("http://localhost:3000/api/v1/admin/seekers", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
         setUsers(res.data?.seekers || []);
-        setLoading(false);
       } catch (err) {
         console.error("Error fetching users:", err);
         setError("Failed to fetch users");
+      } finally {
         setLoading(false);
       }
     };
@@ -48,10 +39,20 @@ const ManageUsers = () => {
     fetchUsers();
   }, []);
 
-
-  const handleDeleteUser = (userId) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) {
+      return;
+    }
+    try {
+      const token = localStorage.getItem("authToken");
+      await axios.delete(`http://localhost:3000/api/v1/admin/user/${userId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      // Remove user from state after successful deletion
       setUsers((prev) => prev.filter((user) => user._id !== userId));
+    } catch (err) {
+      alert("Failed to delete user. Please try again.");
+      console.error("Error deleting user:", err);
     }
   };
 
@@ -83,9 +84,10 @@ const ManageUsers = () => {
   };
 
   const filteredUsers = users.filter((user) => {
+    const lowerSearch = searchTerm.toLowerCase();
     const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      user.name?.toLowerCase().includes(lowerSearch) ||
+      user.email?.toLowerCase().includes(lowerSearch);
     const matchesFilter = filterStatus === "all" || user.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
@@ -103,13 +105,12 @@ const ManageUsers = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-          <AdminNavbar />
+      <AdminNavbar />
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Manage Users</h2>
           <p className="text-gray-600">Manage and monitor all registered users</p>
         </div>
-     
       </div>
 
       {/* Stats Cards */}
@@ -218,12 +219,9 @@ const ManageUsers = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Contact
                 </th>
-              
-               
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Join Date
                 </th>
-               
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -236,7 +234,7 @@ const ManageUsers = () => {
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                         <span className="text-sm font-medium text-blue-600">
-                          {user.name.charAt(0).toUpperCase()}
+                          {user.name?.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div className="ml-4">
@@ -253,51 +251,33 @@ const ManageUsers = () => {
                     <div className="text-sm text-gray-900">{user.email}</div>
                     <div className="text-sm text-gray-500">{user.phone}</div>
                   </td>
-                
-                 
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.createdAt}
+                    {/* Format createdAt to a readable date if needed */}
+                    {new Date(user.createdAt).toLocaleDateString()}
                   </td>
-                 
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
-                      {/* <button className="text-blue-600 hover:text-blue-900">
-                        <Eye className="w-4 h-4" />
-                      </button> */}
-                      {/* <button className="text-green-600 hover:text-green-900">
-                        <Edit className="w-4 h-4" />
-                      </button> */}
                       <button
                         onClick={() => handleDeleteUser(user._id)}
-                        className="text-red-600 hover:text-red-900 "
+                        className="text-red-600 hover:text-red-900"
+                        title="Delete User"
                       >
-                        <Trash2 className="w-4 h-4 " />
+                        <Trash2 className="w-4 h-4" />
                       </button>
-                      {/* <select
-                        value={user.status}
-                        onChange={(e) =>
-                          handleStatusChange(user._id, e.target.value)
-                        }
-                        className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      >
-                        <option value="active">Active</option>
-                        <option value="pending">Pending</option>
-                        <option value="suspended">Suspended</option>
-                      </select> */}
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
 
-        {filteredUsers.length === 0 && (
-          <div className="text-center py-12">
-            <UserIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No users found matching your criteria.</p>
-          </div>
-        )}
+          {filteredUsers.length === 0 && (
+            <div className="text-center py-12">
+              <UserIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No users found matching your criteria.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

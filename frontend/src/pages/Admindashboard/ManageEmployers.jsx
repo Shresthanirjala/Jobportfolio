@@ -3,10 +3,7 @@ import {
   Building,
   Search,
   Filter,
-  Edit,
   Trash2,
-  Eye,
-  Plus,
   CheckCircle,
   XCircle,
   Clock,
@@ -30,10 +27,13 @@ const ManageEmployers = () => {
       setError(null);
       try {
         const token = localStorage.getItem("authToken"); // If you use auth token
-        const res = await axios.get("http://localhost:3000/api/v1/admin/employers", {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-        // Assuming API returns { employers: [...] } structure, adjust if different
+        const res = await axios.get(
+          "http://localhost:3000/api/v1/admin/employers",
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          }
+        );
+        // Adjust to your API response data structure
         setEmployers(res.data?.employers || []);
       } catch (err) {
         console.error("Error fetching employers:", err);
@@ -77,28 +77,26 @@ const ManageEmployers = () => {
     }
   };
 
-  const handleStatusChange = (employerId, newStatus) => {
-    setEmployers((prev) =>
-      prev.map((employer) =>
-        employer.id === employerId ? { ...employer, status: newStatus } : employer
-      )
-    );
-  };
-
-  const handleVerificationChange = (employerId, newVerification) => {
-    setEmployers((prev) =>
-      prev.map((employer) =>
-        employer.id === employerId ? { ...employer, verificationStatus: newVerification } : employer
-      )
-    );
-  };
-
-  const handleDeleteEmployer = (employerId) => {
-    if (window.confirm("Are you sure you want to delete this employer?")) {
-      setEmployers((prev) => prev.filter((employer) => employer.id !== employerId));
+  const handleDeleteEmployer = async (employerId) => {
+    if (!window.confirm("Are you sure you want to delete this employer?")) {
+      return;
+    }
+    try {
+      const token = localStorage.getItem("authToken");
+      await axios.delete(
+        `http://localhost:3000/api/v1/admin/user/${employerId}`,
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }
+      );
+      setEmployers((prev) => prev.filter((employer) => employer._id !== employerId));
+    } catch (err) {
+      alert("Failed to delete employer. Please try again.");
+      console.error("Error deleting employer:", err);
     }
   };
 
+  // Filter employers based on search and status filter
   const filteredEmployers = employers.filter((employer) => {
     const lowerSearch = searchTerm.toLowerCase();
     const matchesSearch =
@@ -124,13 +122,14 @@ const ManageEmployers = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-          <AdminNavbar />
+      <AdminNavbar />
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Manage Employers</h2>
-          <p className="text-gray-600">Manage and monitor all registered employers</p>
+          <p className="text-gray-600">
+            Manage and monitor all registered employers
+          </p>
         </div>
-       
       </div>
 
       {/* Stats Cards */}
@@ -242,12 +241,6 @@ const ManageEmployers = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Location & Industry
                 </th>
-                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Verification
-                </th> */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Jobs/Applications
                 </th>
@@ -258,15 +251,19 @@ const ManageEmployers = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredEmployers.map((employer) => (
-                <tr key={employer.id} className="hover:bg-gray-50">
+                <tr key={employer._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                         <Building className="w-5 h-5 text-purple-600" />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{employer.name}</div>
-                        <div className="text-sm text-gray-500">{employer.employeeCount} employees</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {employer.companyName || employer.name}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {employer.employeeCount} employees
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -282,47 +279,32 @@ const ManageEmployers = () => {
                     </div>
                     <div className="text-sm text-gray-500">{employer.address}</div>
                   </td>
-                  {/* <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      {getStatusIcon(employer.status)}
-                      <span className={getStatusBadge(employer.status)}>{employer.status}</span>
-                    </div>
-                  </td> */}
-                  {/* <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      {getStatusIcon(employer.verificationStatus)}
-                      <span className={getStatusBadge(employer.verificationStatus)}>{employer.verificationStatus}</span>
-                    </div>
-                  </td> */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{employer.activeJobs} active jobs</div>
                     <div className="text-sm text-gray-500">{employer.totalApplications} applications</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
-                     
-                      
                       <button
-                        onClick={() => handleDeleteEmployer(employer.id)}
+                        onClick={() => handleDeleteEmployer(employer._id)}
                         className="text-red-600 hover:text-red-900"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-                   
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
 
-        {filteredEmployers.length === 0 && (
-          <div className="text-center py-12">
-            <Building className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No employers found matching your criteria.</p>
-          </div>
-        )}
+          {filteredEmployers.length === 0 && (
+            <div className="text-center py-12">
+              <Building className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No employers found matching your criteria.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
