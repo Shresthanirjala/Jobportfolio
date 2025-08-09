@@ -139,28 +139,35 @@ export const getUser = catchAsyncError(async (req, res, next) => {
 });
 
 export const updateProfile = catchAsyncError(async (req, res, next) => {
+  // Extract niches from request body, defaulting to empty strings if missing
+  const niches = {
+    firstNiche: req.body.firstNiche || "",
+    secondNiche: req.body.secondNiche || "",
+    thirdNiche: req.body.thirdNiche || "",
+    fourthNiche: req.body.fourthNiche || "",
+    fifthNiche: req.body.fifthNiche || "",
+    sixthNiche: req.body.sixthNiche || "",
+    seventhNiche: req.body.seventhNiche || "",
+  };
+
+  // Validate that for job seekers, at least 3 niches are provided (adjust as needed)
+  if (
+    req.user.role.toLowerCase() === "job seeker" &&
+    (!niches.firstNiche || !niches.secondNiche || !niches.thirdNiche)
+  ) {
+    return next(
+      new ErrorHandler("Please provide your all preferred job niches.", 400)
+    );
+  }
+
   const newUserData = {
     name: req.body.name,
     email: req.body.email,
     phone: req.body.phone,
     address: req.body.address,
     coverLetter: req.body.coverLetter,
-    niches: {
-      firstNiche: req.body.firstNiche,
-      secondNiche: req.body.secondNiche,
-      thirdNiche: req.body.thirdNiche,
-    },
+    niches, // save all 7 niches together
   };
-
-  const { firstNiche, secondNiche, thirdNiche } = newUserData.niches;
-  if (
-    req.user.role.toLowerCase() === "job seeker" &&
-    (!firstNiche || !secondNiche || !thirdNiche)
-  ) {
-    return next(
-      new ErrorHandler("Please provide your all preferred job niches.", 400)
-    );
-  }
 
   if (req.files && req.files.resume) {
     const resume = req.files.resume;

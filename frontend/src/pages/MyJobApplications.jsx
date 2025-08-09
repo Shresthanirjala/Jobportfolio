@@ -228,14 +228,14 @@ const MyJobApplications = () => {
                         {job.jobSeekerInfo?.coverLetter || "-"}
                       </p>
                     </div>
-                    <div className="flex justify-end">
+                    {/* <div className="flex justify-end">
                       <button
                         className="text-blue-600 hover:text-blue-800 text-sm"
                         onClick={() => handleViewApplication(job)}
                       >
                         View Full Application
                       </button>
-                    </div>
+                    </div> */}
                   </div>
                 )}
               </div>
@@ -274,11 +274,11 @@ const MyJobApplications = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Resume (CV)
                 </label>
-                {/* Always show previously uploaded resume link if available */}
-                {editCV && (
+                {/* Always show resume link from original application if available */}
+                {selectedApplication.jobSeekerInfo?.cv && (
                   <div className="mb-2">
                     <a
-                      href={editCV}
+                      href={selectedApplication.jobSeekerInfo.cv}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-block px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium hover:bg-blue-200 transition"

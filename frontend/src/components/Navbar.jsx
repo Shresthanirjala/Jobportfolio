@@ -163,7 +163,7 @@ const Navbar = () => {
                 </div>
               )}
               <Link
-                to="/notifications"
+                to="/myprofile"
                 className="text-[#023854] hover:text-[#718B68] relative"
               >
                 <Bell className="h-5 w-5" />

@@ -13,7 +13,7 @@ mongoose
     console.log("✅ Connected to MongoDB");
     console.log("📛 Connected to database:", mongoose.connection.name);
 
-    const adminEmail = "adminirjala@gmail.com";
+    const adminEmail = "admin123@gmail.com";
     const adminPassword = "admin1234";  // The raw password that will be hashed automatically
 
     const existingAdmin = await User.findOne({ email: adminEmail });

@@ -2,8 +2,6 @@ import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import ErrorHandler from "../middlewares/error.js";
 import { Job } from "../models/jobSchema.js";
 
-
-
 // Controller to post a new job
 export const postJob = catchAsyncError(async (req, res, next) => {
   const {
@@ -166,10 +164,9 @@ export const getASingleJob = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
 const getJobWithPoster = async (jobId) => {
-  const job = await Job.findById(jobId).populate("postedBy", "name email"); 
+  const job = await Job.findById(jobId).populate("postedBy", "name email");
   // populate 'postedBy' field with User's name and email (you can customize fields)
-  
+
   return job;
 };
