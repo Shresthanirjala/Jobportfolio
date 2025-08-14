@@ -16,6 +16,7 @@ import {
   Check,
   LogIn,
   ArrowRight,
+  Rss,
 } from "lucide-react";
 
 const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
@@ -32,6 +33,13 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
   const [selectedJobType, setSelectedJobType] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedExperienceLevel, setSelectedExperienceLevel] = useState("");
+
+  // Job niches state
+  const [jobNiches, setJobNiches] = useState([]);
+  const [selectedJobNiche, setSelectedJobNiche] = useState("");
+  const [loadingNiches, setLoadingNiches] = useState(true);
+  const [errorNiches, setErrorNiches] = useState(null);
+
   const [selectedSalaryRange, setSelectedSalaryRange] = useState("");
 
   const clearFilters = () => {
@@ -39,8 +47,33 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
     setSelectedLocation("");
     setSelectedExperienceLevel("");
     setSelectedSalaryRange("");
+    setSelectedJobNiche("");
     setSearchQuery("");
   };
+  // Fetch job niches from backend
+  useEffect(() => {
+    const fetchNiches = async () => {
+      try {
+        setLoadingNiches(true);
+        // Fetch all jobs and extract unique niches
+        const response = await axios.get(
+          "http://localhost:3000/api/v1/job/getall"
+        );
+        const jobs = response.data.jobs || [];
+        const niches = Array.from(
+          new Set(jobs.map((job) => job.jobNiche).filter(Boolean))
+        );
+        setJobNiches(niches);
+        setErrorNiches(null);
+      } catch (err) {
+        setErrorNiches("Could not fetch job niches.");
+        setJobNiches([]);
+      } finally {
+        setLoadingNiches(false);
+      }
+    };
+    fetchNiches();
+  }, []);
 
   const [filterExpanded, setFilterExpanded] = useState({
     jobType: true,
@@ -69,7 +102,9 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/v1/job/getall");
+        const response = await axios.get(
+          "http://localhost:3000/api/v1/job/getall"
+        );
         setJobs(response.data.jobs || []);
       } catch (err) {
         setError(err.message);
@@ -86,9 +121,12 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
       if (user && user.token) {
         try {
           setLoadingRecommended(true);
-          const res = await axios.get("http://localhost:3000/api/v1/recommend-jobs", {
-            headers: { Authorization: `Bearer ${user.token}` },
-          });
+          const res = await axios.get(
+            "http://localhost:3000/api/v1/recommend-jobs",
+            {
+              headers: { Authorization: `Bearer ${user.token}` },
+            }
+          );
           console.log("First recommended jobs response:", res.data.jobs);
           setRecommendedJobs(res.data.jobs || []);
           setErrorRecommended(null);
@@ -112,9 +150,12 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
       if (user && user.token) {
         try {
           setLoadingRecommended2(true);
-          const res = await axios.get("http://localhost:3000/api/v1/recommended", {
-            headers: { Authorization: `Bearer ${user.token}` },
-          });
+          const res = await axios.get(
+            "http://localhost:3000/api/v1/recommended",
+            {
+              headers: { Authorization: `Bearer ${user.token}` },
+            }
+          );
 
           console.log("Second recommended jobs response:", res.data);
 
@@ -129,7 +170,9 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
           setErrorRecommended2(null);
         } catch (err) {
           console.error("Error fetching recommended jobs (second API):", err);
-          setErrorRecommended2("Could not fetch recommended jobs from second API.");
+          setErrorRecommended2(
+            "Could not fetch recommended jobs from second API."
+          );
           setRecommended2Jobs([]);
         } finally {
           setLoadingRecommended2(false);
@@ -147,9 +190,12 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
     const fetchAppliedJobs = async () => {
       if (user && user.token) {
         try {
-          const res = await axios.get("http://localhost:3000/api/v1/application/my-applications", {
-            headers: { Authorization: `Bearer ${user.token}` },
-          });
+          const res = await axios.get(
+            "http://localhost:3000/api/v1/application/my-applications",
+            {
+              headers: { Authorization: `Bearer ${user.token}` },
+            }
+          );
           setAppliedJobIds(res.data.applications.map((app) => app.jobId));
         } catch (err) {
           setAppliedJobIds([]);
@@ -180,7 +226,9 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
 
   // Set of recommended job IDs for filtering
   const recommendedJobIds = useMemo(() => {
-    const ids = new Set(combinedRecommendedJobs.map((job) => job._id).filter(Boolean));
+    const ids = new Set(
+      combinedRecommendedJobs.map((job) => job._id).filter(Boolean)
+    );
     console.log("Recommended Job IDs Set:", Array.from(ids));
     return ids;
   }, [combinedRecommendedJobs]);
@@ -189,7 +237,6 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
   const filteredJobs = useMemo(() => {
     const filtered = jobs.filter((job) => {
       if (!job._id || recommendedJobIds.has(job._id)) {
-        console.log("Excluding job from main list:", job._id, job.title);
         return false; // exclude recommended jobs or jobs without _id
       }
 
@@ -199,28 +246,49 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
       const diffDays = (now - postedDate) / (1000 * 60 * 60 * 24);
       if (diffDays > 25) return false;
 
-      if (selectedJobType && normalizeString(job.jobType) !== normalizeString(selectedJobType))
+      if (
+        selectedJobType &&
+        normalizeString(job.jobType) !== normalizeString(selectedJobType)
+      )
         return false;
-      if (selectedLocation && normalizeString(job.location) !== normalizeString(selectedLocation))
+      if (
+        selectedLocation &&
+        normalizeString(job.location) !== normalizeString(selectedLocation)
+      )
+        return false;
+      if (
+        selectedJobNiche &&
+        normalizeString(job.jobNiche) !== normalizeString(selectedJobNiche)
+      )
         return false;
 
       if (
         searchQuery &&
         !(
           normalizeString(job.title).includes(normalizeString(searchQuery)) ||
-          normalizeString(job.companyName).includes(normalizeString(searchQuery))
+          normalizeString(job.companyName).includes(
+            normalizeString(searchQuery)
+          )
         )
       )
         return false;
 
       return true;
     });
-    console.log("Filtered jobs count:", filtered.length);
     return filtered;
-  }, [jobs, recommendedJobIds, searchQuery, selectedJobType, selectedLocation]);
+  }, [
+    jobs,
+    recommendedJobIds,
+    searchQuery,
+    selectedJobType,
+    selectedLocation,
+    selectedJobNiche,
+  ]);
 
   // Pagination slices
-  const totalCombinedRecommendedPages = Math.ceil(combinedRecommendedJobs.length / JOBS_PER_PAGE);
+  const totalCombinedRecommendedPages = Math.ceil(
+    combinedRecommendedJobs.length / JOBS_PER_PAGE
+  );
   const paginatedCombinedRecommendedJobs = combinedRecommendedJobs.slice(
     (recommendedPage - 1) * JOBS_PER_PAGE,
     recommendedPage * JOBS_PER_PAGE
@@ -289,7 +357,24 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
                 <div className="flex flex-wrap items-center gap-3 text-gray-600 mb-2">
                   <span className="flex items-center gap-2 font-medium">
                     <div className="w-2 h-2 bg-[#718B68] rounded-full"></div>
-                    {job.companyName}
+                    {job.personalWebsites && job.personalWebsites.url
+                      ? (() => {
+                          let url = job.personalWebsites.url;
+                          if (url && !/^https?:\/\//i.test(url)) {
+                            url = "https://" + url;
+                          }
+                          return (
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#013954] hover:underline hover:text-[#718B68] transition-colors"
+                            >
+                              {job.companyName}
+                            </a>
+                          );
+                        })()
+                      : job.companyName}
                   </span>
                   <span className="flex items-center gap-1">
                     <MapPin className="w-4 h-4" />
@@ -299,6 +384,12 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
                     <Calendar className="w-4 h-4" />
                     {new Date(job.jobPostedOn).toLocaleDateString()}
                   </span>
+                  {/* Job Niche Badge */}
+                  {job.jobNiche && (
+                    <span className="px-2 py-1 bg-[#718B68] bg-opacity-10 text-[#718B68] rounded-full font-semibold text-xs border border-[#718B68]">
+                      {job.jobNiche}
+                    </span>
+                  )}
                 </div>
                 <p className="text-gray-600 mb-2 leading-relaxed text-sm">
                   {job.introduction || "No description available"}
@@ -325,11 +416,9 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
                       Responsibilities
                     </h4>
                     <ul className="list-disc pl-4 text-gray-700 text-xs space-y-1">
-                      {job.responsibilities
-                        .split(/,\s*/)
-                        .map((item, idx) => (
-                          <li key={idx}>{item.trim()}</li>
-                        ))}
+                      {job.responsibilities.split(/,\s*/).map((item, idx) => (
+                        <li key={idx}>{item.trim()}</li>
+                      ))}
                     </ul>
                   </div>
                 )}
@@ -343,11 +432,9 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
                       Qualifications
                     </h4>
                     <ul className="list-disc pl-4 text-gray-700 text-xs space-y-1">
-                      {job.qualifications
-                        .split(/,\s*/)
-                        .map((item, idx) => (
-                          <li key={idx}>{item.trim()}</li>
-                        ))}
+                      {job.qualifications.split(/,\s*/).map((item, idx) => (
+                        <li key={idx}>{item.trim()}</li>
+                      ))}
                     </ul>
                   </div>
                 )}
@@ -358,10 +445,10 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
           <div className="flex flex-col items-end gap-2 justify-between h-full">
             <div className="text-right">
               <div className="flex items-center gap-1 text-lg font-bold text-[#718B68] mb-1">
-                <DollarSign className="w-5 h-5" />
-                {job.salary}
+                <p className="w-5 h-5" />
+                Rs {job.salary}
               </div>
-              <p className="text-xs text-gray-500">per year</p>
+              <p className="text-xs text-gray-500">per month</p>
             </div>
             <div className="flex gap-2">
               <button
@@ -463,7 +550,9 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
       <header className="bg-[#013954] text-white p-6 mt-24">
         <div className="w-full max-w-screen-xl mx-auto px-4 sm:px-10 md:px-16 lg:px-32">
           <h1 className="text-3xl font-bold">Find Your Dream Job</h1>
-          <p className="mt-2">Browse through our extensive list of opportunities</p>
+          <p className="mt-2">
+            Browse through our extensive list of opportunities
+          </p>
         </div>
       </header>
 
@@ -503,10 +592,16 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
               <div className="mb-6">
                 <div
                   className="flex items-center justify-between cursor-pointer mb-2"
-                  onClick={() => setFilterExpanded((f) => ({ ...f, jobType: !f.jobType }))}
+                  onClick={() =>
+                    setFilterExpanded((f) => ({ ...f, jobType: !f.jobType }))
+                  }
                 >
                   <h4 className="font-semibold text-[#013954]">Job Type</h4>
-                  {filterExpanded.jobType ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  {filterExpanded.jobType ? (
+                    <ChevronUp size={16} />
+                  ) : (
+                    <ChevronDown size={16} />
+                  )}
                 </div>
 
                 {filterExpanded.jobType && (
@@ -528,14 +623,68 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
                 )}
               </div>
 
+              {/* Job Niche Filter */}
+              <div className="mb-6">
+                <div
+                  className="flex items-center justify-between cursor-pointer mb-2"
+                  onClick={() =>
+                    setFilterExpanded((f) => ({ ...f, niche: !f.niche }))
+                  }
+                >
+                  <h4 className="font-semibold text-[#013954]">Job Niche</h4>
+                  {filterExpanded.niche ? (
+                    <ChevronUp size={16} />
+                  ) : (
+                    <ChevronDown size={16} />
+                  )}
+                </div>
+                {filterExpanded.niche && (
+                  <div className="space-y-2 pl-1">
+                    {loadingNiches ? (
+                      <div className="text-xs text-gray-400">
+                        Loading niches...
+                      </div>
+                    ) : errorNiches ? (
+                      <div className="text-xs text-red-400">{errorNiches}</div>
+                    ) : jobNiches.length === 0 ? (
+                      <div className="text-xs text-gray-400">
+                        No niches found
+                      </div>
+                    ) : (
+                      jobNiches.map((niche) => (
+                        <label key={niche} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="jobNiche"
+                            value={niche}
+                            checked={selectedJobNiche === niche}
+                            onChange={(e) =>
+                              setSelectedJobNiche(e.target.value)
+                            }
+                            className="mr-2 accent-[#718B68]"
+                          />
+                          <span className="text-gray-700">{niche}</span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Location Filter */}
               <div className="mb-6">
                 <div
                   className="flex items-center justify-between cursor-pointer mb-2"
-                  onClick={() => setFilterExpanded((f) => ({ ...f, location: !f.location }))}
+                  onClick={() =>
+                    setFilterExpanded((f) => ({ ...f, location: !f.location }))
+                  }
                 >
                   <h4 className="font-semibold text-[#013954]">Location</h4>
-                  {filterExpanded.location ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  {filterExpanded.location ? (
+                    <ChevronUp size={16} />
+                  ) : (
+                    <ChevronDown size={16} />
+                  )}
                 </div>
 
                 {filterExpanded.location && (
@@ -586,58 +735,74 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
             {user && (loadingRecommended || loadingRecommended2) && (
               <div className="mb-10 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-[#718B68] border-opacity-50 mx-auto mb-4"></div>
-                <p className="text-lg font-medium text-[#013954]">Loading recommended jobs...</p>
+                <p className="text-lg font-medium text-[#013954]">
+                  Loading recommended jobs...
+                </p>
               </div>
             )}
 
             {/* Error state for recommended jobs */}
-            {user && !loadingRecommended && !loadingRecommended2 && (errorRecommended || errorRecommended2) && (
-              <div className="mb-10 p-4 bg-yellow-100 text-yellow-800 rounded-lg">
-                {errorRecommended && <p>{errorRecommended}</p>}
-                {errorRecommended2 && <p>{errorRecommended2}</p>}
-                {combinedRecommendedJobs.length > 0 ? (
-                  <p>Showing available recommended jobs.</p>
-                ) : (
-                  <p></p>
-                )}
-              </div>
-            )}
+            {user &&
+              !loadingRecommended &&
+              !loadingRecommended2 &&
+              (errorRecommended || errorRecommended2) && (
+                <div className="mb-10 p-4 bg-yellow-100 text-yellow-800 rounded-lg">
+                  {errorRecommended && <p>{errorRecommended}</p>}
+                  {errorRecommended2 && <p>{errorRecommended2}</p>}
+                  {combinedRecommendedJobs.length > 0 ? (
+                    <p>Showing available recommended jobs.</p>
+                  ) : (
+                    <p></p>
+                  )}
+                </div>
+              )}
 
             {/* Combined Recommended Jobs */}
-            {user && !loadingRecommended && !loadingRecommended2 && combinedRecommendedJobs.length > 0 && (
-              <div className="mb-10">
-                <h2 className="text-xl font-bold text-[#013954] mb-4">
-                  Jobs According to Your Interest
-                </h2>
-                <div className="space-y-4">
-                  {paginatedCombinedRecommendedJobs.map((job) => (
-                    <JobCard key={job._id} job={job} />
-                  ))}
-                </div>
-
-                {totalCombinedRecommendedPages > 1 && (
-                  <div className="mt-4 flex justify-center space-x-2">
-                    <button
-                      className="px-3 py-2 border rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                      onClick={() => setRecommendedPage((p) => Math.max(1, p - 1))}
-                      disabled={recommendedPage === 1}
-                    >
-                      Previous
-                    </button>
-                    <span className="px-3 py-2 text-gray-700 font-medium">
-                      {recommendedPage} / {totalCombinedRecommendedPages}
-                    </span>
-                    <button
-                      className="px-3 py-2 border rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                      onClick={() => setRecommendedPage((p) => Math.min(totalCombinedRecommendedPages, p + 1))}
-                      disabled={recommendedPage === totalCombinedRecommendedPages}
-                    >
-                      Next
-                    </button>
+            {user &&
+              !loadingRecommended &&
+              !loadingRecommended2 &&
+              combinedRecommendedJobs.length > 0 && (
+                <div className="mb-10">
+                  <h2 className="text-xl font-bold text-[#013954] mb-4">
+                    Jobs According to Your Interest
+                  </h2>
+                  <div className="space-y-4">
+                    {paginatedCombinedRecommendedJobs.map((job) => (
+                      <JobCard key={job._id} job={job} />
+                    ))}
                   </div>
-                )}
-              </div>
-            )}
+
+                  {totalCombinedRecommendedPages > 1 && (
+                    <div className="mt-4 flex justify-center space-x-2">
+                      <button
+                        className="px-3 py-2 border rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                        onClick={() =>
+                          setRecommendedPage((p) => Math.max(1, p - 1))
+                        }
+                        disabled={recommendedPage === 1}
+                      >
+                        Previous
+                      </button>
+                      <span className="px-3 py-2 text-gray-700 font-medium">
+                        {recommendedPage} / {totalCombinedRecommendedPages}
+                      </span>
+                      <button
+                        className="px-3 py-2 border rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                        onClick={() =>
+                          setRecommendedPage((p) =>
+                            Math.min(totalCombinedRecommendedPages, p + 1)
+                          )
+                        }
+                        disabled={
+                          recommendedPage === totalCombinedRecommendedPages
+                        }
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
             {/* Empty state for recommended jobs */}
             {/* {user && !loadingRecommended && !loadingRecommended2 && combinedRecommendedJobs.length === 0 && (
@@ -675,7 +840,9 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
                     </span>
                     <button
                       className="px-3 py-2 border rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                      onClick={() => setJobsPage((p) => Math.min(totalJobsPages, p + 1))}
+                      onClick={() =>
+                        setJobsPage((p) => Math.min(totalJobsPages, p + 1))
+                      }
                       disabled={jobsPage === totalJobsPages}
                     >
                       Next

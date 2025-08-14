@@ -7,6 +7,7 @@ import LandingJobs from "../components/LandingJobs";
 // import FindJobs from "../pages/FindJobs"
 import CompaniesHiringNow from "../components/CompaniesHiringNow";
 import Jobs from "../pages/Jobs";
+import Chatbot from "../components/chatbot";
 
 const Home = () => {
   const [jobs, setJobs] = useState([]);
@@ -65,6 +66,10 @@ const Home = () => {
       <LandingJobs />
       {/* <FindJobs/> */}
       {/* <Jobs /> */}
+
+
+
+      
     </div>
   );
 };

@@ -26,6 +26,7 @@ import MyJobApplications from "./pages/MyJobApplications";
 import PersonalInformation from "./pages/PersonalInformation";
 import ApplyForm from "./pages/ApplyForm";
 import AdminDashboard from "./pages/Admindashboard/Dashboard";
+import ChatbotBubble from "./components/ChatbotBubble";
 
 export default function App() {
   const { user } = useContext(AuthContext);
@@ -58,6 +59,7 @@ export default function App() {
             </ProtectedRoute>
           }
         /> */}
+        
         <Route
           path="/employer/dashboard/:id"
           element={
@@ -80,6 +82,7 @@ export default function App() {
       </Routes>
 
       <Footer />
+      <ChatbotBubble/>
     </Router>
   );
 }

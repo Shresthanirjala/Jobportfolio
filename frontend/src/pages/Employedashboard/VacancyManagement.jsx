@@ -85,9 +85,9 @@ const VacancyManagement = () => {
           offers: job.offers,
           salary: job.salary,
           hiringMultipleCandidates: job.hiringMultipleCandidates === "Yes",
-          personalWebsite: {
-            title: job.personalWebsite?.title || "",
-            url: job.personalWebsite?.url || "",
+          personalWebsites: {
+            title: job.personalWebsites?.title || "",
+            url: job.personalWebsites?.url || "",
           },
           jobNiche: job.jobNiche,
           jobKeywords: Array.isArray(job.jobKeywords) ? job.jobKeywords : [],
@@ -142,10 +142,8 @@ const VacancyManagement = () => {
       offers: newVacancy.offers,
       salary: newVacancy.salary,
       hiringMultipleCandidates: newVacancy.hiringMultipleCandidates, // boolean as per schema
-      personalWebsites: {
-        title: newVacancy.personalWebsiteTitle || "",
-        url: newVacancy.personalWebsiteUrl || "",
-      },
+      personalWebsiteTitle: newVacancy.personalWebsiteTitle || "",
+      personalWebsiteUrl: newVacancy.personalWebsiteUrl || "",
       jobNiche: newVacancy.jobNiche || "",
       jobKeywords: newVacancy.jobKeywords
         ? newVacancy.jobKeywords
@@ -196,7 +194,6 @@ const VacancyManagement = () => {
             applicants: 0,
           },
         ]);
-          
 
         setIsAddModalOpen(false);
         resetForm();
@@ -453,7 +450,6 @@ const VacancyManagement = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
                         {vacancy.jobNiche}
-                     
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -623,7 +619,7 @@ const VacancyManagement = () => {
                     name="salary"
                     value={newVacancy.salary}
                     onChange={handleInputChange}
-                    placeholder="e.g. $60,000 - $80,000"
+                    placeholder="e.g. Rs60,000 - Rs80,000"
                     className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />

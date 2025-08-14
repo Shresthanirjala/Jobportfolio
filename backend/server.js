@@ -1,5 +1,15 @@
-import express from "express";
+// server.js
+
 import dotenv from "dotenv";
+// THIS MUST BE THE FIRST LINE TO EXECUTE
+dotenv.config();
+
+// --- DEBUGGING LINE ---
+// This will now correctly print your key or 'undefined' if the file is still not found.
+console.log("Gemini API Key Loaded:", process.env.GEMINI_API_KEY);
+// --------------------
+
+import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -13,9 +23,7 @@ import { newsLetterCron } from "./automation/newsLetterCron.js";
 import recommendedJobRoutes from "./routes/recommendedJobRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
 import adminRouter from "./routes/adminRouter.js";
-
-// Load environment variables
-dotenv.config();
+import chatbotRoutes from "./routes/chatbots.js";
 
 // Initialize Express app
 const app = express();
@@ -43,8 +51,9 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/job", jobRouter);
 app.use("/api/v1/application", applicationRouter);
 app.use("/api/v1/recommend-jobs", recommendedJobRoutes);
-app.use("/api/v1/recommended",jobRoutes);
+app.use("/api/v1/recommended", jobRoutes);
 app.use("/api/v1/admin", adminRouter);
+app.use("/api/v1/chatbot", chatbotRoutes);
 
 newsLetterCron();
 // Connect to MongoDB
