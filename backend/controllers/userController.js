@@ -3,7 +3,7 @@ import ErrorHandler from "../middlewares/error.js";
 import { User } from "../models/userSchema.js";
 import { v2 as cloudinary } from "cloudinary";
 import { sendToken } from "../utils/jwtToken.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs"; 
 
 export const register = catchAsyncError(async (req, res, next) => {
   const {
