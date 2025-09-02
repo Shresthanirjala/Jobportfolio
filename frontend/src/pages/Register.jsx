@@ -6,6 +6,7 @@ import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
+import { BASE_URL } from "../config/config";
 
 // Modified schema that conditionally validates fields based on role
 const schema = z
@@ -286,7 +287,7 @@ const Register = () => {
 
       // Make the API request with FormData
       const response = await axios.post(
-        "http://localhost:3000/api/v1/user/register",
+        `${BASE_URL}api/v1/user/register`,
         formData,
         {
           headers: {

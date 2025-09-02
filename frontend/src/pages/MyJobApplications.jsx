@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Modal from "../components/Modal";
 import axios from "axios";
 import { ChevronDown, ChevronUp, Search } from "lucide-react";
+import { BASE_URL } from "../config/config.js";
 
 const MyJobApplications = () => {
   const [jobApplications, setJobApplications] = useState([]);
@@ -16,12 +17,13 @@ const MyJobApplications = () => {
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState("");
 
+
   useEffect(() => {
     const fetchApplications = async () => {
       try {
         const token = localStorage.getItem("authToken");
         const response = await axios.get(
-          "http://localhost:3000/api/v1/application/jobseeker/getall",
+          `${BASE_URL}/api/v1/application/jobseeker/getall`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setJobApplications(response.data.application || []);
@@ -91,7 +93,7 @@ const MyJobApplications = () => {
     try {
       const token = localStorage.getItem("authToken");
       await axios.put(
-        `http://localhost:3000/api/v1/application/jobseeker/update/${selectedApplication._id}`,
+        `${BASE_URL}api/v1/application/jobseeker/update/${selectedApplication._id}`,
         {
           coverLetter: editCoverLetter,
           cv: editCV,

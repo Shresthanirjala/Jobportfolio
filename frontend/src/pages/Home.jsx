@@ -8,6 +8,7 @@ import LandingJobs from "../components/LandingJobs";
 import CompaniesHiringNow from "../components/CompaniesHiringNow";
 import Jobs from "../pages/Jobs";
 import Chatbot from "../components/chatbot";
+import { BASE_URL } from "../config/config";
 
 const Home = () => {
   const [jobs, setJobs] = useState([]);
@@ -18,7 +19,7 @@ const Home = () => {
     const fetchJobs = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/v1/job/getall"
+          `${BASE_URL}api/v1/job/getall`
         );
         setJobs(response.data.jobs);
       } catch (err) {

@@ -11,6 +11,7 @@ import {
   Search,
   ArrowRight,
 } from "lucide-react";
+import { BASE_URL } from "../config/config";
 
 // Theme colors
 // 718B68 - Sage Green
@@ -42,7 +43,7 @@ const JobPortal = () => {
     const fetchJobs = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/v1/job/getall"
+          `${BASE_URL}api/v1/job/getall`
         );
         setJobs(response.data.jobs);
       } catch (err) {

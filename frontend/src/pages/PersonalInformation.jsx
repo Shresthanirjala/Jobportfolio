@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { User, Mail, Phone, MapPin, Edit, Save, X } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
+import { BASE_URL } from "../config/config";
 
 const jobNiches = [
   "Web Development",
@@ -149,7 +150,7 @@ const PersonalInformation = () => {
         },
       };
 
-      const res = await axios.put("http://localhost:3000/api/v1/user/update/profile", formData, config);
+      const res = await axios.put(`${BASE_URL}api/v1/user/update/profile`, formData, config);
 
       setProfileData(res.data.user);
       setEditing(false);
