@@ -7,6 +7,7 @@ import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+import { BASE_URL } from "../config/config.js";
 
 import { Eye, EyeOff, Mail, Lock, User, Briefcase } from "lucide-react";
 
@@ -33,10 +34,8 @@ const Login = () => {
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/v1/user/login",
-        data
-      );
+      const response = await axios.post(`${BASE_URL}api/v1/user/login`, data);
+      console.log(BASE_URL);
 
       const user = response.data.user;
       const id = user._id;
