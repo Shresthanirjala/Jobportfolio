@@ -13,6 +13,7 @@ import {
   FaSave,
 } from "react-icons/fa";
 import { toast } from "react-toastify"; // Import toast for notifications
+import { BASE_URL } from "../../config/config";
 
 const VacancyManagement = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -58,14 +59,11 @@ const VacancyManagement = () => {
         setIsFetching(false);
         return;
       }
-      const response = await axios.get(
-        "http://localhost:3000/api/v1/job/getmyjobs",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get(`${BASE_URL}api/v1/job/getmyjobs`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       console.log("Fetched data:", response.data); // Debug log
 
@@ -155,7 +153,7 @@ const VacancyManagement = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/v1/job/post",
+        `${BASE_URL}api/v1/job/post`,
         formattedData, // send formattedData here
         {
           headers: {
@@ -241,7 +239,7 @@ const VacancyManagement = () => {
         return;
       }
 
-      await axios.delete(`http://localhost:3000/api/v1/job/delete/${id}`, {
+      await axios.delete(`${BASE_URL}api/v1/job/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

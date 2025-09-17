@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import { BASE_URL } from "../config/config";
 
 const ApplyForm = ({ jobId, jobTitle, appliedJobIds = [], onClose }) => {
   const [formData, setFormData] = useState(null);
@@ -10,7 +11,7 @@ const ApplyForm = ({ jobId, jobTitle, appliedJobIds = [], onClose }) => {
       try {
         const token = localStorage.getItem("authToken");
         const response = await axios.get(
-          "http://localhost:3000/api/v1/user/getuser", // change port if needed
+          `${BASE_URL}api/v1/user/getuser`, // change port if needed
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -70,7 +71,7 @@ const ApplyForm = ({ jobId, jobTitle, appliedJobIds = [], onClose }) => {
       }
 
       const response = await axios.post(
-        `http://localhost:3000/api/v1/application/post/${jobId}`,
+        `${BASE_URL}api/v1/application/post/${jobId}`,
         submitData,
         {
           headers: {

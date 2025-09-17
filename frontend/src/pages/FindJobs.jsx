@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState, useContext, useMemo } from "react";
 import ApplyForm from "./ApplyForm";
 import { AuthContext } from "../context/AuthContext";
-import { BASE_URL } from "../config/config.js";
 
 import axios from "axios";
 import {
@@ -19,7 +18,7 @@ import {
   ArrowRight,
   Rss,
 } from "lucide-react";
-
+import { BASE_URL } from "../config/config";
 
 const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
   const [showApplyModal, setShowApplyModal] = useState(false);
@@ -58,9 +57,7 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
       try {
         setLoadingNiches(true);
         // Fetch all jobs and extract unique niches
-        const response = await axios.get(
-          `${BASE_URL}api/v1/job/getall`
-        );
+        const response = await axios.get(`${BASE_URL}api/v1/job/getall`);
         const jobs = response.data.jobs || [];
         const niches = Array.from(
           new Set(jobs.map((job) => job.jobNiche).filter(Boolean))
@@ -104,9 +101,9 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await axios.get(
-          `${BASE_URL}api/v1/job/getall`
-        );
+        const response = await axios.get(`${BASE_URL}api/v1/job/getall`, {
+          headers: { Authorization: `Bearer ${user?.token}` },
+        });
         setJobs(response.data.jobs || []);
       } catch (err) {
         setError(err.message);
@@ -115,7 +112,7 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
       }
     };
     fetchJobs();
-  }, []);
+  }, [user]);
 
   // Fetch recommended first API
   useEffect(() => {
@@ -123,12 +120,9 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
       if (user && user.token) {
         try {
           setLoadingRecommended(true);
-          const res = await axios.get(
-            `${BASE_URL}api/v1/recommend-jobs`,
-            {
-              headers: { Authorization: `Bearer ${user.token}` },
-            }
-          );
+          const res = await axios.get(`${BASE_URL}api/v1/recommend-jobs`, {
+            headers: { Authorization: `Bearer ${user.token}` },
+          });
           console.log("First recommended jobs response:", res.data.jobs);
           setRecommendedJobs(res.data.jobs || []);
           setErrorRecommended(null);
@@ -152,12 +146,9 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
       if (user && user.token) {
         try {
           setLoadingRecommended2(true);
-          const res = await axios.get(
-            `${BASE_URL}api/v1/recommended`,
-            {
-              headers: { Authorization: `Bearer ${user.token}` },
-            }
-          );
+          const res = await axios.get(`${BASE_URL}api/v1/recommended`, {
+            headers: { Authorization: `Bearer ${user.token}` },
+          });
 
           console.log("Second recommended jobs response:", res.data);
 

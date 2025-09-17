@@ -15,6 +15,7 @@ import {
   Filter,
   Heart,
 } from "lucide-react";
+import { BASE_URL } from "../config/config";
 
 const Hero = ({ jobs = [] }) => {
   const { user } = useContext(AuthContext);
@@ -28,7 +29,7 @@ const Hero = ({ jobs = [] }) => {
       if (user && user.token) {
         try {
           const res = await fetch(
-            "http://localhost:3000/api/v1/application/my-applications",
+            `${BASE_URL}api/v1/application/my-applications`,
             {
               headers: { Authorization: `Bearer ${user.token}` },
             }

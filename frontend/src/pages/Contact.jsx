@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import { BASE_URL } from "../config/config";
 
 const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,12 +60,13 @@ const Contact = () => {
     if (validateForm()) {
       setIsSubmitting(true);
       try {
-        await axios.post("http://localhost:3000/api/v1/contact", formData);
+        await axios.post(`${BASE_URL}api/v1/contact`, formData);
         toast.success("Message sent successfully! We'll get back to you soon.");
         setFormData({ name: "", email: "", subject: "", message: "" });
       } catch (error) {
         toast.error(
-          error.response?.data?.message || "Failed to send message. Please try again."
+          error.response?.data?.message ||
+            "Failed to send message. Please try again."
         );
       } finally {
         setIsSubmitting(false);
@@ -110,7 +112,9 @@ const Contact = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-[#023854] mb-2">Our Location</h3>
+            <h3 className="text-lg font-semibold text-[#023854] mb-2">
+              Our Location
+            </h3>
             <p className="text-gray-600">
               123 Employment Avenue
               <br />
@@ -137,7 +141,9 @@ const Contact = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-[#023854] mb-2">Phone Number</h3>
+            <h3 className="text-lg font-semibold text-[#023854] mb-2">
+              Phone Number
+            </h3>
             <p className="text-gray-600 mb-2">(555) 123-4567</p>
             <p className="text-gray-600">Mon-Fri: 9:00 AM - 6:00 PM</p>
           </div>
@@ -159,7 +165,9 @@ const Contact = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-[#023854] mb-2">Email Address</h3>
+            <h3 className="text-lg font-semibold text-[#023854] mb-2">
+              Email Address
+            </h3>
             <p className="text-gray-600 mb-2">contact@CareerLink.com</p>
             <p className="text-gray-600">support@CareerLink.com</p>
           </div>
@@ -197,14 +205,20 @@ const Contact = () => {
 
           {/* Form Section */}
           <div className="p-6 md:p-8">
-            <h2 className="text-2xl font-bold text-[#023854] mb-4">Send us a message</h2>
+            <h2 className="text-2xl font-bold text-[#023854] mb-4">
+              Send us a message
+            </h2>
             <p className="text-gray-600 mb-6">
-              Have questions about CareerLink? Fill out the form below and our team will get back to you.
+              Have questions about CareerLink? Fill out the form below and our
+              team will get back to you.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[#023854] mb-1" htmlFor="name">
+                <label
+                  className="block text-sm font-medium text-[#023854] mb-1"
+                  htmlFor="name"
+                >
                   Full Name
                 </label>
                 <input
@@ -218,11 +232,16 @@ const Contact = () => {
                     errors.name ? "border-red-500" : "border-gray-300"
                   } focus:outline-none focus:ring-2 focus:ring-[#718B68] transition`}
                 />
-                {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#023854] mb-1" htmlFor="email">
+                <label
+                  className="block text-sm font-medium text-[#023854] mb-1"
+                  htmlFor="email"
+                >
                   Email Address
                 </label>
                 <input
@@ -236,11 +255,16 @@ const Contact = () => {
                     errors.email ? "border-red-500" : "border-gray-300"
                   } focus:outline-none focus:ring-2 focus:ring-[#718B68] transition`}
                 />
-                {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#023854] mb-1" htmlFor="subject">
+                <label
+                  className="block text-sm font-medium text-[#023854] mb-1"
+                  htmlFor="subject"
+                >
                   Subject
                 </label>
                 <input
@@ -254,11 +278,16 @@ const Contact = () => {
                     errors.subject ? "border-red-500" : "border-gray-300"
                   } focus:outline-none focus:ring-2 focus:ring-[#718B68] transition`}
                 />
-                {errors.subject && <p className="mt-1 text-sm text-red-600">{errors.subject}</p>}
+                {errors.subject && (
+                  <p className="mt-1 text-sm text-red-600">{errors.subject}</p>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#023854] mb-1" htmlFor="message">
+                <label
+                  className="block text-sm font-medium text-[#023854] mb-1"
+                  htmlFor="message"
+                >
                   Message
                 </label>
                 <textarea
@@ -272,7 +301,9 @@ const Contact = () => {
                     errors.message ? "border-red-500" : "border-gray-300"
                   } focus:outline-none focus:ring-2 focus:ring-[#718B68] transition resize-none`}
                 />
-                {errors.message && <p className="mt-1 text-sm text-red-600">{errors.message}</p>}
+                {errors.message && (
+                  <p className="mt-1 text-sm text-red-600">{errors.message}</p>
+                )}
               </div>
 
               <button
@@ -315,7 +346,9 @@ const Contact = () => {
 
       {/* FAQ Section */}
       <div className="max-w-screen-xl mx-auto px-4 sm:px-10 md:px-16 lg:px-32 py-12">
-        <h2 className="text-2xl font-bold text-[#023854] text-center mb-8">Frequently Asked Questions</h2>
+        <h2 className="text-2xl font-bold text-[#023854] text-center mb-8">
+          Frequently Asked Questions
+        </h2>
         <FaqAccordion />
       </div>
 
@@ -335,13 +368,21 @@ const Contact = () => {
               </a>
             ))}
           </div>
-          <p className="text-gray-200">© 2025 CareerLink. All rights reserved.</p>
+          <p className="text-gray-200">
+            © 2025 CareerLink. All rights reserved.
+          </p>
           <div className="flex justify-center mt-4 space-x-4 text-sm">
-            <a href="#" className="hover:text-[#718B68] transition">Privacy Policy</a>
+            <a href="#" className="hover:text-[#718B68] transition">
+              Privacy Policy
+            </a>
             <span>|</span>
-            <a href="#" className="hover:text-[#718B68] transition">Terms of Service</a>
+            <a href="#" className="hover:text-[#718B68] transition">
+              Terms of Service
+            </a>
             <span>|</span>
-            <a href="#" className="hover:text-[#718B68] transition">Sitemap</a>
+            <a href="#" className="hover:text-[#718B68] transition">
+              Sitemap
+            </a>
           </div>
         </div>
       </div>
@@ -401,14 +442,19 @@ const FaqAccordion = () => {
   return (
     <div className="space-y-4">
       {faqItems.map((item, index) => (
-        <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div
+          key={index}
+          className="bg-white rounded-lg shadow-md overflow-hidden"
+        >
           <button
             className={`w-full p-4 text-left flex justify-between items-center ${
               activeIndex === index ? "bg-[#f0f5f9]" : ""
             }`}
             onClick={() => toggleAccordion(index)}
           >
-            <h3 className="text-lg font-semibold text-[#023854]">{item.question}</h3>
+            <h3 className="text-lg font-semibold text-[#023854]">
+              {item.question}
+            </h3>
             <svg
               className={`w-5 h-5 text-[#718B68] transition-transform ${
                 activeIndex === index ? "rotate-180" : ""
@@ -428,7 +474,9 @@ const FaqAccordion = () => {
           </button>
           <div
             className={`overflow-hidden transition-all duration-300 ${
-              activeIndex === index ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+              activeIndex === index
+                ? "max-h-96 opacity-100"
+                : "max-h-0 opacity-0"
             }`}
           >
             <p className="p-4 pt-0 text-gray-600">{item.answer}</p>

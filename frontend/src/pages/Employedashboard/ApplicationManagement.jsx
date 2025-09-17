@@ -20,6 +20,7 @@ import {
   FaCheckCircle,
   FaTimesCircle,
 } from "react-icons/fa";
+import { BASE_URL } from "../../config/config";
 
 const ApplicationManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,7 +35,7 @@ const ApplicationManagement = () => {
       try {
         const token = localStorage.getItem("authToken");
         const response = await axios.get(
-          "http://localhost:3000/api/v1/application/employer/getall",
+          `${BASE_URL}api/v1/application/employer/getall`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -54,7 +55,7 @@ const ApplicationManagement = () => {
     try {
       const token = localStorage.getItem("authToken");
       const response = await axios.post(
-        `http://localhost:3000/api/v1/application/status/${id}`,
+        `${BASE_URL}api/v1/application/status/${id}`,
         { status: "approved" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -85,7 +86,7 @@ const ApplicationManagement = () => {
     try {
       const token = localStorage.getItem("authToken");
       const response = await axios.post(
-        `http://localhost:3000/api/v1/application/status/${id}`,
+        `${BASE_URL}api/v1/application/status/${id}`,
         { status: "rejected" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -147,7 +148,7 @@ const ApplicationManagement = () => {
     try {
       const token = localStorage.getItem("authToken");
       const response = await axios.delete(
-        `http://localhost:3000/api/v1/application/${id}`,
+        `${BASE_URL}api/v1/application/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (response.data.success) {

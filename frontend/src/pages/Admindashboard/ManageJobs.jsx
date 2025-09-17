@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import AdminNavbar from "./AdminNavbar";
+import { BASE_URL } from "../../config/config";
 
 const ManageJobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,7 +42,7 @@ const ManageJobs = () => {
         const token = localStorage.getItem("authToken");
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-        const res = await axios.get("http://localhost:3000/api/v1/admin/jobs", {
+        const res = await axios.get(`${BASE_URL}api/v1/admin/jobs`, {
           headers,
         });
 
@@ -132,7 +133,7 @@ const ManageJobs = () => {
 
     try {
       setDeletingJobId(jobId);
-      await axios.delete(`http://localhost:3000/api/v1/admin/job/${jobId}`, {
+      await axios.delete(`${BASE_URL}api/v1/admin/job/${jobId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

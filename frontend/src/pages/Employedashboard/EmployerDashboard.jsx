@@ -20,6 +20,7 @@ import VacancyManagement from "./VacancyManagement";
 import ApplicationManagement from "./ApplicationManagement";
 import EmployerNavbar from "./EmployerNavbar";
 import axios from "axios";
+import { BASE_URL } from "../../config/config";
 
 // Loading component
 const LoadingState = ({ fullScreen }) => {
@@ -81,13 +82,13 @@ const EmployerDashboard = () => {
         const token = localStorage.getItem("authToken");
         // Fetch employer jobs (vacancies)
         const jobsRes = await axios.get(
-          "http://localhost:3000/api/v1/job/getmyjobs",
+         `${BASE_URL}api/v1/job/getmyjobs`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const jobs = jobsRes.data.jobs || [];
         // Fetch employer applications
         const appsRes = await axios.get(
-          "http://localhost:3000/api/v1/application/employer/getall",
+         `${BASE_URL}api/v1/application/employer/getall`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const applications = appsRes.data.application || [];

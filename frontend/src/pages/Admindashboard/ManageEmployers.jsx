@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import AdminNavbar from "./AdminNavbar";
+import { BASE_URL } from "../../config/config";
 
 const ManageEmployers = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,12 +28,9 @@ const ManageEmployers = () => {
       setError(null);
       try {
         const token = localStorage.getItem("authToken"); // If you use auth token
-        const res = await axios.get(
-          "http://localhost:3000/api/v1/admin/employers",
-          {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          }
-        );
+        const res = await axios.get(`${BASE_URL}api/v1/admin/employers`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
         // Adjust to your API response data structure
         setEmployers(res.data?.employers || []);
       } catch (err) {
@@ -83,13 +81,12 @@ const ManageEmployers = () => {
     }
     try {
       const token = localStorage.getItem("authToken");
-      await axios.delete(
-        `http://localhost:3000/api/v1/admin/user/${employerId}`,
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
+      await axios.delete(`${BASE_URL}api/v1/admin/user/${employerId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      setEmployers((prev) =>
+        prev.filter((employer) => employer._id !== employerId)
       );
-      setEmployers((prev) => prev.filter((employer) => employer._id !== employerId));
     } catch (err) {
       alert("Failed to delete employer. Please try again.");
       console.error("Error deleting employer:", err);
@@ -103,20 +100,21 @@ const ManageEmployers = () => {
       employer.companyName?.toLowerCase().includes(lowerSearch) ||
       employer.contactPerson?.toLowerCase().includes(lowerSearch) ||
       employer.email?.toLowerCase().includes(lowerSearch);
-    const matchesFilter = filterStatus === "all" || employer.status === filterStatus;
+    const matchesFilter =
+      filterStatus === "all" || employer.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
 
   if (loading) {
     return (
-      <div className="text-center text-gray-500 py-20">Loading employers...</div>
+      <div className="text-center text-gray-500 py-20">
+        Loading employers...
+      </div>
     );
   }
 
   if (error) {
-    return (
-      <div className="text-center text-red-500 py-20">{error}</div>
-    );
+    return <div className="text-center text-red-500 py-20">{error}</div>;
   }
 
   return (
@@ -140,8 +138,12 @@ const ManageEmployers = () => {
               <Building className="w-5 h-5 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Employers</p>
-              <p className="text-2xl font-bold text-gray-900">{employers.length}</p>
+              <p className="text-sm font-medium text-gray-600">
+                Total Employers
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {employers.length}
+              </p>
             </div>
           </div>
         </div>
@@ -152,7 +154,9 @@ const ManageEmployers = () => {
               <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Active Employers</p>
+              <p className="text-sm font-medium text-gray-600">
+                Active Employers
+              </p>
               <p className="text-2xl font-bold text-gray-900">
                 {employers.filter((e) => e.status === "active").length}
               </p>
@@ -166,7 +170,9 @@ const ManageEmployers = () => {
               <Clock className="w-5 h-5 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Pending Approval</p>
+              <p className="text-sm font-medium text-gray-600">
+                Pending Approval
+              </p>
               <p className="text-2xl font-bold text-gray-900">
                 {employers.filter((e) => e.status === "pending").length}
               </p>
@@ -182,7 +188,10 @@ const ManageEmployers = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Jobs</p>
               <p className="text-2xl font-bold text-gray-900">
-                {employers.reduce((sum, employer) => sum + (employer.activeJobs || 0), 0)}
+                {employers.reduce(
+                  (sum, employer) => sum + (employer.activeJobs || 0),
+                  0
+                )}
               </p>
             </div>
           </div>
@@ -226,7 +235,9 @@ const ManageEmployers = () => {
       {/* Employers Table */}
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-6 border-b">
-          <h3 className="text-lg font-semibold text-gray-900">Employers List</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Employers List
+          </h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -268,20 +279,32 @@ const ManageEmployers = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{employer.contactPerson}</div>
-                    <div className="text-sm text-gray-500">{employer.email}</div>
-                    <div className="text-sm text-gray-500">{employer.phone}</div>
+                    <div className="text-sm text-gray-900">
+                      {employer.contactPerson}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {employer.email}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {employer.phone}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center text-sm text-gray-900">
                       <MapPin className="w-3 h-3 mr-1" />
                       {employer.location}
                     </div>
-                    <div className="text-sm text-gray-500">{employer.address}</div>
+                    <div className="text-sm text-gray-500">
+                      {employer.address}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{employer.activeJobs} active jobs</div>
-                    <div className="text-sm text-gray-500">{employer.totalApplications} applications</div>
+                    <div className="text-sm text-gray-900">
+                      {employer.activeJobs} active jobs
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {employer.totalApplications} applications
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
@@ -301,7 +324,9 @@ const ManageEmployers = () => {
           {filteredEmployers.length === 0 && (
             <div className="text-center py-12">
               <Building className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No employers found matching your criteria.</p>
+              <p className="text-gray-500">
+                No employers found matching your criteria.
+              </p>
             </div>
           )}
         </div>

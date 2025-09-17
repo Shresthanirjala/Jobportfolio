@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { BASE_URL } from "../config/config";
 
 export default function Chatbot() {
   const [messages, setMessages] = useState([]);
@@ -13,7 +14,7 @@ export default function Chatbot() {
 
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/v1/chatbot/chat", 
+        `${BASE_URL}api/v1/chatbot/chat`, 
         { message: input }
       );
 

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import AdminNavbar from "./AdminNavbar";
+import { BASE_URL } from "../../config/config";
 
 const ManageUsers = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,7 +25,7 @@ const ManageUsers = () => {
       setError(null);
       try {
         const token = localStorage.getItem("authToken");
-        const res = await axios.get("http://localhost:3000/api/v1/admin/seekers", {
+        const res = await axios.get(`${BASE_URL}api/v1/admin/seekers`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         setUsers(res.data?.seekers || []);
@@ -45,7 +46,7 @@ const ManageUsers = () => {
     }
     try {
       const token = localStorage.getItem("authToken");
-      await axios.delete(`http://localhost:3000/api/v1/admin/user/${userId}`, {
+      await axios.delete(`${BASE_URL}api/v1/admin/user/${userId}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       // Remove user from state after successful deletion
@@ -88,7 +89,8 @@ const ManageUsers = () => {
     const matchesSearch =
       user.name?.toLowerCase().includes(lowerSearch) ||
       user.email?.toLowerCase().includes(lowerSearch);
-    const matchesFilter = filterStatus === "all" || user.status === filterStatus;
+    const matchesFilter =
+      filterStatus === "all" || user.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
 
@@ -109,7 +111,9 @@ const ManageUsers = () => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Manage Users</h2>
-          <p className="text-gray-600">Manage and monitor all registered users</p>
+          <p className="text-gray-600">
+            Manage and monitor all registered users
+          </p>
         </div>
       </div>
 
@@ -274,7 +278,9 @@ const ManageUsers = () => {
           {filteredUsers.length === 0 && (
             <div className="text-center py-12">
               <UserIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No users found matching your criteria.</p>
+              <p className="text-gray-500">
+                No users found matching your criteria.
+              </p>
             </div>
           )}
         </div>

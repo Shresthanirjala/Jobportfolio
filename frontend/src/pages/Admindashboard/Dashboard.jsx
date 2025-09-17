@@ -24,6 +24,7 @@ import ManageEmployers from "./ManageEmployers";
 import ManageJobs from "./ManageJobs";
 import ManageApplication from "./ManageApplication";
 import AdminNavbar from "./AdminNavbar";
+import { BASE_URL } from "../../config/config";
 
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -71,7 +72,7 @@ const AdminDashboard = () => {
     const fetchRecentUsers = async () => {
       try {
         const token = localStorage.getItem("authToken");
-        const res = await axios.get("http://localhost:3000/api/v1/admin/seekers", {
+        const res = await axios.get(`${BASE_URL}api/v1/admin/seekers`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.data.success && Array.isArray(res.data.seekers)) {
@@ -90,7 +91,7 @@ const AdminDashboard = () => {
     const fetchRecentJobs = async () => {
       try {
         const token = localStorage.getItem("authToken");
-        const res = await axios.get("http://localhost:3000/api/v1/admin/jobs", {
+        const res = await axios.get(`${BASE_URL}api/v1/admin/jobs`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.data.success && Array.isArray(res.data.jobs)) {
@@ -170,7 +171,9 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow-sm border">
           <div className="p-6 border-b flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Users</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Recent Users
+            </h3>
             <button
               onClick={() => setActiveTab("users")}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center space-x-1"
@@ -183,7 +186,9 @@ const AdminDashboard = () => {
             {loadingUsers ? (
               <p className="text-center text-gray-500">Loading users...</p>
             ) : recentUsers.length === 0 ? (
-              <p className="text-center text-gray-500">No recent users found.</p>
+              <p className="text-center text-gray-500">
+                No recent users found.
+              </p>
             ) : (
               <div className="space-y-4">
                 {recentUsers.slice(0, 4).map((user) => (
@@ -198,13 +203,19 @@ const AdminDashboard = () => {
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{user.name || "Unnamed User"}</p>
-                        <p className="text-xs text-gray-500">{user.email || "No email"}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {user.name || "Unnamed User"}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {user.email || "No email"}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       {getStatusIcon(user.status)}
-                      <span className="text-xs text-gray-500">{user.joinDate || ""}</span>
+                      <span className="text-xs text-gray-500">
+                        {user.joinDate || ""}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -216,7 +227,9 @@ const AdminDashboard = () => {
         {/* Recent Jobs */}
         <div className="bg-white rounded-lg shadow-sm border">
           <div className="p-6 border-b flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Job Postings</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Recent Job Postings
+            </h3>
             <button
               onClick={() => setActiveTab("jobs")}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center space-x-1"
@@ -238,12 +251,18 @@ const AdminDashboard = () => {
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                   >
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{job.title || "Untitled Job"}</p>
-                      <p className="text-xs text-gray-500">{job.companyName || job.company || "Unknown Company"}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {job.title || "Untitled Job"}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {job.companyName || job.company || "Unknown Company"}
+                      </p>
                     </div>
                     <div className="flex items-center space-x-2">
                       {getStatusIcon(job.status)}
-                      <span className="text-xs text-gray-500">{job.postedDate || job.date || ""}</span>
+                      <span className="text-xs text-gray-500">
+                        {job.postedDate || job.date || ""}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -273,7 +292,9 @@ const AdminDashboard = () => {
               className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-left"
             >
               <Building className="w-6 h-6 text-blue-600 mb-2" />
-              <p className="text-sm font-medium text-gray-900">Manage Employers</p>
+              <p className="text-sm font-medium text-gray-900">
+                Manage Employers
+              </p>
               <p className="text-xs text-gray-500">View and manage employers</p>
             </button>
             <button
@@ -282,14 +303,18 @@ const AdminDashboard = () => {
             >
               <Briefcase className="w-6 h-6 text-blue-600 mb-2" />
               <p className="text-sm font-medium text-gray-900">Manage Jobs</p>
-              <p className="text-xs text-gray-500">View and manage job postings</p>
+              <p className="text-xs text-gray-500">
+                View and manage job postings
+              </p>
             </button>
             <button
               onClick={() => setActiveTab("applications")}
               className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-left"
             >
               <FileText className="w-6 h-6 text-blue-600 mb-2" />
-              <p className="text-sm font-medium text-gray-900">View Applications</p>
+              <p className="text-sm font-medium text-gray-900">
+                View Applications
+              </p>
               <p className="text-xs text-gray-500">Review job applications</p>
             </button>
           </div>
