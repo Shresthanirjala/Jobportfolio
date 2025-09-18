@@ -31,7 +31,7 @@ const port = 3000;
 
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL],
+    origin: "*",
     methods: ["POST", "PUT", "GET", "DELETE"],
     credentials: true,
   })
