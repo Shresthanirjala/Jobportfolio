@@ -67,7 +67,7 @@ mongoose
   });
 
 app.get("/", (req, res) => {
-  res.send("hello Nirjala");
+  res.send("hello Nirjala....");
 });
 
 app.use(errorMiddleware);

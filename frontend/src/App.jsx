@@ -59,7 +59,7 @@ export default function App() {
             </ProtectedRoute>
           }
         /> */}
-        
+
         <Route
           path="/employer/dashboard/:id"
           element={
@@ -68,21 +68,21 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-         <Route
-  path="/admin/dashboard"
-  element={
-    <ProtectedRoute allowedRoles={['admin']}>
-      <AdminDashboard />
-    </ProtectedRoute>
-  }
-/>
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />
       </Routes>
 
       <Footer />
-      <ChatbotBubble/>
+      <ChatbotBubble />
     </Router>
   );
 }
