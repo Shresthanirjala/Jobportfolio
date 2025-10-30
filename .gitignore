@@ -1,0 +1,20 @@
+# Node modules
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Environment files
+.env
+*.env
+.env.local
+
+# Build outputs
+dist/
+build/
+
+# Vite cache
+.vite/
+
+# OS files
+.DS_Store
+Thumbs.db
