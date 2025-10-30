@@ -3,6 +3,7 @@ import Modal from "../components/Modal";
 import axios from "axios";
 import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import { BASE_URL } from "../config/config.js";
+import { useSelector } from "react-redux"; // Import Redux useSelector hook
 
 const MyJobApplications = () => {
   const [jobApplications, setJobApplications] = useState([]);
@@ -17,24 +18,37 @@ const MyJobApplications = () => {
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState("");
 
+  // Use useSelector to get user and isAuthenticated state from the Redux store
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
 
-  useEffect(() => {
-    const fetchApplications = async () => {
+  // Function to fetch applications (made it an inner function for useEffect scope)
+  const fetchApplications = async () => {
+    // Only fetch if authenticated and user object with token exists
+    if (isAuthenticated && user && user.token) {
       try {
-        const token = localStorage.getItem("authToken");
+        setLoading(true);
+        // Use token from Redux user object
+        const token = user.token;
         const response = await axios.get(
           `${BASE_URL}/api/v1/application/jobseeker/getall`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setJobApplications(response.data.application || []);
       } catch (err) {
+        console.error("Failed to fetch job applications:", err);
         setJobApplications([]);
       } finally {
         setLoading(false);
       }
-    };
+    } else {
+      setJobApplications([]); // Clear applications if not authenticated
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchApplications();
-  }, []);
+  }, [isAuthenticated, user]); // Re-fetch when isAuthenticated or user changes
 
   const toggleDetails = (id) => {
     setExpandedDetails({
@@ -87,28 +101,46 @@ const MyJobApplications = () => {
 
   // Handle edit and save
   const handleSaveEdit = async () => {
-    if (!selectedApplication) return;
+    // Ensure user is authenticated and we have a token
+    if (!selectedApplication || !isAuthenticated || !user || !user.token) {
+      setEditError("Authentication required to save changes.");
+      return;
+    }
     setEditLoading(true);
     setEditError("");
     try {
-      const token = localStorage.getItem("authToken");
+      // Use token from Redux user object
+      const token = user.token;
       await axios.put(
         `${BASE_URL}api/v1/application/jobseeker/update/${selectedApplication._id}`,
         {
           coverLetter: editCoverLetter,
-          cv: editCV,
+          cv: editCV, // Note: This assumes cv is a URL string. If it's a file upload, you'll need FormData.
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setModalOpen(false);
-      // Optionally, refresh applications
-      window.location.reload();
+      // Refresh applications after successful update
+      fetchApplications(); // Call the fetch function again to update the list
     } catch (err) {
-      setEditError("Failed to update application. Try again.");
+      console.error("Failed to update application:", err);
+      setEditError(
+        err.response?.data?.message ||
+          "Failed to update application. Try again."
+      );
     } finally {
       setEditLoading(false);
     }
   };
+
+  // Render message if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-6xl mx-auto p-4 bg-gray-50 text-center text-red-600 mt-8">
+        Please log in to view your job applications.
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-4 bg-gray-50">
@@ -120,9 +152,7 @@ const MyJobApplications = () => {
           Job Applications
         </h2>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
-          {/* ...existing filter/search UI... */}
           <div className="flex gap-2">
-            {/* ...existing filter buttons... */}
             <button
               onClick={() => setJobFilter("all")}
               className={`px-3 py-1 rounded-full text-sm ${
@@ -226,18 +256,18 @@ const MyJobApplications = () => {
                     </div>
                     <div className="mb-3">
                       <p className="text-sm text-gray-500">Cover Letter</p>
-                      <p className="text-gray-700">
+                      <p className="text-gray-700 whitespace-pre-line">
                         {job.jobSeekerInfo?.coverLetter || "-"}
                       </p>
                     </div>
-                    {/* <div className="flex justify-end">
+                    <div className="flex justify-end">
                       <button
                         className="text-blue-600 hover:text-blue-800 text-sm"
                         onClick={() => handleViewApplication(job)}
                       >
                         View Full Application
                       </button>
-                    </div> */}
+                    </div>
                   </div>
                 )}
               </div>
@@ -300,6 +330,7 @@ const MyJobApplications = () => {
                       // Upload to Cloudinary
                       const formData = new FormData();
                       formData.append("file", file);
+                      // IMPORTANT: Replace with your actual Cloudinary upload preset and cloud name
                       formData.append(
                         "upload_preset",
                         "YOUR_CLOUDINARY_PRESET"
@@ -315,8 +346,12 @@ const MyJobApplications = () => {
                         const data = await res.json();
                         if (data.secure_url) {
                           setEditCV(data.secure_url);
+                          alert("Resume uploaded successfully!");
+                        } else {
+                          alert("Failed to upload resume. Cloudinary error.");
                         }
                       } catch (err) {
+                        console.error("Cloudinary upload error:", err);
                         alert("Failed to upload resume. Try again.");
                       }
                     }}

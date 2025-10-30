@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Menu,
@@ -12,32 +12,41 @@ import {
   Building2,
   Shield,
 } from "lucide-react";
-import { AuthContext } from "../context/AuthContext";
+// Remove AuthContext related imports
+// import { AuthContext } from "../context/AuthContext";
+import { useDispatch, useSelector } from "react-redux"; // Import Redux hooks
+import { userLogout } from "../redux/actions/authActions"; // Import Redux logout action creator
 import { Link } from "react-router-dom"; // Use react-router-dom Link
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { users, logout } = useContext(AuthContext);
+  const dispatch = useDispatch(); // Initialize useDispatch hook
+
+  // Use useSelector to get state from the Redux store
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
+
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [user, setUser] = useState(null);
+  // const [user, setUser] = useState(null); // REMOVE this local user state, use Redux 'user'
   const [isScrolled, setIsScrolled] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    // REMOVE this: localStorage check should be done once on app load (in App.jsx checkAuthStatus)
+    // const storedUser = localStorage.getItem("user");
+    // if (storedUser) {
+    //   setUser(JSON.parse(storedUser));
+    // }
 
-    const handleUserLogin = () => {
-      const updatedUser = localStorage.getItem("user");
-      if (updatedUser) {
-        setUser(JSON.parse(updatedUser));
-      }
-    };
+    // REMOVE this: Redux handles user login state, no need for custom event listener
+    // const handleUserLogin = () => {
+    //   const updatedUser = localStorage.getItem("user");
+    //   if (updatedUser) {
+    //     setUser(JSON.parse(updatedUser));
+    //   }
+    // };
 
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -51,22 +60,23 @@ const Navbar = () => {
 
     document.addEventListener("mousedown", handleClickOutside);
     window.addEventListener("scroll", handleScroll);
-    window.addEventListener("user-login", handleUserLogin);
+    // REMOVE this: Redux handles user login state
+    // window.addEventListener("user-login", handleUserLogin);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("user-login", handleUserLogin);
+      // REMOVE this: Redux handles user login state
+      // window.removeEventListener("user-login", handleUserLogin);
     };
-  }, []);
+  }, []); // Empty dependency array as Redux user state is accessed via useSelector directly
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("authToken");
-    setUser(null);
+    // Dispatch the Redux logout action
+    dispatch(userLogout(navigate)); // Pass navigate to action creator for redirection
     setIsDropdownOpen(false);
     setIsOpen(false);
-    navigate("/");
+    // navigate("/"); // Redirection is handled inside userLogout action
   };
 
   const handleSearch = () => {
@@ -125,7 +135,7 @@ const Navbar = () => {
 
         {/* Desktop Auth Section */}
         <div className="hidden md:flex items-center space-x-4 ml-auto">
-          {user ? (
+          {isAuthenticated ? ( // Use isAuthenticated from Redux
             <>
               <button
                 onClick={() => setShowSearchBar((prev) => !prev)}
@@ -177,10 +187,11 @@ const Navbar = () => {
                   className="flex items-center space-x-2 text-[#023854] px-3 py-2 rounded-md hover:bg-gray-100"
                 >
                   <div className="h-8 w-8 bg-[#023854] rounded-full text-white flex items-center justify-center">
-                    {user.name?.charAt(0).toUpperCase() || "U"}
+                    {user?.name?.charAt(0).toUpperCase() || "U"}{" "}
+                    {/* Use optional chaining */}
                   </div>
                   <span className="font-medium max-w-[100px] truncate">
-                    {user.name}
+                    {user?.name} {/* Use optional chaining */}
                   </span>
                   <ChevronDown className="h-4 w-4" />
                 </button>
@@ -189,13 +200,13 @@ const Navbar = () => {
                   <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 shadow-lg rounded-md">
                     <div className="px-4 py-3 border-b bg-[#f0f5f9]">
                       <p className="text-sm font-medium text-[#023854]">
-                        {user.name}
+                        {user?.name}
                       </p>
                       <p className="text-xs text-gray-500 truncate">
-                        {user.email}
+                        {user?.email}
                       </p>
                       <div className="mt-1 px-2 py-1 bg-[#023854] text-white text-xs rounded-full inline-block">
-                        {user.role || "Job Seeker"}
+                        {user?.role || "Job Seeker"}
                       </div>
                     </div>
                     <Link
@@ -276,21 +287,21 @@ const Navbar = () => {
             Contact
           </Link>
 
-          {user ? (
+          {isAuthenticated ? ( // Use isAuthenticated from Redux
             <>
               <div className="flex items-center space-x-2 py-3 border-b">
                 <div className="h-8 w-8 bg-[#023854] rounded-full text-white flex items-center justify-center">
-                  {user.name?.charAt(0).toUpperCase() || "U"}
+                  {user?.name?.charAt(0).toUpperCase() || "U"}
                 </div>
                 <div>
-                  <div className="font-medium text-[#023854]">{user.name}</div>
+                  <div className="font-medium text-[#023854]">{user?.name}</div>
                   <div className="text-xs px-2 py-1 bg-[#023854] text-white rounded-full inline-block mt-1">
-                    {user.role || "Job Seeker"}
+                    {user?.role || "Job Seeker"}
                   </div>
                 </div>
               </div>
               <Link
-                to="/user"
+                to="/myprofile" // Corrected link to /myprofile
                 onClick={() => setIsOpen(false)}
                 className="py-3 border-b flex items-center space-x-2 text-[#023854]"
               >
@@ -298,7 +309,7 @@ const Navbar = () => {
                 <span>My Profile</span>
               </Link>
               <Link
-                to="/user/applications"
+                to="/my-applications" // Assuming this is the correct route for applications
                 onClick={() => setIsOpen(false)}
                 className="py-3 border-b flex items-center space-x-2 text-[#023854]"
               >
@@ -306,10 +317,7 @@ const Navbar = () => {
                 <span>My Applications</span>
               </Link>
               <button
-                onClick={() => {
-                  handleLogout();
-                  setIsOpen(false);
-                }}
+                onClick={handleLogout} // Calls the new Redux-integrated logout
                 className="py-3 text-red-600 flex items-center space-x-2"
               >
                 <LogOut className="h-4 w-4" />
@@ -322,8 +330,11 @@ const Navbar = () => {
                 Sign in as:
               </div>
 
+              {/* Note: Your login page currently handles role selection.
+                  These links would likely point to a general login page or a specific handler if roles were to be pre-selected.
+                  For now, redirecting to the main /login page. */}
               <Link
-                to="/login/jobseeker"
+                to="/login" // Redirect to the main login page
                 onClick={() => setIsOpen(false)}
                 className="border border-[#718B68] py-3 px-4 rounded-md mb-2 flex items-center space-x-3"
               >
@@ -337,7 +348,7 @@ const Navbar = () => {
               </Link>
 
               <Link
-                to="/login/employer"
+                to="/login" // Redirect to the main login page
                 onClick={() => setIsOpen(false)}
                 className="border border-[#023854] py-3 px-4 rounded-md mb-2 flex items-center space-x-3"
               >
@@ -351,7 +362,7 @@ const Navbar = () => {
               </Link>
 
               <Link
-                to="/login/admin"
+                to="/login" // Redirect to the main login page
                 onClick={() => setIsOpen(false)}
                 className="border border-gray-400 py-3 px-4 rounded-md mb-2 flex items-center space-x-3"
               >

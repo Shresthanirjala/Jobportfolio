@@ -1,16 +1,19 @@
-import React, { useContext, useState } from "react";
-import { AuthContext } from "../context/AuthContext";
+import React, { useState, useEffect } from "react";
+
+import { useDispatch, useSelector } from "react-redux"; // Import Redux hooks
+import { loginUser } from "../redux/actions/authActions"; // Import Redux login action creator
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast, ToastContainer } from "react-toastify";
-import axios from "axios";
+
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
-import { BASE_URL } from "../config/config.js";
 
-import { Eye, EyeOff, Mail, Lock, User, Briefcase } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Briefcase } from "lucide-react"; // Removed 'User' as it's not used in this component
 
+// Zod schema for form validation
 const schema = z.object({
   email: z.string().email("Invalid email").min(1, "Email is required"),
   role: z.enum(["Employer", "Job Seeker", "Admin"], {
@@ -20,63 +23,53 @@ const schema = z.object({
 });
 
 const Login = () => {
-  const { login } = useContext(AuthContext);
+  const dispatch = useDispatch(); // Initialize useDispatch hook to dispatch actions
+  const navigate = useNavigate(); // Initialize useNavigate hook for navigation
+
+  const { loading, isAuthenticated, user } = useSelector((state) => state.auth);
+
+  // React Hook Form setup with Zod resolver
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({ resolver: zodResolver(schema) });
 
-  const [isLoading, setIsLoading] = useState(false);
+  // Local state for password visibility (not managed by Redux)
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
 
-  const onSubmit = async (data) => {
-    setIsLoading(true);
-    try {
-      const response = await axios.post(`${BASE_URL}api/v1/user/login`, data);
-      console.log(BASE_URL);
+  // useEffect to handle redirection if already authenticated or after successful login
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (window.location.pathname === "/login") {
+        const userId = user._id; // Assuming user object has _id for Employer dashboard
 
-      const user = response.data.user;
-      const id = user._id;
-      // Store token in user object if not present
-      if (response.data.token && !user.token) {
-        user.token = response.data.token;
-      }
-      login(user); // update AuthContext and store token
-      // Optionally, also store token separately for legacy code
-      if (user.token) {
-        localStorage.setItem("authToken", user.token);
-      }
-      localStorage.setItem("user", JSON.stringify(user));
-
-      toast.success("Login Successful!");
-      window.dispatchEvent(new Event("user-login"));
-
-      setTimeout(() => {
-        if (user.role === "Job seeker") {
+        if (user.role === "Job Seeker") {
           navigate("/");
         } else if (user.role === "Employer") {
-          navigate(`/employer/dashboard/${id}`);
+          navigate(`/employer/dashboard/${userId}`);
         } else if (user.role === "Admin") {
           navigate("/admin/dashboard");
         } else {
-          navigate("/");
+          navigate("/"); // Fallback for unknown roles
         }
-      }, 2000);
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Login failed. Please try again."
-      );
-    } finally {
-      setIsLoading(false);
+      }
     }
+  }, [isAuthenticated, user, navigate]); // Dependencies for useEffect
+
+  // Function to handle form submission
+  const onSubmit = (data) => {
+    // Dispatch the loginUser async action.
+    // The action creator handles the API call, setting loading states,
+    // dispatching success/failure, storing to localStorage, and showing toasts.
+    // It also takes 'navigate' as an argument to handle redirection within the action.
+    dispatch(loginUser(data, navigate));
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center p-4 md:p-6 lg:p-8">
       <div className="bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-5xl flex flex-col lg:flex-row">
-        {/* Left Side - Branding */}
+        {/* Left Side - Branding (No changes from your original code) */}
         <div className="w-full lg:w-1/2 relative bg-gradient-to-br from-[#023854] to-[#024E76] text-white p-8 lg:p-12 flex flex-col justify-between overflow-hidden">
           <div className="absolute inset-0 bg-[#023854] opacity-20 pattern-overlay"></div>
 
@@ -210,7 +203,7 @@ const Login = () => {
                   >
                     <option value="">Select your role</option>
                     <option value="Employer">Employer</option>
-                    <option value="Job Seeker">Job Seeker</option>
+                    <option value="Job Seeker">Job Seeker</option>{" "}
                     <option value="Admin">Admin</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -280,10 +273,10 @@ const Login = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={loading}
                 className="w-full bg-[#023854] hover:bg-[#023854]/90 text-white py-3 rounded-lg transition duration-300 flex items-center justify-center shadow-md mt-6"
               >
-                {isLoading ? (
+                {loading ? (
                   <svg
                     className="animate-spin h-5 w-5 mr-2"
                     xmlns="http://www.w3.org/2000/svg"
@@ -305,11 +298,12 @@ const Login = () => {
                     ></path>
                   </svg>
                 ) : null}
-                {isLoading ? "Signing In..." : "Sign In"}
+                {loading ? "Signing In..." : "Sign In"}{" "}
+                {/* Button text changes based on 'loading' state */}
               </button>
             </form>
 
-            {/* Social Login */}
+            {/* Social Login (No changes from your original code) */}
             <div className="mt-8">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -353,7 +347,7 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Sign Up Link */}
+            {/* Sign Up Link (No changes from your original code) */}
             <div className="text-center mt-8">
               <p className="text-gray-600">
                 Don't have an account?{" "}

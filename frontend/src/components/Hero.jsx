@@ -1,6 +1,10 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
+// Remove AuthContext related imports
+// import { useContext } from "react";
+// import { AuthContext } from "../context/AuthContext";
+
+import { useSelector } from "react-redux"; // Import Redux useSelector hook
 import ApplyForm from "../pages/ApplyForm";
-import { AuthContext } from "../context/AuthContext";
 import {
   Search,
   MapPin,
@@ -18,15 +22,19 @@ import {
 import { BASE_URL } from "../config/config";
 
 const Hero = ({ jobs = [] }) => {
-  const { user } = useContext(AuthContext);
+  // Use useSelector to get user and isAuthenticated state from the Redux store
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
+
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [applyJobId, setApplyJobId] = useState(null);
   const [applyJobTitle, setApplyJobTitle] = useState("");
   const [appliedJobIds, setAppliedJobIds] = useState([]);
+
   useEffect(() => {
     // Fetch applied jobs for the user (if logged in)
     const fetchAppliedJobs = async () => {
-      if (user && user.token) {
+      // Check for both isAuthenticated and user existence
+      if (isAuthenticated && user && user.token) {
         try {
           const res = await fetch(
             `${BASE_URL}api/v1/application/my-applications`,
@@ -35,18 +43,27 @@ const Hero = ({ jobs = [] }) => {
             }
           );
           const data = await res.json();
-          setAppliedJobIds(data.applications.map((app) => app.jobId));
+          // Ensure data.applications is an array before mapping
+          if (Array.isArray(data.applications)) {
+            setAppliedJobIds(data.applications.map((app) => app.jobId));
+          } else {
+            setAppliedJobIds([]);
+          }
         } catch (err) {
-          // Ignore error for applied jobs
+          console.error("Failed to fetch applied jobs:", err); // Log the error for debugging
+          setAppliedJobIds([]); // Clear applied jobs on error
         }
       } else {
-        setAppliedJobIds([]);
+        setAppliedJobIds([]); // Clear applied jobs if user is not logged in
       }
     };
     fetchAppliedJobs();
-  }, [user]);
+  }, [isAuthenticated, user]); // Dependencies for useEffect: re-run when isAuthenticated or user changes
+
   const handleApply = (jobId, jobTitle) => {
-    const token = localStorage.getItem("authToken");
+    // Get token from the Redux user object
+    const token = user?.token || localStorage.getItem("authToken"); // Fallback to localStorage for compatibility, though Redux user.token is preferred
+
     if (token) {
       if (appliedJobIds.includes(jobId)) {
         window.alert("You already applied to this job.");
@@ -59,11 +76,14 @@ const Hero = ({ jobs = [] }) => {
       window.alert("Please log in to apply for jobs.");
     }
   };
+
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [savedJobs, setSavedJobs] = useState(new Set());
+  const [savedJobs, setSavedJobs] = useState(new Set()); // Consider moving saved jobs to Redux if it's a global state
+
+  // This is a local state for filter display, not necessarily needing Redux
   const [showFilters, setShowFilters] = useState(false);
   const [animatedText, setAnimatedText] = useState("");
 
@@ -75,7 +95,7 @@ const Hero = ({ jobs = [] }) => {
     { title: "QA Engineer", count: "950+ jobs" },
   ];
 
-  // Animated typing effect
+  // Animated typing effect (no changes needed for Redux migration)
   const phrases = [
     "Your Dream Job",
     "Perfect Opportunity",
@@ -111,7 +131,7 @@ const Hero = ({ jobs = [] }) => {
     typeWriter();
   }, []);
 
-  // Search bar functionality: filter jobs by query and location
+  // Search bar functionality: filter jobs by query and location (no changes needed for Redux migration)
   const handleSearch = () => {
     if (!searchQuery.trim() && !location.trim()) return;
     setIsSearching(true);
@@ -167,6 +187,8 @@ const Hero = ({ jobs = [] }) => {
   };
 
   const toggleSaveJob = (jobId) => {
+    // If saved jobs state needs to persist across sessions or components,
+    // consider making it a Redux state as well, and dispatching actions to update it.
     const newSavedJobs = new Set(savedJobs);
     if (newSavedJobs.has(jobId)) {
       newSavedJobs.delete(jobId);
@@ -485,6 +507,8 @@ const Hero = ({ jobs = [] }) => {
                                 : "bg-[#013954] text-white hover:bg-[#025373]"
                             }`}
                             onClick={() => {
+                              // Re-check appliedJobIds before calling handleApply
+                              // This ensures the button's disabled state is respected
                               if (!appliedJobIds.includes(job._id)) {
                                 handleApply(job._id, job.title);
                               } else {

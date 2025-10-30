@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useContext } from "react";
-import { User, Mail, Phone, MapPin, Edit, Save, X } from "lucide-react";
+import React, { useState, useEffect } from "react"; // Removed useContext
+import { useSelector } from "react-redux"; // Import Redux useSelector hook
+import { User, Mail, Phone, MapPin, Edit, Save, X, Plus } from "lucide-react";
 import axios from "axios";
-import { AuthContext } from "../context/AuthContext";
+// Removed AuthContext import
+// import { AuthContext } => No need for this anymore
 import { BASE_URL } from "../config/config";
 
 const jobNiches = [
@@ -28,15 +30,19 @@ const jobNiches = [
 ];
 
 const PersonalInformation = () => {
-  const { user, authLoading } = useContext(AuthContext);
+  // Use useSelector to get user and authLoading state from the Redux store
+  const { user, authLoading } = useSelector((state) => state.auth);
+
   const [profileData, setProfileData] = useState(null);
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({});
   const [error, setError] = useState("");
 
   useEffect(() => {
+    // If authLoading is true, wait for authentication status to be determined
     if (authLoading) return;
 
+    // Fetch user profile only if authenticated and user object with token exists
     if (user && user.token) {
       const fetchUser = async () => {
         try {
@@ -47,24 +53,33 @@ const PersonalInformation = () => {
           setError("");
         } catch (err) {
           setProfileData(null);
-          setError("Failed to fetch user. See console for details.");
+          setError("Failed to fetch user profile. Please log in again."); // More user-friendly error
           console.error("Failed to fetch user:", err);
+          // Optionally, redirect to login if token is invalid or expired
+          // navigate('/login'); // You might want to dispatch a logout action here too
         }
       };
       fetchUser();
     } else {
-      setError("No auth token found. Please log in.");
+      // If not authenticated, clear profile data and set an error
+      setProfileData(null);
+      setError("Please log in to view your profile.");
     }
-  }, [user, authLoading]);
+  }, [user, authLoading]); // Dependencies: re-run when user or authLoading changes
 
   const startEditing = () => {
+    // Ensure profileData exists before attempting to set editData
+    if (!profileData) {
+      setError("No profile data to edit.");
+      return;
+    }
     setEditData({
       name: profileData.name || "",
       email: profileData.email || "",
       phone: profileData.phone || "",
       address: profileData.address || "",
       coverLetter: profileData.coverLetter || "",
-      resume: profileData.resume || null,
+      resume: profileData.resume || null, // Keep resume as it is initially, handle file upload separately
       niches: profileData.niches
         ? [
             profileData.niches.firstNiche || "",
@@ -82,7 +97,7 @@ const PersonalInformation = () => {
 
   const cancelEditing = () => {
     setEditing(false);
-    setEditData({});
+    setEditData({}); // Clear edit data on cancel
     setError("");
   };
 
@@ -113,6 +128,11 @@ const PersonalInformation = () => {
   };
 
   const saveProfile = async () => {
+    if (!user || !user.token) {
+      setError("Authentication token missing. Please log in.");
+      return;
+    }
+
     try {
       let formData = new FormData();
       formData.append("name", editData.name);
@@ -138,15 +158,23 @@ const PersonalInformation = () => {
         );
       }
 
-      // Append resume if a new file object
-      if (editData.resume && typeof editData.resume !== "string") {
+      // Append resume if a new file object (type is 'object' for File objects)
+      if (
+        editData.resume &&
+        typeof editData.resume === "object" &&
+        editData.resume instanceof File
+      ) {
         formData.append("resume", editData.resume);
+      } else if (profileData.resume && typeof profileData.resume === "object") {
+        // If no new resume, but a current one exists, you might send its URL/ID
+        // or let the backend handle keeping the old one if no new file is sent.
+        // For now, assuming backend keeps existing if no 'resume' field is appended.
       }
 
       const config = {
         headers: {
           Authorization: `Bearer ${user.token}`,
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "multipart/form-data", // Important for FormData
         },
       };
 
@@ -156,20 +184,52 @@ const PersonalInformation = () => {
         config
       );
 
-      setProfileData(res.data.user);
+      setProfileData(res.data.user); // Update local state with new data
       setEditing(false);
       setEditData({});
       setError("");
     } catch (err) {
       console.error("Failed to update profile:", err);
-      setError("Failed to update profile. Please try again.");
+      setError(
+        err.response?.data?.message ||
+          "Failed to update profile. Please try again."
+      );
     }
   };
 
-  if (error)
+  // Render loading state while authentication is being checked
+  if (authLoading) {
+    return (
+      <div className="text-center mt-8 text-gray-600">
+        Loading authentication...
+      </div>
+    );
+  }
+
+  // Render message if user is not logged in
+  if (!user) {
+    return (
+      <div className="text-red-600 text-center mt-8">
+        Please log in to view your profile.
+      </div>
+    );
+  }
+
+  // Render error message if there's an error fetching profile data
+  if (error && !editing) {
+    // Show error only if not editing and there was an error fetching
     return <div className="text-red-600 text-center mt-8">{error}</div>;
-  if (!user) return <div>Please log in to view your profile.</div>;
-  if (!profileData) return <div>Loading...</div>;
+  }
+
+  // Render loading state while profile data is being fetched (after auth is confirmed)
+  if (!profileData && !error) {
+    // Only show if not editing and no error to show
+    return (
+      <div className="text-center mt-8 text-gray-600">
+        Loading profile data...
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-4 bg-gray-50">
@@ -242,7 +302,7 @@ const PersonalInformation = () => {
             <div className="md:col-span-2">
               <p className="text-sm text-gray-500 mb-2">Cover Letter</p>
               <p className="text-gray-700 bg-gray-50 p-4 rounded border border-gray-100">
-                {profileData.coverLetter}
+                {profileData.coverLetter || "N/A"}
               </p>
             </div>
             <div className="md:col-span-2 flex flex-col">
@@ -258,7 +318,7 @@ const PersonalInformation = () => {
                     View Resume
                   </a>
                   <span className="text-gray-500 text-sm">
-                    {profileData.resume.name}
+                    {profileData.resume.name || "resume.pdf"}
                   </span>
                 </div>
               ) : (
@@ -270,39 +330,42 @@ const PersonalInformation = () => {
             <div className="md:col-span-2 flex flex-col">
               <label className="text-sm text-gray-500 mb-1">Niches</label>
               <div className="flex flex-wrap gap-2">
-                {profileData.niches
-                  ? [
-                      profileData.niches.firstNiche,
-                      profileData.niches.secondNiche,
-                      profileData.niches.thirdNiche,
-                      profileData.niches.fourthNiche,
-                      profileData.niches.fifthNiche,
-                      profileData.niches.sixthNiche,
-                      profileData.niches.seventhNiche,
-                    ]
-                      .filter(Boolean)
-                      .map((niche, idx) => (
-                        <span
-                          key={idx}
-                          className={`px-3 py-1 text-xs rounded-full ${
-                            idx % 3 === 0
-                              ? "bg-blue-100 text-blue-800"
-                              : idx % 3 === 1
-                              ? "bg-green-100 text-green-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}
-                        >
-                          {niche}
-                        </span>
-                      ))
-                  : "-"}
+                {profileData.niches ? (
+                  [
+                    profileData.niches.firstNiche,
+                    profileData.niches.secondNiche,
+                    profileData.niches.thirdNiche,
+                    profileData.niches.fourthNiche,
+                    profileData.niches.fifthNiche,
+                    profileData.niches.sixthNiche,
+                    profileData.niches.seventhNiche,
+                  ]
+                    .filter(Boolean)
+                    .map((niche, idx) => (
+                      <span
+                        key={idx}
+                        className={`px-3 py-1 text-xs rounded-full ${
+                          idx % 3 === 0
+                            ? "bg-blue-100 text-blue-800"
+                            : idx % 3 === 1
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {niche}
+                      </span>
+                    ))
+                ) : (
+                  <span className="text-gray-400 text-sm">
+                    No niches defined.
+                  </span>
+                )}
               </div>
             </div>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-4">
             {/* Name, Email, Phone, Address Inputs */}
-            {/* ... (omitted here for brevity, same as above but included in full code) */}
             <div className="flex flex-col">
               <label className="text-sm text-gray-500 mb-1">Name</label>
               <input
@@ -360,9 +423,10 @@ const PersonalInformation = () => {
             <div className="md:col-span-2 flex flex-col">
               <label className="text-sm text-gray-500 mb-1">Resume</label>
 
+              {/* Display current resume if available and no new file is selected */}
               {profileData.resume &&
                 profileData.resume.url &&
-                !(editData.resume && typeof editData.resume !== "string") && (
+                !(editData.resume && editData.resume instanceof File) && (
                   <div className="mb-2">
                     <a
                       href={profileData.resume.url}
@@ -382,20 +446,33 @@ const PersonalInformation = () => {
                   if (e.target.files && e.target.files[0]) {
                     setEditData({
                       ...editData,
-                      resume: e.target.files[0],
+                      resume: e.target.files[0], // Store File object
+                    });
+                  } else {
+                    // If file input is cleared, reset resume in editData to null
+                    setEditData({
+                      ...editData,
+                      resume: null,
                     });
                   }
                 }}
-                className="mb-2"
+                className="mb-2 block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100"
               />
 
+              {/* Display name of selected new file or "No file selected" */}
               <span className="text-gray-500 text-sm">
-                {editData.resume && typeof editData.resume !== "string"
+                {editData.resume && editData.resume instanceof File
                   ? editData.resume.name
                   : "No new file selected"}
               </span>
 
-              {editData.resume && typeof editData.resume !== "string" && (
+              {/* Option to clear selected new file */}
+              {editData.resume && editData.resume instanceof File && (
                 <button
                   onClick={() => setEditData({ ...editData, resume: null })}
                   className="text-red-500 text-sm hover:underline mt-1 w-fit"
@@ -410,6 +487,7 @@ const PersonalInformation = () => {
             <div className="md:col-span-2 flex flex-col space-y-4">
               <label className="text-sm text-gray-500 mb-1">Niches</label>
 
+              {/* Render existing/editing niches */}
               {editData.niches && editData.niches.length > 0 ? (
                 editData.niches.map((niche, index) => (
                   <div key={index} className="flex items-center gap-2">
@@ -428,29 +506,34 @@ const PersonalInformation = () => {
                         </option>
                       ))}
                     </select>
-                    {/* <button
-                      type="button"
-                      onClick={() => removeNiche(index)}
-                      className="text-red-500 hover:underline"
-                      aria-label={`Remove niche ${index + 1}`}
-                    >
-                      Remove
-                    </button> */}
+                    {/* Add remove button for each niche, up to 7, if you want */}
+                    {index > 0 && ( // Allow removing if more than one niche, or adjust logic
+                      <button
+                        type="button"
+                        onClick={() => removeNiche(index)}
+                        className="text-red-500 hover:underline text-sm p-1"
+                        aria-label={`Remove niche ${index + 1}`}
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
                   </div>
                 ))
               ) : (
                 <p className="text-gray-400 text-sm">No niches added.</p>
               )}
 
-              {/* {(!editData.niches || editData.niches.length < 7) && (
+              {/* Add Niche Button */}
+              {(!editData.niches || editData.niches.length < 7) && (
                 <button
                   type="button"
                   onClick={addNiche}
-                  className="text-blue-600 hover:underline mt-2 self-start"
+                  className="text-blue-600 hover:underline mt-2 self-start flex items-center gap-1"
                 >
-                  + Add Niche
+                  <Plus size={16} />
+                  Add Niche
                 </button>
-              )} */}
+              )}
             </div>
           </div>
         )}

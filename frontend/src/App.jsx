@@ -1,5 +1,7 @@
-import { useContext } from "react";
+import { useEffect } from "react"; // Add useEffect
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux"; // Import Redux hooks
+import { checkAuthStatus } from "./redux/actions/authActions"; // Import your Redux action
 
 // Pages
 import Home from "./pages/Home";
@@ -20,8 +22,6 @@ import EmployerNavbar from "./pages/Employedashboard/EmployerNavbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// Context
-import { AuthContext } from "./context/AuthContext";
 import MyJobApplications from "./pages/MyJobApplications";
 import PersonalInformation from "./pages/PersonalInformation";
 import ApplyForm from "./pages/ApplyForm";
@@ -29,12 +29,27 @@ import AdminDashboard from "./pages/Admindashboard/Dashboard";
 import ChatbotBubble from "./components/ChatbotBubble";
 
 export default function App() {
-  const { user } = useContext(AuthContext);
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+  const authLoading = useSelector((state) => state.auth.authLoading);
+
   const role = user?.role?.toLowerCase();
+
+  useEffect(() => {
+    dispatch(checkAuthStatus());
+  }, [dispatch]);
+
+  if (authLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        Loading authentication...
+      </div>
+    );
+  }
 
   return (
     <Router>
-      {/* Show different navbars based on role */}
+      {/*  different navbars based on role */}
       {role === "employer" ? <EmployerNavbar /> : <Navbar />}
 
       <Routes>
@@ -43,27 +58,21 @@ export default function App() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/findjobs" element={<FindJobs />} />
-
         <Route path="/post/application/:jobId" element={<PostApplication />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/myprofile" element={<MyProfile />} />
         <Route path="/apply-form" element={<ApplyForm />} />
-
-        {/* Protected route only for employers */}
-        {/* <Route
-          path="/employer/dashboard/:id"
-          element={
-            <ProtectedRoute allowedRole="employer">
-              <EmployerDashboard />
-            </ProtectedRoute>
-          }
-        /> */}
-
+        <Route path="/my-applications" element={<MyJobApplications />} />{" "}
+        {/* Assuming this route exists */}
+        <Route path="/personal-info" element={<PersonalInformation />} />{" "}
+        {/* Protected route for employers */}
         <Route
           path="/employer/dashboard/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["employer"]}>
+              {" "}
+              {/* Pass allowedRoles as an array */}
               <EmployerDashboard />
             </ProtectedRoute>
           }
@@ -76,7 +85,51 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-
+        {/* Protected route for Job Seekers, e.g., MyProfile, MyJobApplications */}
+        <Route
+          path="/myprofile"
+          element={
+            <ProtectedRoute allowedRoles={["job seeker"]}>
+              <MyProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-applications"
+          element={
+            <ProtectedRoute allowedRoles={["job seeker"]}>
+              <MyJobApplications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/personal-info"
+          element={
+            <ProtectedRoute allowedRoles={["job seeker", "employer", "admin"]}>
+              {" "}
+              {/* Adjust as needed */}
+              <PersonalInformation />
+            </ProtectedRoute>
+          }
+        />
+        {/* If PostApplication requires login, protect it */}
+        <Route
+          path="/post/application/:jobId"
+          element={
+            <ProtectedRoute allowedRoles={["job seeker", "employer", "admin"]}>
+              {" "}
+              <PostApplication />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/apply-form"
+          element={
+            <ProtectedRoute allowedRoles={["job seeker"]}>
+              <ApplyForm />
+            </ProtectedRoute>
+          }
+        />
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />
       </Routes>

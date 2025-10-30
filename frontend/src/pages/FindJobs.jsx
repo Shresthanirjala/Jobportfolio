@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import React, { useEffect, useState, useContext, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react"; // Removed useContext
+import { useSelector } from "react-redux"; // Import Redux useSelector hook
 import ApplyForm from "./ApplyForm";
-import { AuthContext } from "../context/AuthContext";
+// Removed AuthContext import
+// import { AuthContext } from "../context/AuthContext";
 
 import axios from "axios";
 import {
@@ -14,13 +16,14 @@ import {
   Search,
   X,
   Check,
-  LogIn,
+  LogIn, // Assuming LogIn is for login/logout context, keeping for now if used elsewhere
   ArrowRight,
   Rss,
 } from "lucide-react";
 import { BASE_URL } from "../config/config";
 
-const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
+// Removed isLoggedIn prop as it's now derived from Redux's isAuthenticated
+const JobPortal = ({ notification, setNotification }) => {
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [applyJobId, setApplyJobId] = useState(null);
   const [applyJobTitle, setApplyJobTitle] = useState("");
@@ -28,7 +31,7 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expandedJob, setExpandedJob] = useState(null);
+  const [expandedJob, setExpandedJob] = useState(null); // Not used currently, but kept
   const [searchQuery, setSearchQuery] = useState("");
 
   const [selectedJobType, setSelectedJobType] = useState("");
@@ -51,37 +54,17 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
     setSelectedJobNiche("");
     setSearchQuery("");
   };
-  // Fetch job niches from backend
-  useEffect(() => {
-    const fetchNiches = async () => {
-      try {
-        setLoadingNiches(true);
-        // Fetch all jobs and extract unique niches
-        const response = await axios.get(`${BASE_URL}api/v1/job/getall`);
-        const jobs = response.data.jobs || [];
-        const niches = Array.from(
-          new Set(jobs.map((job) => job.jobNiche).filter(Boolean))
-        );
-        setJobNiches(niches);
-        setErrorNiches(null);
-      } catch (err) {
-        setErrorNiches("Could not fetch job niches.");
-        setJobNiches([]);
-      } finally {
-        setLoadingNiches(false);
-      }
-    };
-    fetchNiches();
-  }, []);
+
+  // Use useSelector to get user and isAuthenticated state from the Redux store
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
 
   const [filterExpanded, setFilterExpanded] = useState({
     jobType: true,
     location: true,
     experience: true,
     salary: true,
+    niche: true, // Added niche filter expansion state
   });
-
-  const { user } = useContext(AuthContext);
 
   const [recommendedJobs, setRecommendedJobs] = useState([]);
   const [loadingRecommended, setLoadingRecommended] = useState(true);
@@ -97,27 +80,56 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
   const [recommendedPage, setRecommendedPage] = useState(1);
   const [jobsPage, setJobsPage] = useState(1);
 
-  // Fetch all jobs
+  // Fetch job niches from backend
+  useEffect(() => {
+    const fetchNiches = async () => {
+      try {
+        setLoadingNiches(true);
+        // Fetch all jobs and extract unique niches
+        const response = await axios.get(`${BASE_URL}api/v1/job/getall`);
+        const jobsData = response.data.jobs || []; // Renamed to avoid conflict with `jobs` state
+        const niches = Array.from(
+          new Set(jobsData.map((job) => job.jobNiche).filter(Boolean))
+        );
+        setJobNiches(niches);
+        setErrorNiches(null);
+      } catch (err) {
+        setErrorNiches("Could not fetch job niches.");
+        setJobNiches([]);
+      } finally {
+        setLoadingNiches(false);
+      }
+    };
+    fetchNiches();
+  }, []); // Runs once on mount
+
+  // Fetch all jobs (main list)
   useEffect(() => {
     const fetchJobs = async () => {
       try {
+        setLoading(true);
         const response = await axios.get(`${BASE_URL}api/v1/job/getall`, {
-          headers: { Authorization: `Bearer ${user?.token}` },
+          // Include authorization header only if user is authenticated and token exists
+          headers:
+            isAuthenticated && user?.token
+              ? { Authorization: `Bearer ${user.token}` }
+              : {},
         });
         setJobs(response.data.jobs || []);
       } catch (err) {
-        setError(err.message);
+        setError(err.message || "Failed to fetch jobs.");
       } finally {
         setLoading(false);
       }
     };
     fetchJobs();
-  }, [user]);
+  }, [isAuthenticated, user]); // Re-fetch if user's auth status changes
 
   // Fetch recommended first API
   useEffect(() => {
     const fetchRecommendedJobs = async () => {
-      if (user && user.token) {
+      // Only fetch if authenticated and user object with token exists
+      if (isAuthenticated && user && user.token) {
         try {
           setLoadingRecommended(true);
           const res = await axios.get(`${BASE_URL}api/v1/recommend-jobs`, {
@@ -127,23 +139,26 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
           setRecommendedJobs(res.data.jobs || []);
           setErrorRecommended(null);
         } catch (err) {
+          console.error("Error fetching recommended jobs (first API):", err);
           setErrorRecommended("Could not fetch recommended jobs.");
           setRecommendedJobs([]);
         } finally {
           setLoadingRecommended(false);
         }
       } else {
+        // Clear recommended jobs if not authenticated
         setRecommendedJobs([]);
         setLoadingRecommended(false);
       }
     };
     fetchRecommendedJobs();
-  }, [user]);
+  }, [isAuthenticated, user]); // Re-fetch if user's auth status changes
 
   // Fetch recommended second API
   useEffect(() => {
     const fetchRecommended2Jobs = async () => {
-      if (user && user.token) {
+      // Only fetch if authenticated and user object with token exists
+      if (isAuthenticated && user && user.token) {
         try {
           setLoadingRecommended2(true);
           const res = await axios.get(`${BASE_URL}api/v1/recommended`, {
@@ -171,17 +186,19 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
           setLoadingRecommended2(false);
         }
       } else {
+        // Clear recommended jobs if not authenticated
         setRecommended2Jobs([]);
         setLoadingRecommended2(false);
       }
     };
     fetchRecommended2Jobs();
-  }, [user]);
+  }, [isAuthenticated, user]); // Re-fetch if user's auth status changes
 
   // Fetch applied jobs
   useEffect(() => {
     const fetchAppliedJobs = async () => {
-      if (user && user.token) {
+      // Only fetch if authenticated and user object with token exists
+      if (isAuthenticated && user && user.token) {
         try {
           const res = await axios.get(
             `${BASE_URL}api/v1/application/my-applications`,
@@ -189,16 +206,23 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
               headers: { Authorization: `Bearer ${user.token}` },
             }
           );
-          setAppliedJobIds(res.data.applications.map((app) => app.jobId));
+          // Ensure res.data.applications is an array before mapping
+          if (Array.isArray(res.data.applications)) {
+            setAppliedJobIds(res.data.applications.map((app) => app.jobId));
+          } else {
+            setAppliedJobIds([]);
+          }
         } catch (err) {
+          console.error("Error fetching applied jobs:", err);
           setAppliedJobIds([]);
         }
       } else {
+        // Clear applied jobs if not authenticated
         setAppliedJobIds([]);
       }
     };
     fetchAppliedJobs();
-  }, [user]);
+  }, [isAuthenticated, user]); // Re-fetch if user's auth status changes
 
   // Utility functions
   const normalizeString = (str) => (str ? str.toLowerCase().trim() : "");
@@ -208,7 +232,8 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
     const uniqueJobs = [];
     const seenIds = new Set();
     [...recommendedJobs, ...recommended2Jobs].forEach((job) => {
-      if (job._id && !seenIds.has(job._id)) {
+      if (job?._id && !seenIds.has(job._id)) {
+        // Use optional chaining for job._id
         seenIds.add(job._id);
         uniqueJobs.push(job);
       }
@@ -220,7 +245,7 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
   // Set of recommended job IDs for filtering
   const recommendedJobIds = useMemo(() => {
     const ids = new Set(
-      combinedRecommendedJobs.map((job) => job._id).filter(Boolean)
+      combinedRecommendedJobs.map((job) => job?._id).filter(Boolean) // Use optional chaining for job._id
     );
     console.log("Recommended Job IDs Set:", Array.from(ids));
     return ids;
@@ -229,7 +254,8 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
   // Filter main jobs to exclude recommended and apply user filters
   const filteredJobs = useMemo(() => {
     const filtered = jobs.filter((job) => {
-      if (!job._id || recommendedJobIds.has(job._id)) {
+      // Use optional chaining for job._id
+      if (!job?._id || recommendedJobIds.has(job._id)) {
         return false; // exclude recommended jobs or jobs without _id
       }
 
@@ -295,7 +321,9 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
 
   // Apply handler
   const handleApply = (jobId, jobTitle) => {
-    const token = localStorage.getItem("authToken");
+    // Get token from the Redux user object, fallback to localStorage if needed
+    const token = user?.token || localStorage.getItem("authToken");
+
     if (token) {
       if (appliedJobIds.includes(jobId)) {
         if (setNotification) {
@@ -323,9 +351,9 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
     }
   };
 
-  // Job Card Component
+  // Job Card Component (no changes needed for Redux migration, but ensure job._id is accessed safely)
   const JobCard = ({ job }) => {
-    const isApplied = appliedJobIds.includes(job._id);
+    const isApplied = appliedJobIds.includes(job?._id); // Use optional chaining for job._id
     return (
       <div
         className="group p-4 border border-gray-200 rounded-xl hover:border-[#718B68] hover:shadow-lg transition-all duration-300 bg-white hover:bg-gray-50"
@@ -375,7 +403,9 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    {new Date(job.jobPostedOn).toLocaleDateString()}
+                    {job.jobPostedOn
+                      ? new Date(job.jobPostedOn).toLocaleDateString()
+                      : "N/A"}
                   </span>
                   {/* Job Niche Badge */}
                   {job.jobNiche && (
@@ -716,6 +746,7 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
               </div>
 
               {/* Apply Filters Button */}
+              {/* This button might need to trigger handleSearch directly if filters don't auto-apply */}
               <button className="w-full bg-[#718B68] text-white font-medium py-3 rounded-md hover:bg-opacity-90 mt-2">
                 Apply Filters
               </button>
@@ -725,17 +756,18 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
           {/* Job Listings */}
           <div className="flex-grow">
             {/* Loading state for recommended jobs */}
-            {user && (loadingRecommended || loadingRecommended2) && (
-              <div className="mb-10 text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-[#718B68] border-opacity-50 mx-auto mb-4"></div>
-                <p className="text-lg font-medium text-[#013954]">
-                  Loading recommended jobs...
-                </p>
-              </div>
-            )}
+            {isAuthenticated &&
+              (loadingRecommended || loadingRecommended2) && ( // Only show if authenticated
+                <div className="mb-10 text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-[#718B68] border-opacity-50 mx-auto mb-4"></div>
+                  <p className="text-lg font-medium text-[#013954]">
+                    Loading recommended jobs...
+                  </p>
+                </div>
+              )}
 
             {/* Error state for recommended jobs */}
-            {user &&
+            {isAuthenticated && // Only show if authenticated
               !loadingRecommended &&
               !loadingRecommended2 &&
               (errorRecommended || errorRecommended2) && (
@@ -751,7 +783,7 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
               )}
 
             {/* Combined Recommended Jobs */}
-            {user &&
+            {isAuthenticated && // Only show if authenticated
               !loadingRecommended &&
               !loadingRecommended2 &&
               combinedRecommendedJobs.length > 0 && (
@@ -761,7 +793,7 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
                   </h2>
                   <div className="space-y-4">
                     {paginatedCombinedRecommendedJobs.map((job) => (
-                      <JobCard key={job._id} job={job} />
+                      <JobCard key={job?._id || job.id} job={job} /> // Added fallback to job.id
                     ))}
                   </div>
 
@@ -797,18 +829,6 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
                 </div>
               )}
 
-            {/* Empty state for recommended jobs */}
-            {/* {user && !loadingRecommended && !loadingRecommended2 && combinedRecommendedJobs.length === 0 && (
-              <div className="mb-10 text-center p-8 bg-gray-100 rounded-lg">
-                <h3 className="text-lg font-bold text-[#013954] mb-2">
-                  No Recommended Jobs
-                </h3>
-                <p className="text-gray-600">
-                  We couldn't find any job recommendations for you at this time.
-                </p>
-              </div>
-            )} */}
-
             <h2 className="text-2xl font-semibold text-[#013954] mb-6">
               {filteredJobs.length} Jobs Available
             </h2>
@@ -816,7 +836,7 @@ const JobPortal = ({ isLoggedIn, notification, setNotification }) => {
             {filteredJobs.length > 0 ? (
               <div className="space-y-4">
                 {paginatedFilteredJobs.map((job) => (
-                  <JobCard key={job._id} job={job} />
+                  <JobCard key={job?._id || job.id} job={job} /> // Added fallback to job.id
                 ))}
 
                 {totalJobsPages > 1 && (
