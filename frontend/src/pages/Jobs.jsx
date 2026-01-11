@@ -42,9 +42,7 @@ const JobPortal = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await axios.get(
-          `${BASE_URL}api/v1/job/getall`
-        );
+        const response = await axios.get(`${BASE_URL}/api/v1/job/getall`);
         setJobs(response.data.jobs);
       } catch (err) {
         setError(err.message);

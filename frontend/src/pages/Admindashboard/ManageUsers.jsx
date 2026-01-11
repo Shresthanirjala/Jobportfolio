@@ -25,7 +25,7 @@ const ManageUsers = () => {
       setError(null);
       try {
         const token = localStorage.getItem("authToken");
-        const res = await axios.get(`${BASE_URL}api/v1/admin/seekers`, {
+        const res = await axios.get(`${BASE_URL}/api/v1/admin/seekers`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         setUsers(res.data?.seekers || []);
@@ -46,7 +46,7 @@ const ManageUsers = () => {
     }
     try {
       const token = localStorage.getItem("authToken");
-      await axios.delete(`${BASE_URL}api/v1/admin/user/${userId}`, {
+      await axios.delete(`${BASE_URL}/api/v1/admin/user/${userId}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       // Remove user from state after successful deletion

@@ -72,7 +72,7 @@ const AdminDashboard = () => {
     const fetchRecentUsers = async () => {
       try {
         const token = localStorage.getItem("authToken");
-        const res = await axios.get(`${BASE_URL}api/v1/admin/seekers`, {
+        const res = await axios.get(`${BASE_URL}/api/v1/admin/seekers`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.data.success && Array.isArray(res.data.seekers)) {
@@ -91,7 +91,7 @@ const AdminDashboard = () => {
     const fetchRecentJobs = async () => {
       try {
         const token = localStorage.getItem("authToken");
-        const res = await axios.get(`${BASE_URL}api/v1/admin/jobs`, {
+        const res = await axios.get(`${BASE_URL}/api/v1/admin/jobs`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.data.success && Array.isArray(res.data.jobs)) {

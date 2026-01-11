@@ -60,7 +60,7 @@ const Contact = () => {
     if (validateForm()) {
       setIsSubmitting(true);
       try {
-        await axios.post(`${BASE_URL}api/v1/contact`, formData);
+        await axios.post(`${BASE_URL}/api/v1/contact`, formData);
         toast.success("Message sent successfully! We'll get back to you soon.");
         setFormData({ name: "", email: "", subject: "", message: "" });
       } catch (error) {

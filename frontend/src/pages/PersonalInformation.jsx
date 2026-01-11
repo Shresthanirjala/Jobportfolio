@@ -46,7 +46,7 @@ const PersonalInformation = () => {
     if (user && user.token) {
       const fetchUser = async () => {
         try {
-          const res = await axios.get(`${BASE_URL}api/v1/user/getuser`, {
+          const res = await axios.get(`${BASE_URL}/api/v1/user/getuser`, {
             headers: { Authorization: `Bearer ${user.token}` },
           });
           setProfileData(res.data.user);
@@ -179,7 +179,7 @@ const PersonalInformation = () => {
       };
 
       const res = await axios.put(
-        `${BASE_URL}api/v1/user/update/profile`,
+        `${BASE_URL}/api/v1/user/update/profile`,
         formData,
         config
       );

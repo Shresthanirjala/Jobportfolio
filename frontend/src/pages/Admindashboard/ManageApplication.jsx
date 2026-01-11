@@ -36,7 +36,7 @@ const ManageApplications = () => {
       setError(null);
       try {
         const token = localStorage.getItem("authToken");
-        const res = await axios.get(`${BASE_URL}api/v1/admin/applications`, {
+        const res = await axios.get(`${BASE_URL}/api/v1/admin/applications`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         // Assuming backend returns raw data as per your schema

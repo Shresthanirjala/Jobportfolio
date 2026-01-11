@@ -42,7 +42,7 @@ const ManageJobs = () => {
         const token = localStorage.getItem("authToken");
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-        const res = await axios.get(`${BASE_URL}api/v1/admin/jobs`, {
+        const res = await axios.get(`${BASE_URL}/api/v1/admin/jobs`, {
           headers,
         });
 
@@ -133,7 +133,7 @@ const ManageJobs = () => {
 
     try {
       setDeletingJobId(jobId);
-      await axios.delete(`${BASE_URL}api/v1/admin/job/${jobId}`, {
+      await axios.delete(`${BASE_URL}/api/v1/admin/job/${jobId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

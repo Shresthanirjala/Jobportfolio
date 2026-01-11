@@ -112,7 +112,7 @@ const MyJobApplications = () => {
       // Use token from Redux user object
       const token = user.token;
       await axios.put(
-        `${BASE_URL}api/v1/application/jobseeker/update/${selectedApplication._id}`,
+        `${BASE_URL}/api/v1/application/jobseeker/update/${selectedApplication._id}`,
         {
           coverLetter: editCoverLetter,
           cv: editCV, // Note: This assumes cv is a URL string. If it's a file upload, you'll need FormData.

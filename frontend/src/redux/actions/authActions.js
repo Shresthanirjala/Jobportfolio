@@ -32,7 +32,7 @@ export const loginUser = (credentials, navigate) => async (dispatch) => {
   dispatch(loginRequest()); // Dispatch request action to set loading state
   try {
     const response = await axios.post(
-      `${BASE_URL}api/v1/user/login`,
+      `${BASE_URL}/api/v1/user/login`,
       credentials
     );
 

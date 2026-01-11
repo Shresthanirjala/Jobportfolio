@@ -28,7 +28,7 @@ const ManageEmployers = () => {
       setError(null);
       try {
         const token = localStorage.getItem("authToken"); // If you use auth token
-        const res = await axios.get(`${BASE_URL}api/v1/admin/employers`, {
+        const res = await axios.get(`${BASE_URL}/api/v1/admin/employers`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         // Adjust to your API response data structure
@@ -81,7 +81,7 @@ const ManageEmployers = () => {
     }
     try {
       const token = localStorage.getItem("authToken");
-      await axios.delete(`${BASE_URL}api/v1/admin/user/${employerId}`, {
+      await axios.delete(`${BASE_URL}/api/v1/admin/user/${employerId}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       setEmployers((prev) =>

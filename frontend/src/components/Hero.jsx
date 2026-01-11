@@ -37,7 +37,7 @@ const Hero = ({ jobs = [] }) => {
       if (isAuthenticated && user && user.token) {
         try {
           const res = await fetch(
-            `${BASE_URL}api/v1/application/my-applications`,
+            `${BASE_URL}/api/v1/application/my-applications`,
             {
               headers: { Authorization: `Bearer ${user.token}` },
             }

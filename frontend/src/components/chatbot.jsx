@@ -13,10 +13,9 @@ export default function Chatbot() {
     setMessages((prev) => [...prev, { role: "user", text: input }]);
 
     try {
-      const res = await axios.post(
-        `${BASE_URL}api/v1/chatbot/chat`, 
-        { message: input }
-      );
+      const res = await axios.post(`${BASE_URL}/api/v1/chatbot/chat`, {
+        message: input,
+      });
 
       // Add bot reply to chat
       setMessages((prev) => [...prev, { role: "bot", text: res.data.reply }]);

@@ -86,7 +86,7 @@ const JobPortal = ({ notification, setNotification }) => {
       try {
         setLoadingNiches(true);
         // Fetch all jobs and extract unique niches
-        const response = await axios.get(`${BASE_URL}api/v1/job/getall`);
+        const response = await axios.get(`${BASE_URL}/api/v1/job/getall`);
         const jobsData = response.data.jobs || []; // Renamed to avoid conflict with `jobs` state
         const niches = Array.from(
           new Set(jobsData.map((job) => job.jobNiche).filter(Boolean))
@@ -108,7 +108,7 @@ const JobPortal = ({ notification, setNotification }) => {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${BASE_URL}api/v1/job/getall`, {
+        const response = await axios.get(`${BASE_URL}/api/v1/job/getall`, {
           // Include authorization header only if user is authenticated and token exists
           headers:
             isAuthenticated && user?.token
@@ -132,7 +132,7 @@ const JobPortal = ({ notification, setNotification }) => {
       if (isAuthenticated && user && user.token) {
         try {
           setLoadingRecommended(true);
-          const res = await axios.get(`${BASE_URL}api/v1/recommend-jobs`, {
+          const res = await axios.get(`${BASE_URL}/api/v1/recommend-jobs`, {
             headers: { Authorization: `Bearer ${user.token}` },
           });
           console.log("First recommended jobs response:", res.data.jobs);
@@ -161,7 +161,7 @@ const JobPortal = ({ notification, setNotification }) => {
       if (isAuthenticated && user && user.token) {
         try {
           setLoadingRecommended2(true);
-          const res = await axios.get(`${BASE_URL}api/v1/recommended`, {
+          const res = await axios.get(`${BASE_URL}/api/v1/recommended`, {
             headers: { Authorization: `Bearer ${user.token}` },
           });
 
