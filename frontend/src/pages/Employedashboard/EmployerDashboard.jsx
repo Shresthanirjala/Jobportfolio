@@ -81,14 +81,13 @@ const EmployerDashboard = () => {
         setLoading(true);
         const token = localStorage.getItem("authToken");
         // Fetch employer jobs (vacancies)
-        const jobsRes = await axios.get(
-         `${BASE_URL}/api/v1/job/getmyjobs`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const jobsRes = await axios.get(`${BASE_URL}/api/v1/job/getmyjobs`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const jobs = jobsRes.data.myJobs || jobsRes.data.jobs || [];
         // Fetch employer applications
         const appsRes = await axios.get(
-         `${BASE_URL}/api/v1/application/employer/getall`,
+          `${BASE_URL}/api/v1/application/employer/getall`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const applications = appsRes.data.application || [];
@@ -312,8 +311,6 @@ const EmployerDashboard = () => {
                   )}
                 </button>
               </li>
-             
-              
             </ul>
           </nav>
 
@@ -411,7 +408,6 @@ const DashboardHome = ({ employer, stats, recentActivity, navigate }) => {
       <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-gray-800">Recent Activity</h3>
-          
         </div>
 
         <div className="space-y-4">
