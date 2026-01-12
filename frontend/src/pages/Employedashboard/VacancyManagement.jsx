@@ -59,7 +59,7 @@ const VacancyManagement = () => {
         setIsFetching(false);
         return;
       }
-      const response = await axios.get(`${BASE_URL}api/v1/job/getmyjobs`, {
+      const response = await axios.get(`${BASE_URL}/api/v1/job/getmyjobs`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -153,7 +153,7 @@ const VacancyManagement = () => {
 
     try {
       const response = await axios.post(
-        `${BASE_URL}api/v1/job/post`,
+        `${BASE_URL}/api/v1/job/post`,
         formattedData, // send formattedData here
         {
           headers: {
@@ -239,7 +239,7 @@ const VacancyManagement = () => {
         return;
       }
 
-      await axios.delete(`${BASE_URL}api/v1/job/delete/${id}`, {
+      await axios.delete(`${BASE_URL}/api/v1/job/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -13,7 +13,7 @@ const EmployeProfile = () => {
       try {
         const token = localStorage.getItem("authToken");
         const res = await axios.get(
-          `${BASE_URL}api/v1/user/getuser/${jobseekerId}`,
+          `${BASE_URL}/api/v1/user/getuser/${jobseekerId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setProfile(res.data.user);

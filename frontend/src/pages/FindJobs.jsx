@@ -201,7 +201,7 @@ const JobPortal = ({ notification, setNotification }) => {
       if (isAuthenticated && user && user.token) {
         try {
           const res = await axios.get(
-            `${BASE_URL}api/v1/application/my-applications`,
+            `${BASE_URL}/api/v1/application/my-applications`,
             {
               headers: { Authorization: `Bearer ${user.token}` },
             }

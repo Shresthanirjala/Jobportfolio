@@ -316,7 +316,7 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="mt-6 grid grid-cols-2 gap-3">
+              {/* <div className="mt-6 grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm bg-white hover:bg-gray-50 transition"
@@ -344,7 +344,7 @@ const Login = () => {
                   </svg>
                   <span className="ml-2 text-gray-700">Facebook</span>
                 </button>
-              </div>
+              </div> */}
             </div>
 
             {/* Sign Up Link (No changes from your original code) */}

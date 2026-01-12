@@ -82,13 +82,13 @@ const EmployerDashboard = () => {
         const token = localStorage.getItem("authToken");
         // Fetch employer jobs (vacancies)
         const jobsRes = await axios.get(
-         `${BASE_URL}api/v1/job/getmyjobs`,
+         `${BASE_URL}/api/v1/job/getmyjobs`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        const jobs = jobsRes.data.jobs || [];
+        const jobs = jobsRes.data.myJobs || jobsRes.data.jobs || [];
         // Fetch employer applications
         const appsRes = await axios.get(
-         `${BASE_URL}api/v1/application/employer/getall`,
+         `${BASE_URL}/api/v1/application/employer/getall`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const applications = appsRes.data.application || [];
@@ -147,7 +147,9 @@ const EmployerDashboard = () => {
   // Function to handle logout
   const handleLogout = () => {
     // Add your logout logic here (clear tokens, session, etc.)
-    localStorage.removeItem("token"); // Example: Remove auth token
+    // Remove the auth keys set by the login flow
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
     navigate("/login"); // Redirect to login page
   };
 
