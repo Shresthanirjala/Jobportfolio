@@ -81,7 +81,7 @@ const Contact = () => {
         <div className="max-w-screen-xl mx-auto py-12 px-4 sm:px-10 md:px-16 lg:px-32 text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-2">Get In Touch</h1>
           <p className="text-lg md:text-xl text-gray-200">
-            We're here to help with any questions about our CareerLink platform
+            We're here to help with any questions about our JobFinder platform
           </p>
         </div>
       </div>
@@ -168,8 +168,8 @@ const Contact = () => {
             <h3 className="text-lg font-semibold text-[#023854] mb-2">
               Email Address
             </h3>
-            <p className="text-gray-600 mb-2">contact@CareerLink.com</p>
-            <p className="text-gray-600">support@CareerLink.com</p>
+            <p className="text-gray-600 mb-2">contact@jobfinder.com</p>
+            <p className="text-gray-600">support@jobfinder.com</p>
           </div>
         </div>
       </div>
@@ -209,7 +209,7 @@ const Contact = () => {
               Send us a message
             </h2>
             <p className="text-gray-600 mb-6">
-              Have questions about CareerLink? Fill out the form below and our
+              Have questions about JobFinder? Fill out the form below and our
               team will get back to you.
             </p>
 
@@ -369,7 +369,7 @@ const Contact = () => {
             ))}
           </div>
           <p className="text-gray-200">
-            © 2025 CareerLink. All rights reserved.
+            © 2025 JobFinder. All rights reserved.
           </p>
           <div className="flex justify-center mt-4 space-x-4 text-sm">
             <a href="#" className="hover:text-[#718B68] transition">
@@ -413,14 +413,14 @@ const FaqAccordion = () => {
 
   const faqItems = [
     {
-      question: "How can I post a job on CareerLink?",
+      question: "How can I post a job on JobFinder?",
       answer:
         "To post a job, you need to register as an Employer. Once registered and logged in, navigate to your dashboard and click on 'Post a New Job'. Fill out the job details and submit your listing for review. Our team will approve your listing within 24 hours.",
     },
     {
-      question: "What types of professionals can I find on CareerLink?",
+      question: "What types of professionals can I find on JobFinder?",
       answer:
-        "CareerLink specializes in connecting employers with skilled tradespeople and service professionals including plumbers, electricians, carpenters, landscapers, cleaners, HVAC technicians, painters, roofers, and many more service-oriented professionals.",
+        "JobFinder specializes in connecting employers with skilled tradespeople and service professionals including plumbers, electricians, carpenters, landscapers, cleaners, HVAC technicians, painters, roofers, and many more service-oriented professionals.",
     },
     {
       question: "How long does it take to get a response to my inquiry?",
@@ -428,14 +428,14 @@ const FaqAccordion = () => {
         "We typically respond to all inquiries within 24-48 business hours. For urgent matters, we recommend contacting us directly by phone during our business hours (Monday to Friday, 9:00 AM - 6:00 PM).",
     },
     {
-      question: "Is CareerLink available in my area?",
+      question: "Is JobFinder available in my area?",
       answer:
-        "CareerLink is currently available in most major cities across the United States and Canada. We're rapidly expanding to new locations. Enter your zip code on our homepage to check service availability in your area.",
+        "JobFinder is currently available in most major cities across the United States and Canada. We're rapidly expanding to new locations. Enter your zip code on our homepage to check service availability in your area.",
     },
     {
       question: "How do I know the professionals are qualified?",
       answer:
-        "All service professionals on CareerLink go through a verification process that includes license validation, background checks, and reviews from previous clients. You can also see their ratings, portfolio of past work, and certifications on their profiles.",
+        "All service professionals on JobFinder go through a verification process that includes license validation, background checks, and reviews from previous clients. You can also see their ratings, portfolio of past work, and certifications on their profiles.",
     },
   ];
 

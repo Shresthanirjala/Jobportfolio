@@ -19,6 +19,9 @@ import {
   LogIn, // Assuming LogIn is for login/logout context, keeping for now if used elsewhere
   ArrowRight,
   Rss,
+  Sparkles,
+  Target,
+  Loader2,
 } from "lucide-react";
 import { BASE_URL } from "../config/config";
 
@@ -38,12 +41,6 @@ const JobPortal = ({ notification, setNotification }) => {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedExperienceLevel, setSelectedExperienceLevel] = useState("");
 
-  // Job niches state
-  const [jobNiches, setJobNiches] = useState([]);
-  const [selectedJobNiche, setSelectedJobNiche] = useState("");
-  const [loadingNiches, setLoadingNiches] = useState(true);
-  const [errorNiches, setErrorNiches] = useState(null);
-
   const [selectedSalaryRange, setSelectedSalaryRange] = useState("");
 
   const clearFilters = () => {
@@ -51,7 +48,6 @@ const JobPortal = ({ notification, setNotification }) => {
     setSelectedLocation("");
     setSelectedExperienceLevel("");
     setSelectedSalaryRange("");
-    setSelectedJobNiche("");
     setSearchQuery("");
   };
 
@@ -63,7 +59,6 @@ const JobPortal = ({ notification, setNotification }) => {
     location: true,
     experience: true,
     salary: true,
-    niche: true, // Added niche filter expansion state
   });
 
   const [recommendedJobs, setRecommendedJobs] = useState([]);
@@ -76,32 +71,52 @@ const JobPortal = ({ notification, setNotification }) => {
 
   const [appliedJobIds, setAppliedJobIds] = useState([]);
 
+  // AI resume-to-job matching (skills + embeddings + TF-IDF confidence score)
+  const [resumeSkills, setResumeSkills] = useState([]);
+  const [resumeMatches, setResumeMatches] = useState([]);
+  const [recommendedJob, setRecommendedJob] = useState(null);
+  const [analyzingResume, setAnalyzingResume] = useState(false);
+  const [resumeAnalysisError, setResumeAnalysisError] = useState(null);
+  const [hasAnalyzedResume, setHasAnalyzedResume] = useState(false);
+
+  const matchScoreMap = useMemo(() => {
+    const map = new Map();
+    resumeMatches.forEach((match) => map.set(match.jobId, match));
+    return map;
+  }, [resumeMatches]);
+
+  const analyzeResumeMatch = async () => {
+    if (!user?.resume?.url) {
+      setResumeAnalysisError(
+        "Please upload a resume in your profile before matching."
+      );
+      return;
+    }
+    setAnalyzingResume(true);
+    setResumeAnalysisError(null);
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/api/v1/job/analyze-resume`,
+        { cvUrl: user.resume.url },
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+      setResumeSkills(res.data.skills || []);
+      setResumeMatches(res.data.matches || []);
+      setRecommendedJob(res.data.recommendedJob || null);
+      setHasAnalyzedResume(true);
+    } catch (err) {
+      setResumeAnalysisError(
+        err.response?.data?.message ||
+          "Couldn't analyze your resume right now. Please try again."
+      );
+    } finally {
+      setAnalyzingResume(false);
+    }
+  };
+
   const JOBS_PER_PAGE = 3;
   const [recommendedPage, setRecommendedPage] = useState(1);
   const [jobsPage, setJobsPage] = useState(1);
-
-  // Fetch job niches from backend
-  useEffect(() => {
-    const fetchNiches = async () => {
-      try {
-        setLoadingNiches(true);
-        // Fetch all jobs and extract unique niches
-        const response = await axios.get(`${BASE_URL}/api/v1/job/getall`);
-        const jobsData = response.data.jobs || []; // Renamed to avoid conflict with `jobs` state
-        const niches = Array.from(
-          new Set(jobsData.map((job) => job.jobNiche).filter(Boolean))
-        );
-        setJobNiches(niches);
-        setErrorNiches(null);
-      } catch (err) {
-        setErrorNiches("Could not fetch job niches.");
-        setJobNiches([]);
-      } finally {
-        setLoadingNiches(false);
-      }
-    };
-    fetchNiches();
-  }, []); // Runs once on mount
 
   // Fetch all jobs (main list)
   useEffect(() => {
@@ -276,12 +291,6 @@ const JobPortal = ({ notification, setNotification }) => {
       )
         return false;
       if (
-        selectedJobNiche &&
-        normalizeString(job.jobNiche) !== normalizeString(selectedJobNiche)
-      )
-        return false;
-
-      if (
         searchQuery &&
         !(
           normalizeString(job.title).includes(normalizeString(searchQuery)) ||
@@ -301,8 +310,19 @@ const JobPortal = ({ notification, setNotification }) => {
     searchQuery,
     selectedJobType,
     selectedLocation,
-    selectedJobNiche,
   ]);
+
+  // Once the resume has been analyzed, surface the best skill/description
+  // matches first (jobs without a computed score keep their original order,
+  // pushed after every scored job).
+  const sortedFilteredJobs = useMemo(() => {
+    if (!hasAnalyzedResume || matchScoreMap.size === 0) return filteredJobs;
+    return [...filteredJobs].sort((a, b) => {
+      const scoreA = matchScoreMap.get(a._id)?.score ?? -1;
+      const scoreB = matchScoreMap.get(b._id)?.score ?? -1;
+      return scoreB - scoreA;
+    });
+  }, [filteredJobs, matchScoreMap, hasAnalyzedResume]);
 
   // Pagination slices
   const totalCombinedRecommendedPages = Math.ceil(
@@ -313,8 +333,8 @@ const JobPortal = ({ notification, setNotification }) => {
     recommendedPage * JOBS_PER_PAGE
   );
 
-  const totalJobsPages = Math.ceil(filteredJobs.length / JOBS_PER_PAGE);
-  const paginatedFilteredJobs = filteredJobs.slice(
+  const totalJobsPages = Math.ceil(sortedFilteredJobs.length / JOBS_PER_PAGE);
+  const paginatedFilteredJobs = sortedFilteredJobs.slice(
     (jobsPage - 1) * JOBS_PER_PAGE,
     jobsPage * JOBS_PER_PAGE
   );
@@ -354,27 +374,60 @@ const JobPortal = ({ notification, setNotification }) => {
   // Job Card Component (no changes needed for Redux migration, but ensure job._id is accessed safely)
   const JobCard = ({ job }) => {
     const isApplied = appliedJobIds.includes(job?._id); // Use optional chaining for job._id
+    const match = matchScoreMap.get(job?._id);
+    const isTopRecommended = recommendedJob?.jobId === job?._id;
+    const matchColor =
+      match?.score >= 70
+        ? "text-green-700 bg-green-100 border-green-300"
+        : match?.score >= 40
+        ? "text-amber-700 bg-amber-100 border-amber-300"
+        : "text-gray-600 bg-gray-100 border-gray-300";
     return (
       <div
-        className="group p-4 border border-gray-200 rounded-xl hover:border-[#718B68] hover:shadow-lg transition-all duration-300 bg-white hover:bg-gray-50"
-        style={{
-          minHeight: "260px",
-          maxHeight: "340px",
-          overflow: "hidden",
-          display: "flex",
-          alignItems: "stretch",
+        onClick={() =>
+          navigate(`/post/application/${job._id}`, { state: { match } })
+        }
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            navigate(`/post/application/${job._id}`, { state: { match } });
+          }
         }}
+        className={`group p-4 border rounded-xl hover:shadow-lg transition-all duration-300 bg-white hover:bg-gray-50 cursor-pointer ${
+          isTopRecommended
+            ? "border-[#718B68] ring-2 ring-[#718B68] ring-opacity-40"
+            : "border-gray-200 hover:border-[#718B68]"
+        }`}
       >
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full h-full">
-          <div className="flex-1 flex flex-col justify-between h-full">
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 w-full">
+          <div className="flex-1 min-w-0">
             <div className="flex items-start gap-3 mb-2">
               <div className="p-2 bg-gray-100 group-hover:bg-[#718B68] group-hover:bg-opacity-10 rounded-lg transition-all">
                 <Briefcase className="w-5 h-5 text-gray-600 group-hover:text-[#718B68]" />
               </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-[#013954] mb-1 group-hover:text-[#718B68] transition-colors">
-                  {job.title}
-                </h3>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <h3 className="text-lg font-bold text-[#013954] group-hover:text-[#718B68] transition-colors">
+                    {job.title}
+                  </h3>
+                  {match && (
+                    <span
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${matchColor}`}
+                      title={`Semantic: ${match.semanticScore}% · Keyword: ${match.tfidfScore}%`}
+                    >
+                      <Target className="w-3 h-3" />
+                      {match.score}% Match
+                    </span>
+                  )}
+                  {isTopRecommended && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#013954] text-white">
+                      <Sparkles className="w-3 h-3" />
+                      Best Match
+                    </span>
+                  )}
+                </div>
                 <div className="flex flex-wrap items-center gap-3 text-gray-600 mb-2">
                   <span className="flex items-center gap-2 font-medium">
                     <div className="w-2 h-2 bg-[#718B68] rounded-full"></div>
@@ -389,6 +442,7 @@ const JobPortal = ({ notification, setNotification }) => {
                               href={url}
                               target="_blank"
                               rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
                               className="text-[#013954] hover:underline hover:text-[#718B68] transition-colors"
                             >
                               {job.companyName}
@@ -414,7 +468,7 @@ const JobPortal = ({ notification, setNotification }) => {
                     </span>
                   )}
                 </div>
-                <p className="text-gray-600 mb-2 leading-relaxed text-sm">
+                <p className="text-gray-600 mb-2 leading-relaxed text-sm break-words">
                   {job.introduction || "No description available"}
                 </p>
               </div>
@@ -426,19 +480,17 @@ const JobPortal = ({ notification, setNotification }) => {
             </div>
             {(job.responsibilities || job.qualifications) && (
               <div
-                className="flex flex-wrap gap-3 mt-2"
-                style={{ maxHeight: "90px", overflowY: "auto" }}
+                className="flex flex-col sm:flex-row flex-wrap gap-3 mt-2"
               >
                 {job.responsibilities && (
                   <div
-                    className="flex-1 min-w-[120px] bg-gray-50 border border-gray-100 rounded-xl p-2"
-                    style={{ maxHeight: "90px", overflowY: "auto" }}
+                    className="flex-1 min-w-0 bg-gray-50 border border-gray-100 rounded-xl p-3 max-h-36 overflow-y-auto"
                   >
                     <h4 className="font-semibold text-[#013954] mb-1 flex items-center gap-2 text-xs">
                       <span className="w-2 h-2 bg-[#718B68] rounded-full"></span>
                       Responsibilities
                     </h4>
-                    <ul className="list-disc pl-4 text-gray-700 text-xs space-y-1">
+                    <ul className="list-disc pl-4 text-gray-700 text-xs space-y-1 break-words">
                       {job.responsibilities.split(/,\s*/).map((item, idx) => (
                         <li key={idx}>{item.trim()}</li>
                       ))}
@@ -447,14 +499,13 @@ const JobPortal = ({ notification, setNotification }) => {
                 )}
                 {job.qualifications && (
                   <div
-                    className="flex-1 min-w-[120px] bg-gray-50 border border-gray-100 rounded-xl p-2"
-                    style={{ maxHeight: "90px", overflowY: "auto" }}
+                    className="flex-1 min-w-0 bg-gray-50 border border-gray-100 rounded-xl p-3 max-h-36 overflow-y-auto"
                   >
                     <h4 className="font-semibold text-[#013954] mb-1 flex items-center gap-2 text-xs">
                       <span className="w-2 h-2 bg-[#718B68] rounded-full"></span>
                       Qualifications
                     </h4>
-                    <ul className="list-disc pl-4 text-gray-700 text-xs space-y-1">
+                    <ul className="list-disc pl-4 text-gray-700 text-xs space-y-1 break-words">
                       {job.qualifications.split(/,\s*/).map((item, idx) => (
                         <li key={idx}>{item.trim()}</li>
                       ))}
@@ -465,8 +516,8 @@ const JobPortal = ({ notification, setNotification }) => {
             )}
           </div>
 
-          <div className="flex flex-col items-end gap-2 justify-between h-full">
-            <div className="text-right">
+          <div className="flex flex-row lg:flex-col items-start lg:items-end justify-between gap-3 lg:min-w-[130px]">
+            <div className="text-left lg:text-right">
               <div className="flex items-center gap-1 text-lg font-bold text-[#718B68] mb-1">
                 <p className="w-5 h-5" />
                 Rs {job.salary}
@@ -480,7 +531,8 @@ const JobPortal = ({ notification, setNotification }) => {
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-[#013954] text-white hover:bg-[#025373]"
                 }`}
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   if (!isApplied) {
                     handleApply(job._id, job.title);
                   } else if (setNotification) {
@@ -646,54 +698,6 @@ const JobPortal = ({ notification, setNotification }) => {
                 )}
               </div>
 
-              {/* Job Niche Filter */}
-              <div className="mb-6">
-                <div
-                  className="flex items-center justify-between cursor-pointer mb-2"
-                  onClick={() =>
-                    setFilterExpanded((f) => ({ ...f, niche: !f.niche }))
-                  }
-                >
-                  <h4 className="font-semibold text-[#013954]">Job Niche</h4>
-                  {filterExpanded.niche ? (
-                    <ChevronUp size={16} />
-                  ) : (
-                    <ChevronDown size={16} />
-                  )}
-                </div>
-                {filterExpanded.niche && (
-                  <div className="space-y-2 pl-1">
-                    {loadingNiches ? (
-                      <div className="text-xs text-gray-400">
-                        Loading niches...
-                      </div>
-                    ) : errorNiches ? (
-                      <div className="text-xs text-red-400">{errorNiches}</div>
-                    ) : jobNiches.length === 0 ? (
-                      <div className="text-xs text-gray-400">
-                        No niches found
-                      </div>
-                    ) : (
-                      jobNiches.map((niche) => (
-                        <label key={niche} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="jobNiche"
-                            value={niche}
-                            checked={selectedJobNiche === niche}
-                            onChange={(e) =>
-                              setSelectedJobNiche(e.target.value)
-                            }
-                            className="mr-2 accent-[#718B68]"
-                          />
-                          <span className="text-gray-700">{niche}</span>
-                        </label>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
-
               {/* Location Filter */}
               <div className="mb-6">
                 <div
@@ -755,6 +759,107 @@ const JobPortal = ({ notification, setNotification }) => {
 
           {/* Job Listings */}
           <div className="flex-grow">
+            {/* AI Resume Matcher */}
+            {isAuthenticated && user?.role === "Job Seeker" && (
+              <div className="mb-10 bg-white rounded-[17px] shadow-[0px_4px_26px_#0000001a] p-6 border border-gray-100">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-[#718B68] bg-opacity-10 rounded-lg">
+                      <Sparkles className="w-5 h-5 text-[#718B68]" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-[#013954]">
+                        AI Resume Match
+                      </h2>
+                      <p className="text-sm text-gray-500">
+                        Compare your resume against every job posting and see
+                        a match score for each.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={analyzeResumeMatch}
+                    disabled={analyzingResume}
+                    className="flex items-center gap-2 bg-[#013954] text-white font-medium px-5 py-2.5 rounded-lg hover:bg-[#025373] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {analyzingResume ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <Target className="w-4 h-4" />
+                        {hasAnalyzedResume
+                          ? "Re-analyze Resume"
+                          : "Match My Resume"}
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {analyzingResume && (
+                  <p className="text-xs text-gray-400 mt-3">
+                    First run can take a little longer while the matching
+                    model warms up.
+                  </p>
+                )}
+
+                {resumeAnalysisError && (
+                  <div className="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-200">
+                    {resumeAnalysisError}
+                  </div>
+                )}
+
+                {hasAnalyzedResume && !resumeAnalysisError && (
+                  <div className="mt-5 space-y-4">
+                    {resumeSkills.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase mb-2">
+                          Skills detected in your resume
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {resumeSkills.map((skill) => (
+                            <span
+                              key={skill}
+                              className="px-3 py-1 bg-[#718B68] bg-opacity-10 text-[#718B68] rounded-full text-xs font-medium border border-[#718B68] border-opacity-30 capitalize"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {recommendedJob ? (
+                      <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-[#013954] bg-opacity-5 border border-[#013954] border-opacity-20 rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <Sparkles className="w-5 h-5 text-[#013954]" />
+                          <div>
+                            <p className="text-sm text-gray-500">
+                              Your best match right now
+                            </p>
+                            <p className="font-bold text-[#013954]">
+                              {recommendedJob.title} at{" "}
+                              {recommendedJob.companyName}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="px-3 py-1.5 bg-[#013954] text-white rounded-full text-sm font-bold">
+                          {recommendedJob.score}% Match
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">
+                        No active jobs matched your resume yet. Check back
+                        once more jobs are posted.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Loading state for recommended jobs */}
             {isAuthenticated &&
               (loadingRecommended || loadingRecommended2) && ( // Only show if authenticated

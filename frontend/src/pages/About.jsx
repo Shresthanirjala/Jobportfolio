@@ -8,8 +8,7 @@ const AboutUs = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            About <span className="text-[#023854]">Career</span>
-            <span className="text-[#718B68]">Link</span>
+            About <span className="text-[#023854]">JobFinder</span>
           </h2>
           <div className="h-1 w-24 bg-[#718B68] mx-auto mb-6"></div>
           <p className="text-gray-600 max-w-2xl mx-auto">
@@ -25,7 +24,7 @@ const AboutUs = () => {
               Our Story
             </h3>
             <p className="text-gray-700 mb-4">
-              CareerLink was founded with a simple mission: to transform how job
+              JobFinder was founded with a simple mission: to transform how job
               seekers and employers connect. We recognized the frustration on
               both sides of the hiring process and set out to create a platform
               that makes meaningful employment connections possible.
@@ -61,7 +60,7 @@ const AboutUs = () => {
         {/* Why Choose Us */}
         <div className="mb-20">
           <h3 className="text-2xl font-bold text-[#023854] text-center mb-12">
-            Why Choose CareerLink
+            Why Choose JobFinder
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Card 1 */}

@@ -66,13 +66,14 @@ export const register = catchAsyncError(async (req, res, next) => {
   if (req.files && req.files.resume) {
     const resume = req.files.resume;
     try {
+      const resumeExtension = resume.name.split(".").pop().toLowerCase();
       const cloudinaryResponse = await cloudinary.uploader.upload(
         resume.tempFilePath,
         {
-          resource_type: "raw",
+          resource_type: resumeExtension === "pdf" ? "image" : "raw",
           folder: "Job_Seekers_Resume",
           public_id: resume.name.replace(/\.[^/.]+$/, ""),
-          format: "pdf",
+          format: resumeExtension,
         }
       );
 
@@ -114,6 +115,7 @@ export const login = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Invalid email or password.", 400));
   }
 
+  user.password = undefined;
   sendToken(user, 200, res, `${role} logged in successfully.`);
 });
 
@@ -174,12 +176,21 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
     const currentResumeId = req.user.resume?.public_id;
 
     if (currentResumeId) {
-      await cloudinary.uploader.destroy(currentResumeId);
+      const currentResumeExt = (req.user.resume?.url || "")
+        .split(".")
+        .pop()
+        .toLowerCase();
+      await cloudinary.uploader.destroy(currentResumeId, {
+        resource_type: currentResumeExt === "pdf" ? "image" : "raw",
+      });
     }
 
+    const resumeExtension = resume.name.split(".").pop().toLowerCase();
     const newResume = await cloudinary.uploader.upload(resume.tempFilePath, {
-      resource_type: "raw",
+      resource_type: resumeExtension === "pdf" ? "image" : "raw",
       folder: "Job_Seekers_Resume",
+      public_id: resume.name.replace(/\.[^/.]+$/, ""),
+      format: resumeExtension,
     });
 
     newUserData.resume = {
@@ -202,7 +213,7 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
 });
 
 export const updatePassword = catchAsyncError(async (req, res, next) => {
-  const user = await User.findById(req.user.id).select("password");
+  const user = await User.findById(req.user.id).select("+password");
   const isPasswordMatched = await bcrypt.compare(
     req.body.oldPassword,
     user.password
@@ -221,5 +232,6 @@ export const updatePassword = catchAsyncError(async (req, res, next) => {
   user.password = req.body.newPassword;
   await user.save();
 
+  user.password = undefined;
   sendToken(user, 200, res, "Password updated successfully.");
 });

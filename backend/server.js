@@ -61,9 +61,12 @@ mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log("Connected to MongoDB Successfully");
+    console.log("MongoDB URI:", process.env.MONGODB_URI); // Debugging line
   })
+ 
   .catch((err) => {
     console.error("Failed to connect to MongoDB:", err);
+      console.log("MongoDB URI:", process.env.MONGODB_URI); 
   });
 
 app.get("/", (req, res) => {

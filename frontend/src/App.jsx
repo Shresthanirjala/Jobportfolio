@@ -27,6 +27,7 @@ import PersonalInformation from "./pages/PersonalInformation";
 import ApplyForm from "./pages/ApplyForm";
 import AdminDashboard from "./pages/Admindashboard/Dashboard";
 import ChatbotBubble from "./components/ChatbotBubble";
+import { ChatProvider } from "./context/ChatContext";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -48,6 +49,7 @@ export default function App() {
   }
 
   return (
+    <ChatProvider>
     <Router>
       {/*  different navbars based on role */}
       {role === "employer" ? <EmployerNavbar /> : <Navbar />}
@@ -137,5 +139,6 @@ export default function App() {
       <Footer />
       <ChatbotBubble />
     </Router>
+    </ChatProvider>
   );
 }

@@ -1,0 +1,41 @@
+### Resume Analyzer API tests
+### Run the ML service and backend before sending these requests.
+### The backend is already using port 3000. Do not start a second backend process.
+
+@baseUrl = http://localhost:3000
+@mlUrl = http://127.0.0.1:5001
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhOWIwNjZmMTg0NjU5ZTExYzk2ZmVhMyIsImlhdCI6MTc4ODU0NDY5MywiZXhwIjoxNzg5MTQ5NDkzfQ.BAGvi-B9Co7wpDng-dbVhJuAKfj8u5thUL9cLNzEOI0
+@cvUrl = https://res.cloudinary.com/dhlgnymhy/image/upload/v1788544621/Job_Seekers_Resume/Santosh-Dahal-cv.pdf
+
+### 1. Check the ML service
+GET {{mlUrl}}/health
+
+### 2. Check the Node backend
+GET {{baseUrl}}/
+
+### 3. Log in as an existing Job Seeker
+POST {{baseUrl}}/api/v1/user/login
+Content-Type: application/json
+
+{
+	"email": "nirjalas44@gmail.com",
+	"role": "Job Seeker",
+	"password": "1234567890"
+}
+
+### Copy the token from the login response and replace @token above.
+
+### 4. Analyze the Cloudinary CV
+POST {{baseUrl}}/api/v1/job/analyze-resume
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+	"cvUrl": "{{cvUrl}}"
+}
+
+### Expected successful response:
+### {
+###   "skills": ["python", "react"],
+###   "matches": [{ "jobId": "...", "score": 85.3 }]
+### }

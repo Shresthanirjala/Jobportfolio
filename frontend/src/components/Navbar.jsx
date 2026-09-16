@@ -100,8 +100,7 @@ const Navbar = () => {
             <Briefcase className="h-6 w-6 text-white" />
           </div>
           <Link to="/" className="text-2xl font-bold">
-            <span className="text-[#023854]">Mero</span>
-            <span className="text-[#718B68]">Job</span>
+            <span className="text-[#023854]">JobFinder</span>
           </Link>
         </div>
 

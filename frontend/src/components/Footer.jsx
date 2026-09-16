@@ -17,8 +17,7 @@ const Footer = () => {
           {/* Company Section */}
           <div>
             <h2 className="text-2xl font-bold mb-4">
-              <span className="text-white">Career</span>
-              <span className="text-[#718B68]">Link</span>
+              <span className="text-white">JobFinder</span>
             </h2>
             <p className="text-gray-300">
               Your trusted partner in finding the perfect job match. We connect
@@ -113,7 +112,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-2">
                 <FaEnvelope className="text-[#718B68]" />
-                <span>contact@careerlink.com</span>
+                <span>contact@jobfinder.com</span>
               </li>
             </ul>
           </div>
@@ -124,7 +123,7 @@ const Footer = () => {
 
         {/* Footer Bottom */}
         <div className="md:flex md:justify-between items-center text-gray-400 text-sm">
-          <div>© Copyright 2024, Made by Nirjala Shrestha</div>
+          <div>© Copyright 2026, Made by Nirjala Shrestha</div>
           <div className="mt-4 md:mt-0">
             <ul className="flex flex-wrap justify-center md:justify-end gap-4">
               <li className="hover:text-[#718B68] transition-colors">

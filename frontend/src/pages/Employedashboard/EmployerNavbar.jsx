@@ -101,8 +101,7 @@ const EmployerNavbar = () => {
           </div>
 
           <div className="text-2xl font-bold cursor-pointer">
-            <span className="text-[#023854]">Career</span>
-            <span className="text-[#718B68]">Link</span>
+            <span className="text-[#023854]">JobFinder</span>
           </div>
         </div>
 

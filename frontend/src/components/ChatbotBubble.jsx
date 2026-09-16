@@ -1,33 +1,51 @@
 import { useState } from "react";
+import axios from "axios";
+import { BASE_URL } from "../config/config";
+import { useChatContext } from "../context/ChatContext";
 
-// Mock Chatbot component for demonstration
 function Chatbot() {
+  const { currentJob } = useChatContext();
   const [messages, setMessages] = useState([
-    { id: 1, text: "Hello! How can I help you today?", sender: "bot" },
+    {
+      id: 1,
+      text: "Hello! I'm the Job Portfolio assistant. Ask me about open positions, how to apply, or anything about the job you're viewing.",
+      sender: "bot",
+    },
   ]);
   const [inputValue, setInputValue] = useState("");
+  const [sending, setSending] = useState(false);
 
-  const sendMessage = () => {
-    if (inputValue.trim()) {
-      const newMessage = {
-        id: Date.now(),
-        text: inputValue,
-        sender: "user",
-      };
-      setMessages([...messages, newMessage]);
-      setInputValue("");
+  const sendMessage = async () => {
+    const text = inputValue.trim();
+    if (!text || sending) return;
 
-      // Simulate bot response
-      setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now() + 1,
-            text: "Thanks for your message! This is a demo response.",
-            sender: "bot",
-          },
-        ]);
-      }, 1000);
+    setMessages((prev) => [
+      ...prev,
+      { id: Date.now(), text, sender: "user" },
+    ]);
+    setInputValue("");
+    setSending(true);
+
+    try {
+      const res = await axios.post(`${BASE_URL}/api/v1/chatbot/chat`, {
+        message: text,
+        jobId: currentJob?._id,
+      });
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now() + 1, text: res.data.reply, sender: "bot" },
+      ]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          text: "Sorry, I couldn't reach the chatbot right now. Please try again.",
+          sender: "bot",
+        },
+      ]);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -41,7 +59,9 @@ function Chatbot() {
           </div>
           <div>
             <h3 className="font-semibold text-sm">Chat Assistant</h3>
-            <p className="text-xs text-white text-opacity-80">Online now</p>
+            <p className="text-xs text-white text-opacity-80">
+              {currentJob ? `Asking about: ${currentJob.title}` : "Online now"}
+            </p>
           </div>
         </div>
       </div>
@@ -59,7 +79,7 @@ function Chatbot() {
             }`}
           >
             <div
-              className={`max-w-[80%] p-3 rounded-2xl text-sm ${
+              className={`max-w-[80%] p-3 rounded-2xl text-sm whitespace-pre-wrap ${
                 message.sender === "user"
                   ? "bg-[#718B68] text-white rounded-br-md"
                   : "bg-white text-gray-800 shadow-sm rounded-bl-md border"
@@ -69,6 +89,13 @@ function Chatbot() {
             </div>
           </div>
         ))}
+        {sending && (
+          <div className="flex justify-start">
+            <div className="max-w-[80%] p-3 rounded-2xl text-sm bg-white text-gray-400 shadow-sm rounded-bl-md border">
+              Typing...
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Input Area */}
@@ -80,11 +107,13 @@ function Chatbot() {
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && sendMessage()}
             placeholder="Type your message..."
-            className="flex-1 p-2 border border-gray-200 rounded-full px-4 focus:outline-none focus:border-[#718B68] focus:ring-2 focus:ring-[#718B68] focus:ring-opacity-20 text-sm"
+            disabled={sending}
+            className="flex-1 p-2 border border-gray-200 rounded-full px-4 focus:outline-none focus:border-[#718B68] focus:ring-2 focus:ring-[#718B68] focus:ring-opacity-20 text-sm disabled:opacity-60"
           />
           <button
             onClick={sendMessage}
-            className="bg-[#718B68] text-white p-2 rounded-full hover:bg-[#5a7355] transition-colors duration-200 flex items-center justify-center min-w-[36px]"
+            disabled={sending}
+            className="bg-[#718B68] text-white p-2 rounded-full hover:bg-[#5a7355] transition-colors duration-200 flex items-center justify-center min-w-[36px] disabled:opacity-60"
           >
             <svg
               width="16"
